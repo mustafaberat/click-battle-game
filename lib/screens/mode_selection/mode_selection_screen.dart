@@ -14,12 +14,12 @@ class ModeSelectionScreen extends StatefulWidget {
 class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   GameMode selectedMode = GameMode.timeLimit;
   PlayerMode selectedPlayerMode = PlayerMode.twoPlayer;
-  int selectedTimeLimit = 60; // Default 60 seconds
-  int selectedScoreLimit = 100; // Default 100 clicks
+  int selectedTimeLimit = 10; // Default 60 seconds
+  int selectedScoreLimit = 10; // Default 100 clicks
   int selectedDifficulty = 2; // Default normal difficulty (1=easy, 2=normal, 3=hard)
 
-  final List<int> timeLimits = [30, 60, 120, 180]; // in seconds
-  final List<int> scoreLimits = [50, 100, 200, 500];
+  final List<int> timeLimits = [10, 30, 60]; // in seconds
+  final List<int> scoreLimits = [10, 50,100];
 
   void _startGame() {
     Navigator.pushNamed(

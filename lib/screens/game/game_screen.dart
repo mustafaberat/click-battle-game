@@ -28,6 +28,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   int remainingSeconds = 0;
   Timer? gameTimer;
   Timer? countdownTimer;
+  Timer? _robotTimer;
 
   // Animation controllers
   late AnimationController _colorAnimationController;
@@ -68,10 +69,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
     // Click effect animation
     _clickEffectController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _clickEffectAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _clickEffectAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _clickEffectController,
         curve: Curves.easeOut,
@@ -100,8 +101,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               });
             });
           }
+
+          // Start robot clicks in single player mode
+          if (isSinglePlayer && isGameStarted) {
+            _startRobotClicks();
+          }
         }
       });
+    });
+  }
+
+  void _startRobotClicks() {
+    // Calculate click interval based on difficulty
+    final interval = 1000 ~/ difficulty; // 1000ms / difficulty for clicks per second
+    _robotTimer = Timer.periodic(Duration(milliseconds: interval), (timer) {
+      if (!gameEnded && isGameStarted) {
+        // Simulate robot click at center of top half
+        final robotClickPosition = Offset(
+          MediaQuery.of(context).size.width / 2,
+          MediaQuery.of(context).size.height / 4,
+        );
+        _updateScore(false, robotClickPosition);
+      } else {
+        _robotTimer?.cancel();
+      }
     });
   }
 
@@ -109,6 +132,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void dispose() {
     gameTimer?.cancel();
     countdownTimer?.cancel();
+    _robotTimer?.cancel();
     _colorAnimationController.dispose();
     _clickEffectController.dispose();
     super.dispose();
@@ -167,34 +191,25 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: isTimeMode 
-          ? Text(
-              isGameStarted 
-                ? _formatTime(remainingSeconds)
-                : 'Starting in $countdownSeconds',
-              style: GameStyles.timerText,
-            )
-          : Text('Score to win: $scoreLimit'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
       body: Stack(
         children: [
           // Animated color split background
           AnimatedBuilder(
             animation: _colorAnimation,
             builder: (context, child) {
-              return Row(
+              return Column(
                 children: [
-                  Expanded(
-                    flex: (_colorAnimation.value * 100).round(),
-                    child: Container(color: Colors.blue[700]),
-                  ),
                   Expanded(
                     flex: ((1 - _colorAnimation.value) * 100).round(),
                     child: Container(color: Colors.red[700]),
+                  ),
+                  Container(
+                    height: 1, // Thin white line
+                    color: Colors.white,
+                  ),
+                  Expanded(
+                    flex: (_colorAnimation.value * 100).round(),
+                    child: Container(color: Colors.blue[700]),
                   ),
                 ],
               );
@@ -215,66 +230,97 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 );
               },
             ),
+          // Timer overlay
+          Positioned(
+            left: 16,
+            top: MediaQuery.of(context).size.height / 2 - 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isTimeMode 
+                  ? (isGameStarted 
+                      ? _formatTime(remainingSeconds)
+                      : countdownSeconds.toString())
+                  : '$scoreLimit',
+                style: GameStyles.timerText,
+              ),
+            ),
+          ),
           // Game content
-          Row(
-            children: [
-              // Player 1 side
-              Expanded(
-                child: GestureDetector(
-                  onTapDown: (details) => _updateScore(true, details.globalPosition),
-                  child: Container(
+          AbsorbPointer(
+            absorbing: !isGameStarted,
+            child: Column(
+              children: [
+                // Player 2 (top) / Robot
+                Expanded(
+                  child: Material(
                     color: Colors.transparent,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isSinglePlayer ? 'Player' : 'Player 1',
-                          style: GameStyles.playerName,
+                    child: InkWell(
+                      onTapDown: isSinglePlayer ? null : (details) => _updateScore(false, details.globalPosition),
+                      child: Container(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isSinglePlayer ? Icons.smart_toy : Icons.person,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              player2Score.toString(),
+                              style: GameStyles.scoreText,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          player1Score.toString(),
-                          style: GameStyles.scoreText,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Center divider
-              Container(
-                width: 2,
-                color: Colors.white.withOpacity(0.5),
-              ),
-              // Player 2 side
-              Expanded(
-                child: GestureDetector(
-                  onTapDown: (details) => _updateScore(false, details.globalPosition),
-                  child: Container(
+                // Center divider
+                Container(
+                  height: 2,
+                  color: Colors.white.withOpacity(0.5),
+                ),
+                // Player 1 (bottom)
+                Expanded(
+                  child: Material(
                     color: Colors.transparent,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isSinglePlayer ? 'Computer' : 'Player 2',
-                          style: GameStyles.playerName,
+                    child: InkWell(
+                      onTapDown: (details) => _updateScore(true, details.globalPosition),
+                      child: Container(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              player1Score.toString(),
+                              style: GameStyles.scoreText,
+                            ),
+                            const SizedBox(height: 12),
+                            const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          player2Score.toString(),
-                          style: GameStyles.scoreText,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           // Countdown overlay
           if (!isGameStarted)
             Container(
-              color: Colors.black54,
+              color: Colors.black26,
               child: Center(
                 child: Text(
                   countdownSeconds.toString(),
@@ -282,45 +328,31 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
-          // Winner overlay
+          // Game over overlay
           if (gameEnded)
-            TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 500),
-              tween: Tween(begin: 0.0, end: 1.0),
-              builder: (context, value, child) {
-                return Container(
-                  color: Colors.black.withOpacity(0.5 * value),
-                  child: Transform.scale(
-                    scale: value,
-                    child: child,
-                  ),
-                );
-              },
+            Container(
+              color: Colors.black54,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Winner!',
-                      style: GameStyles.titleText,
+                      'Game Over!',
+                      style: GameStyles.gameOverText,
                     ),
                     const SizedBox(height: 20),
                     Text(
                       player1Score > player2Score 
-                        ? (isSinglePlayer ? 'Player' : 'Player 1') 
-                        : (isSinglePlayer ? 'Computer' : 'Player 2'),
+                        ? 'Player 1 Wins!'
+                        : player2Score > player1Score
+                          ? 'Player 2 Wins!'
+                          : 'It\'s a Tie!',
                       style: GameStyles.winnerText,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Final Score: $player1Score - $player2Score',
-                      style: GameStyles.scoreText,
                     ),
                     const SizedBox(height: 40),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
-                      style: GameStyles.buttonStyle,
-                      child: const Text('Play Again'),
+                      child: const Text('Back to Menu'),
                     ),
                   ],
                 ),
@@ -346,25 +378,17 @@ class ClickEffectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity((1 - progress) * 0.3)
+      ..color = color.withOpacity(progress * 0.1) // Even more subtle opacity
       ..style = PaintingStyle.fill;
 
-    final radius = progress * 100.0;
+    final radius = progress * 0.1; // Tiny radius, fingertip size
     canvas.drawCircle(position, radius, paint);
-
-    // Draw ripple effect
-    final ripplePaint = Paint()
-      ..color = color.withOpacity((1 - progress) * 0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    canvas.drawCircle(position, radius * 1.2, ripplePaint);
   }
 
   @override
-  bool shouldRepaint(covariant ClickEffectPainter oldDelegate) {
-    return position != oldDelegate.position ||
-           progress != oldDelegate.progress ||
-           color != oldDelegate.color;
+  bool shouldRepaint(ClickEffectPainter oldDelegate) {
+    return oldDelegate.position != position ||
+           oldDelegate.progress != progress ||
+           oldDelegate.color != color;
   }
 } 

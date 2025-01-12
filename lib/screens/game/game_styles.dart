@@ -88,4 +88,16 @@ class GameStyles {
   static const EdgeInsets padding = EdgeInsets.all(16);
   static const double spacing = 20;
   static const double dividerHeight = 2;
+
+  static TextStyle get gameOverText => AppTextStyles.title.copyWith(
+    color: Colors.white,
+    fontSize: 48,
+    shadows: [
+      Shadow(
+        color: Colors.red,
+        blurRadius: 15,
+        offset: Offset(0, 0),
+      ),
+    ],
+  );
 } 
