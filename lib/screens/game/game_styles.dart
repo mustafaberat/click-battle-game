@@ -2,102 +2,110 @@ import 'package:flutter/material.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
 class GameStyles {
-  static TextStyle get difficultyText => AppTextStyles.heading;
-  static TextStyle get playerName => AppTextStyles.heading;
-  static TextStyle get scoreText => const TextStyle(
+  static TextStyle difficultyText(BuildContext context) => AppTextStyles.heading(context);
+  static TextStyle playerName(BuildContext context) => AppTextStyles.heading(context);
+  static TextStyle scoreText(BuildContext context) => TextStyle(
     color: Colors.white,
-    fontSize: 32,
+    fontSize: AppDimensions.headingFontSize(context),
     fontWeight: FontWeight.bold,
   );
-  static TextStyle get cpsText => AppTextStyles.body.copyWith(
+  static TextStyle cpsText(BuildContext context) => AppTextStyles.body(context).copyWith(
     color: Colors.white70,
-    fontSize: 18,
+    fontSize: AppDimensions.bodyFontSize(context) * 1.125,
   );
 
   // Timer styles
-  static TextStyle get timerText => AppTextStyles.heading.copyWith(
-    fontSize: 28,
+  static TextStyle timerText(BuildContext context) => AppTextStyles.heading(context).copyWith(
+    fontSize: AppDimensions.headingFontSize(context) * 1.17,
     color: Colors.white,
     fontWeight: FontWeight.bold,
   );
 
-  static TextStyle get countdownText => const TextStyle(
+  static TextStyle countdownText(BuildContext context) => TextStyle(
     color: Colors.white,
-    fontSize: 72,
+    fontSize: AppDimensions.titleFontSize(context) * 1.5,
     fontWeight: FontWeight.bold,
     shadows: [
       Shadow(
         color: Colors.blue,
-        blurRadius: 20,
-        offset: Offset(0, 0),
+        blurRadius: AppDimensions.borderRadius(context),
+        offset: const Offset(0, 0),
       ),
     ],
   );
 
   // Winner styles
-  static TextStyle get titleText => AppTextStyles.title.copyWith(
+  static TextStyle titleText(BuildContext context) => AppTextStyles.title(context).copyWith(
     color: Colors.white,
     shadows: [
       Shadow(
         color: Colors.blue,
-        blurRadius: 10,
-        offset: Offset(0, 0),
+        blurRadius: AppDimensions.borderRadius(context) * 0.5,
+        offset: const Offset(0, 0),
       ),
     ],
   );
 
-  static TextStyle get winnerText => AppTextStyles.heading.copyWith(
-    fontSize: 36,
+  static TextStyle winnerText(BuildContext context) => AppTextStyles.heading(context).copyWith(
+    fontSize: AppDimensions.headingFontSize(context) * 1.5,
     color: Colors.white,
     shadows: [
       Shadow(
         color: Colors.green[400]!,
-        blurRadius: 10,
-        offset: Offset(0, 0),
+        blurRadius: AppDimensions.borderRadius(context) * 0.5,
+        offset: const Offset(0, 0),
       ),
     ],
   );
 
-  static ButtonStyle get buttonStyle => ElevatedButton.styleFrom(
+  static TextStyle gameOverText(BuildContext context) => AppTextStyles.title(context).copyWith(
+    color: Colors.white,
+    fontSize: AppDimensions.titleFontSize(context),
+    shadows: [
+      Shadow(
+        color: Colors.red,
+        blurRadius: AppDimensions.borderRadius(context) * 0.75,
+        offset: const Offset(0, 0),
+      ),
+    ],
+  );
+
+  static ButtonStyle buttonStyle(BuildContext context) => ElevatedButton.styleFrom(
     backgroundColor: AppColors.accent,
-    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-    textStyle: AppTextStyles.button,
+    padding: EdgeInsets.symmetric(
+      horizontal: AppDimensions.padding(context) * 2.5,
+      vertical: AppDimensions.padding(context) * 1.25,
+    ),
+    textStyle: AppTextStyles.button(context),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
     ),
   );
 
-  static BoxDecoration clickAreaDecoration(Color color) => BoxDecoration(
+  static BoxDecoration clickAreaDecoration(BuildContext context, Color color) => BoxDecoration(
     shape: BoxShape.circle,
     color: color.withOpacity(0.3),
     border: Border.all(
       color: Colors.white.withOpacity(0.5),
-      width: 2,
+      width: AppDimensions.borderRadius(context) * 0.067,
     ),
     boxShadow: [
       BoxShadow(
         color: color.withOpacity(0.3),
-        blurRadius: 10,
-        spreadRadius: 5,
+        blurRadius: AppDimensions.borderRadius(context) * 0.33,
+        spreadRadius: AppDimensions.borderRadius(context) * 0.167,
       ),
     ],
   );
 
-  static const double clickAreaSize = 200;
-  static const double iconSize = 64;
-  static const EdgeInsets padding = EdgeInsets.all(16);
-  static const double spacing = 20;
-  static const double dividerHeight = 2;
-
-  static TextStyle get gameOverText => AppTextStyles.title.copyWith(
-    color: Colors.white,
-    fontSize: 48,
-    shadows: [
-      Shadow(
-        color: Colors.red,
-        blurRadius: 15,
-        offset: Offset(0, 0),
-      ),
-    ],
-  );
+  static double clickAreaSize(BuildContext context) => 
+      MediaQuery.of(context).size.width * 0.5;
+  static double iconSize(BuildContext context) => 
+      MediaQuery.of(context).size.width * 0.16;
+  static EdgeInsets padding(BuildContext context) => 
+      EdgeInsets.all(AppDimensions.padding(context));
+  static double spacing(BuildContext context) => 
+      AppDimensions.spacing(context);
+  static double dividerHeight(BuildContext context) => 
+      AppDimensions.borderRadius(context) * 0.067;
 } 

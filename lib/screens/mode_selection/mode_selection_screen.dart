@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/screens/game/game_styles.dart';
 
 enum GameMode { timeLimit, scoreLimit }
 enum PlayerMode { singlePlayer, twoPlayer }
@@ -37,27 +38,32 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Game Mode'),
+        title: Text(
+          'Game Mode',
+          style: AppTextStyles.heading(context),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Container(
         decoration: AppDecorations.gradientBackground,
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(AppDimensions.padding(context)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Player Mode Selection
                 Text(
                   'Select Players',
-                  style: AppTextStyles.heading,
+                  style: AppTextStyles.heading(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppDimensions.spacing(context)),
                 Row(
                   children: [
                     Expanded(
@@ -68,7 +74,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         onTap: () => setState(() => selectedPlayerMode = PlayerMode.singlePlayer),
                       ),
                     ),
-                    const SizedBox(width: 20),
+                    SizedBox(width: AppDimensions.spacing(context)),
                     Expanded(
                       child: _buildModeButton(
                         'Two Players',
@@ -79,15 +85,15 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: AppDimensions.spacing(context) * 1.5),
 
                 // Game Mode Selection
                 Text(
                   'Select Game Mode',
-                  style: AppTextStyles.heading,
+                  style: AppTextStyles.heading(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppDimensions.spacing(context)),
                 Row(
                   children: [
                     Expanded(
@@ -98,7 +104,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         onTap: () => setState(() => selectedMode = GameMode.timeLimit),
                       ),
                     ),
-                    const SizedBox(width: 20),
+                    SizedBox(width: AppDimensions.spacing(context)),
                     Expanded(
                       child: _buildModeButton(
                         'Score Limit',
@@ -109,20 +115,20 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: AppDimensions.spacing(context) * 1.5),
 
                 // Limit Selection
                 Text(
                   selectedMode == GameMode.timeLimit
                       ? 'Select Time Limit'
                       : 'Select Score Target',
-                  style: AppTextStyles.heading,
+                  style: AppTextStyles.heading(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppDimensions.spacing(context)),
                 Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
+                  spacing: AppDimensions.spacing(context) * 0.5,
+                  runSpacing: AppDimensions.spacing(context) * 0.5,
                   alignment: WrapAlignment.center,
                   children: selectedMode == GameMode.timeLimit
                       ? timeLimits.map((time) => _buildLimitButton(
@@ -139,13 +145,13 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
                 // Difficulty Selection (Single Player Only)
                 if (selectedPlayerMode == PlayerMode.singlePlayer) ...[
-                  const SizedBox(height: 30),
+                  SizedBox(height: AppDimensions.spacing(context) * 1.5),
                   Text(
                     'Select Difficulty',
-                    style: AppTextStyles.heading,
+                    style: AppTextStyles.heading(context),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: AppDimensions.spacing(context)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -154,13 +160,13 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         selectedDifficulty == 1,
                         () => setState(() => selectedDifficulty = 1),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: AppDimensions.spacing(context) * 0.5),
                       _buildLimitButton(
                         'Normal',
                         selectedDifficulty == 2,
                         () => setState(() => selectedDifficulty = 2),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: AppDimensions.spacing(context) * 0.5),
                       _buildLimitButton(
                         'Hard',
                         selectedDifficulty == 3,
@@ -170,23 +176,21 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                   ),
                 ],
 
-                const Spacer(),
+                SizedBox(height: AppDimensions.spacing(context) * 2),
 
                 // Start Button
-                ElevatedButton(
-                  onPressed: _startGame,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                SizedBox(
+                  height: AppDimensions.buttonHeight(context),
+                  child: ElevatedButton(
+                    onPressed: _startGame,
+                    style: GameStyles.buttonStyle(context),
+                    child: Text(
+                      'Start Game',
+                      style: AppTextStyles.button(context),
                     ),
                   ),
-                  child: Text(
-                    'Start Game',
-                    style: AppTextStyles.button,
-                  ),
                 ),
+                SizedBox(height: AppDimensions.spacing(context)),
               ],
             ),
           ),
@@ -199,10 +203,11 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final screenSize = MediaQuery.of(context).size;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: EdgeInsets.symmetric(vertical: AppDimensions.padding(context)),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isSelected
@@ -211,13 +216,13 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
           boxShadow: isSelected
               ? [
                   BoxShadow(
                     color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2,
+                    blurRadius: AppDimensions.borderRadius(context) * 0.5,
+                    spreadRadius: AppDimensions.borderRadius(context) * 0.1,
                   )
                 ]
               : [],
@@ -228,12 +233,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             Icon(
               icon,
               color: Colors.white,
-              size: 32,
+              size: screenSize.width * 0.08,
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: AppDimensions.spacing(context) * 0.5),
             Text(
               text,
-              style: AppTextStyles.button,
+              style: AppTextStyles.button(context),
             ),
           ],
         ),
@@ -245,7 +250,10 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppDimensions.padding(context) * 1.5,
+          vertical: AppDimensions.padding(context) * 0.75,
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isSelected
@@ -254,22 +262,20 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
           boxShadow: isSelected
               ? [
                   BoxShadow(
                     color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: 8,
-                    spreadRadius: 1,
+                    blurRadius: AppDimensions.borderRadius(context) * 0.5,
+                    spreadRadius: AppDimensions.borderRadius(context) * 0.1,
                   )
                 ]
               : [],
         ),
         child: Text(
           text,
-          style: AppTextStyles.button.copyWith(
-            fontSize: 18,
-          ),
+          style: AppTextStyles.button(context),
         ),
       ),
     );

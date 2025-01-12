@@ -2,30 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
 class HomeStyles {
-  static BoxDecoration get titleContainer => BoxDecoration(
+  static BoxDecoration titleContainer(BuildContext context) => BoxDecoration(
     color: Colors.white.withOpacity(0.1),
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
     boxShadow: [
       BoxShadow(
         color: Colors.white.withOpacity(0.1),
-        blurRadius: 20,
-        spreadRadius: 5,
+        blurRadius: AppDimensions.borderRadius(context),
+        spreadRadius: AppDimensions.padding(context),
       ),
     ],
   );
 
-  static TextStyle get titleText => AppTextStyles.title.copyWith(
+  static TextStyle titleText(BuildContext context) => AppTextStyles.title(context).copyWith(
     shadows: [
-      const Shadow(
+      Shadow(
         color: Colors.blue,
-        blurRadius: 20,
-        offset: Offset(0, 0),
+        blurRadius: AppDimensions.borderRadius(context),
+        offset: const Offset(0, 0),
       ),
     ],
   );
 
-  static BoxDecoration buttonDecoration(Color color) => BoxDecoration(
-    borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+  static BoxDecoration buttonDecoration(BuildContext context, Color color) => BoxDecoration(
+    borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
     gradient: LinearGradient(
       colors: [
         color,
@@ -37,18 +37,20 @@ class HomeStyles {
     boxShadow: [
       BoxShadow(
         color: color.withOpacity(0.3),
-        blurRadius: 10,
-        spreadRadius: 2,
+        blurRadius: AppDimensions.padding(context),
+        spreadRadius: AppDimensions.padding(context) * 0.2,
       ),
     ],
   );
 
-  static const EdgeInsets titlePadding = EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 10,
+  static EdgeInsets titlePadding(BuildContext context) => EdgeInsets.symmetric(
+    horizontal: AppDimensions.padding(context) * 1.25,
+    vertical: AppDimensions.padding(context) * 0.625,
   );
 
-  static const double backgroundCircleSize = 20;
-  static const double backgroundLineWidth = 2;
+  static double backgroundCircleSize(BuildContext context) => 
+      MediaQuery.of(context).size.width * 0.05;
+  static double backgroundLineWidth(BuildContext context) => 
+      MediaQuery.of(context).size.width * 0.005;
   static const double backgroundOpacity = 0.1;
 } 

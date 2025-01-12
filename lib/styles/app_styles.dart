@@ -21,25 +21,25 @@ class AppGradients {
 }
 
 class AppTextStyles {
-  static const title = TextStyle(
-    fontSize: 48,
+  static TextStyle title(BuildContext context) => TextStyle(
+    fontSize: AppDimensions.titleFontSize(context),
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
 
-  static const heading = TextStyle(
-    fontSize: 24,
+  static TextStyle heading(BuildContext context) => TextStyle(
+    fontSize: AppDimensions.headingFontSize(context),
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
 
-  static const body = TextStyle(
-    fontSize: 16,
+  static TextStyle body(BuildContext context) => TextStyle(
+    fontSize: AppDimensions.bodyFontSize(context),
     color: Colors.white,
   );
 
-  static const button = TextStyle(
-    fontSize: 20,
+  static TextStyle button(BuildContext context) => TextStyle(
+    fontSize: AppDimensions.buttonFontSize(context),
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
@@ -58,9 +58,14 @@ class AppDecorations {
 }
 
 class AppDimensions {
-  static const double buttonHeight = 60;
-  static const double buttonWidth = 220;
-  static const double borderRadius = 30;
-  static const double padding = 16;
-  static const double spacing = 20;
+  static double buttonHeight(BuildContext context) => MediaQuery.of(context).size.height * 0.08;
+  static double buttonWidth(BuildContext context) => MediaQuery.of(context).size.width * 0.6;
+  static double borderRadius(BuildContext context) => MediaQuery.of(context).size.width * 0.08;
+  static double padding(BuildContext context) => MediaQuery.of(context).size.width * 0.04;
+  static double spacing(BuildContext context) => MediaQuery.of(context).size.height * 0.03;
+  
+  static double titleFontSize(BuildContext context) => MediaQuery.of(context).size.width * 0.12;
+  static double headingFontSize(BuildContext context) => MediaQuery.of(context).size.width * 0.06;
+  static double bodyFontSize(BuildContext context) => MediaQuery.of(context).size.width * 0.04;
+  static double buttonFontSize(BuildContext context) => MediaQuery.of(context).size.width * 0.05;
 } 

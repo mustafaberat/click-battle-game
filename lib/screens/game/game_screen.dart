@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
+import 'package:clickbattle/styles/app_styles.dart';
 import 'dart:async';
+import 'dart:math' show max;
 
 class GameScreen extends StatefulWidget {
   final Map<String, dynamic> gameArgs;
@@ -190,6 +192,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final iconSize = screenSize.width * 0.08;
+    final spacingSize = screenSize.height * 0.02;
+    final fontSize = screenSize.width * 0.06;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -204,7 +211,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     child: Container(color: Colors.red[700]),
                   ),
                   Container(
-                    height: 1, // Thin white line
+                    height: 1,
                     color: Colors.white,
                   ),
                   Expanded(
@@ -230,23 +237,85 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 );
               },
             ),
-          // Timer overlay
+          // Timer overlay (left)
           Positioned(
-            left: 16,
-            top: MediaQuery.of(context).size.height / 2 - 20,
+            left: screenSize.width * 0.04,
+            top: screenSize.height * 0.5 - (screenSize.height * 0.04),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.padding(context),
+                vertical: AppDimensions.padding(context) * 0.5,
+              ),
               decoration: BoxDecoration(
                 color: Colors.black54,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: Text(
-                isTimeMode 
-                  ? (isGameStarted 
-                      ? _formatTime(remainingSeconds)
-                      : countdownSeconds.toString())
-                  : '$scoreLimit',
-                style: GameStyles.timerText,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isTimeMode ? Icons.timer : Icons.touch_app,
+                    size: iconSize * 0.8,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: AppDimensions.padding(context) * 0.5),
+                  Text(
+                    isTimeMode 
+                      ? (isGameStarted 
+                          ? _formatTime(remainingSeconds)
+                          : countdownSeconds.toString())
+                      : '${scoreLimit - max(player1Score, player2Score)}',
+                    style: GameStyles.timerText(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Score overlay (right)
+          Positioned(
+            right: screenSize.width * 0.04,
+            top: screenSize.height * 0.5 - (screenSize.height * 0.04),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.padding(context),
+                vertical: AppDimensions.padding(context) * 0.5,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isSinglePlayer ? Icons.person : Icons.person,
+                    size: iconSize * 0.8,
+                    color: Colors.blue[700],
+                  ),
+                  SizedBox(width: AppDimensions.padding(context) * 0.5),
+                  Text(
+                    player1Score.toString(),
+                    style: GameStyles.scoreText(context).copyWith(
+                      color: Colors.blue[700],
+                    ),
+                  ),
+                  Text(
+                    ' - ',
+                    style: GameStyles.scoreText(context),
+                  ),
+                  Text(
+                    player2Score.toString(),
+                    style: GameStyles.scoreText(context).copyWith(
+                      color: Colors.red[700],
+                    ),
+                  ),
+                  SizedBox(width: AppDimensions.padding(context) * 0.5),
+                  Icon(
+                    isSinglePlayer ? Icons.smart_toy : Icons.person,
+                    size: iconSize * 0.8,
+                    color: Colors.red[700],
+                  ),
+                ],
               ),
             ),
           ),
@@ -263,20 +332,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       onTapDown: isSinglePlayer ? null : (details) => _updateScore(false, details.globalPosition),
                       child: Container(
                         width: double.infinity,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isSinglePlayer ? Icons.smart_toy : Icons.person,
-                              size: 40,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              player2Score.toString(),
-                              style: GameStyles.scoreText,
-                            ),
-                          ],
+                        child: Center(
+                          child: Icon(
+                            isSinglePlayer ? Icons.smart_toy : Icons.person,
+                            size: iconSize,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -284,8 +345,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
                 // Center divider
                 Container(
-                  height: 2,
-                  color: Colors.white.withOpacity(0.5),
+                  height: 1,
+                  color: Colors.white,
                 ),
                 // Player 1 (bottom)
                 Expanded(
@@ -295,20 +356,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       onTapDown: (details) => _updateScore(true, details.globalPosition),
                       child: Container(
                         width: double.infinity,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              player1Score.toString(),
-                              style: GameStyles.scoreText,
-                            ),
-                            const SizedBox(height: 12),
-                            const Icon(
-                              Icons.person,
-                              size: 40,
-                              color: Colors.white,
-                            ),
-                          ],
+                        child: Center(
+                          child: Icon(
+                            Icons.person,
+                            size: iconSize,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -324,7 +377,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               child: Center(
                 child: Text(
                   countdownSeconds.toString(),
-                  style: GameStyles.countdownText,
+                  style: GameStyles.countdownText(context),
                 ),
               ),
             ),
@@ -338,21 +391,29 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   children: [
                     Text(
                       'Game Over!',
-                      style: GameStyles.gameOverText,
+                      style: GameStyles.gameOverText(context),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppDimensions.spacing(context) * 2),
                     Text(
                       player1Score > player2Score 
-                        ? 'Player 1 Wins!'
+                        ? (isSinglePlayer ? 'You Win!' : 'Player 1 Wins!')
                         : player2Score > player1Score
-                          ? 'Player 2 Wins!'
+                          ? (isSinglePlayer ? 'Robot Wins!' : 'Player 2 Wins!')
                           : 'It\'s a Tie!',
-                      style: GameStyles.winnerText,
+                      style: GameStyles.winnerText(context),
                     ),
-                    const SizedBox(height: 40),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Back to Menu'),
+                    SizedBox(height: AppDimensions.spacing(context) * 3),
+                    SizedBox(
+                      width: screenSize.width * 0.4,
+                      height: AppDimensions.buttonHeight(context),
+                      child: ElevatedButton(
+                        style: GameStyles.buttonStyle(context),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Back to Menu',
+                          style: AppTextStyles.button(context),
+                        ),
+                      ),
                     ),
                   ],
                 ),
