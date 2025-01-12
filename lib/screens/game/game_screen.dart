@@ -162,7 +162,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _isPlayer1Click = isPlayer1;
 
       // Calculate new color ratio (fixed to match click side)
-      double newRatio = player1Score / (player1Score + player2Score);
+      // Add a small offset to prevent division by zero and extreme ratios
+      double totalScore = (player1Score + player2Score).toDouble();
+      double newRatio = totalScore > 0 
+          ? player1Score.toDouble() / totalScore
+          : 0.5;
+      
+      // Limit the ratio change per click
+      double maxChange = 0.1; // Maximum 10% change per click
+      newRatio = colorRatio + (newRatio - colorRatio).clamp(-maxChange, maxChange);
       
       // Update color animation
       _colorAnimation = Tween<double>(
@@ -239,52 +247,41 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             ),
           // Timer overlay (left)
           Positioned(
-            left: screenSize.width * 0.04,
-            top: screenSize.height * 0.5 - (screenSize.height * 0.04),
+            left: screenSize.width * 0.02,
+            top: screenSize.height * 0.5 - (screenSize.height * 0.05),
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context),
+                horizontal: AppDimensions.padding(context) * 0.75,
                 vertical: AppDimensions.padding(context) * 0.5,
               ),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isTimeMode ? Icons.timer : Icons.touch_app,
-                    size: iconSize * 0.8,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: AppDimensions.padding(context) * 0.5),
-                  Text(
-                    isTimeMode 
-                      ? (isGameStarted 
-                          ? _formatTime(remainingSeconds)
-                          : countdownSeconds.toString())
-                      : '${scoreLimit - max(player1Score, player2Score)}',
-                    style: GameStyles.timerText(context),
-                  ),
-                ],
+              child: Text(
+                isTimeMode 
+                  ? (isGameStarted 
+                      ? _formatTime(remainingSeconds)
+                      : countdownSeconds.toString())
+                  : '${scoreLimit - max(player1Score, player2Score)}',
+                style: GameStyles.timerText(context),
               ),
             ),
           ),
           // Score overlay (right)
           Positioned(
-            right: screenSize.width * 0.04,
-            top: screenSize.height * 0.5 - (screenSize.height * 0.04),
+            right: screenSize.width * 0.02,
+            top: screenSize.height * 0.5 - (screenSize.height * 0.15),
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context),
-                vertical: AppDimensions.padding(context) * 0.5,
+                horizontal: AppDimensions.padding(context) * 0.75,
+                vertical: AppDimensions.padding(context),
               ),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: Row(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
@@ -292,7 +289,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     size: iconSize * 0.8,
                     color: Colors.blue[700],
                   ),
-                  SizedBox(width: AppDimensions.padding(context) * 0.5),
                   Text(
                     player1Score.toString(),
                     style: GameStyles.scoreText(context).copyWith(
@@ -300,7 +296,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   Text(
-                    ' - ',
+                    '|',
                     style: GameStyles.scoreText(context),
                   ),
                   Text(
@@ -309,7 +305,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       color: Colors.red[700],
                     ),
                   ),
-                  SizedBox(width: AppDimensions.padding(context) * 0.5),
                   Icon(
                     isSinglePlayer ? Icons.smart_toy : Icons.person,
                     size: iconSize * 0.8,
