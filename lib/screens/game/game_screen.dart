@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'dart:async';
 import 'dart:math' show max;
 
@@ -114,11 +115,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _startRobotClicks() {
-    // Calculate click interval based on difficulty
-    final interval = 1000 ~/ difficulty; // 1000ms / difficulty for clicks per second
+    final interval = 1000 ~/ difficulty;
     _robotTimer = Timer.periodic(Duration(milliseconds: interval), (timer) {
       if (!gameEnded && isGameStarted) {
-        // Simulate robot click at center of top half
         final robotClickPosition = Offset(
           MediaQuery.of(context).size.width / 2,
           MediaQuery.of(context).size.height / 4,
@@ -157,22 +156,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         player2Score++;
       }
 
-      // Store click position and player for animation
       _lastClickPosition = tapPosition;
       _isPlayer1Click = isPlayer1;
 
-      // Calculate new color ratio (fixed to match click side)
-      // Add a small offset to prevent division by zero and extreme ratios
       double totalScore = (player1Score + player2Score).toDouble();
       double newRatio = totalScore > 0 
           ? player1Score.toDouble() / totalScore
           : 0.5;
       
-      // Limit the ratio change per click
-      double maxChange = 0.1; // Maximum 10% change per click
+      double maxChange = 0.1;
       newRatio = colorRatio + (newRatio - colorRatio).clamp(-maxChange, maxChange);
       
-      // Update color animation
       _colorAnimation = Tween<double>(
         begin: colorRatio,
         end: newRatio,
@@ -185,7 +179,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _colorAnimationController.forward(from: 0.0);
       _clickEffectController.forward(from: 0.0);
 
-      // Check for winner in score mode
       if (!isTimeMode && (player1Score >= scoreLimit || player2Score >= scoreLimit)) {
         _endGame();
       }
@@ -202,8 +195,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final iconSize = screenSize.width * 0.08;
-    final spacingSize = screenSize.height * 0.02;
-    final fontSize = screenSize.width * 0.06;
 
     return Scaffold(
       body: Stack(
@@ -284,8 +275,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RotatedBox(
+                    quarterTurns: 2,
+                    child: Column(
+                      children: [
+                        Icon(
+                          isSinglePlayer ? Icons.smart_toy : Icons.person,
+                          size: iconSize * 0.8,
+                          color: Colors.red[700],
+                        ),
+                        Text(
+                          player2Score.toString(),
+                          style: GameStyles.scoreText(context).copyWith(
+                            color: Colors.red[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '|',
+                    style: GameStyles.scoreText(context),
+                  ),
                   Icon(
-                    isSinglePlayer ? Icons.person : Icons.person,
+                    Icons.person,
                     size: iconSize * 0.8,
                     color: Colors.blue[700],
                   ),
@@ -294,21 +307,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     style: GameStyles.scoreText(context).copyWith(
                       color: Colors.blue[700],
                     ),
-                  ),
-                  Text(
-                    '|',
-                    style: GameStyles.scoreText(context),
-                  ),
-                  Text(
-                    player2Score.toString(),
-                    style: GameStyles.scoreText(context).copyWith(
-                      color: Colors.red[700],
-                    ),
-                  ),
-                  Icon(
-                    isSinglePlayer ? Icons.smart_toy : Icons.person,
-                    size: iconSize * 0.8,
-                    color: Colors.red[700],
                   ),
                 ],
               ),
@@ -378,41 +376,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             ),
           // Game over overlay
           if (gameEnded)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Game Over!',
-                      style: GameStyles.gameOverText(context),
-                    ),
-                    SizedBox(height: AppDimensions.spacing(context) * 2),
-                    Text(
-                      player1Score > player2Score 
-                        ? (isSinglePlayer ? 'You Win!' : 'Player 1 Wins!')
-                        : player2Score > player1Score
-                          ? (isSinglePlayer ? 'Robot Wins!' : 'Player 2 Wins!')
-                          : 'It\'s a Tie!',
-                      style: GameStyles.winnerText(context),
-                    ),
-                    SizedBox(height: AppDimensions.spacing(context) * 3),
-                    SizedBox(
-                      width: screenSize.width * 0.4,
-                      height: AppDimensions.buttonHeight(context),
-                      child: ElevatedButton(
-                        style: GameStyles.buttonStyle(context),
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          'Back to Menu',
-                          style: AppTextStyles.button(context),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            GameOverPopup(
+              player1Score: player1Score,
+              player2Score: player2Score,
+              isSinglePlayer: isSinglePlayer,
             ),
         ],
       ),
@@ -434,10 +401,10 @@ class ClickEffectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(progress * 0.1) // Even more subtle opacity
+      ..color = color.withOpacity(progress * 0.1)
       ..style = PaintingStyle.fill;
 
-    final radius = progress * 0.1; // Tiny radius, fingertip size
+    final radius = progress * 0.1;
     canvas.drawCircle(position, radius, paint);
   }
 

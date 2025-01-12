@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:clickbattle/screens/home/home_styles.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -8,87 +7,77 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final buttonSpacing = AppDimensions.spacing(context);
-    final iconSize = screenSize.width * 0.06;
-
+    
     return Scaffold(
       body: Container(
         decoration: AppDecorations.gradientBackground,
         child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Title
-              Container(
-                padding: HomeStyles.titlePadding(context),
-                decoration: HomeStyles.titleContainer(context),
-                child: Text(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(AppDimensions.padding(context)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
                   'CLICK BATTLE',
-                  style: HomeStyles.titleText(context),
+                  style: AppTextStyles.title(context),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              SizedBox(height: screenSize.height * 0.08),
-              // Play Button
-              _buildButton(
-                context,
-                'Play',
-                Icons.play_arrow_rounded,
-                AppColors.accent,
-                () => Navigator.pushNamed(context, '/mode_selection'),
-                iconSize,
-              ),
-              SizedBox(height: buttonSpacing),
-              // Settings Button
-              _buildButton(
-                context,
-                'Settings',
-                Icons.settings_rounded,
-                AppColors.secondary,
-                () => Navigator.pushNamed(context, '/settings'),
-                iconSize,
-              ),
-              SizedBox(height: buttonSpacing),
-              // About Button
-              _buildButton(
-                context,
-                'About',
-                Icons.info_outline_rounded,
-                AppColors.primary,
-                () {}, // TODO: Implement about screen
-                iconSize,
-              ),
-            ],
+                SizedBox(height: AppDimensions.spacing(context) * 3),
+                _buildButton(
+                  context: context,
+                  text: 'Play',
+                  icon: Icons.play_arrow_rounded,
+                  color: AppColors.accent,
+                  onPressed: () => Navigator.pushNamed(context, '/mode_selection'),
+                ),
+                SizedBox(height: AppDimensions.spacing(context)),
+                _buildButton(
+                  context: context,
+                  text: 'Settings',
+                  icon: Icons.settings_rounded,
+                  color: AppColors.secondary,
+                  onPressed: () => Navigator.pushNamed(context, '/settings'),
+                ),
+                SizedBox(height: AppDimensions.spacing(context)),
+                _buildButton(
+                  context: context,
+                  text: 'About',
+                  icon: Icons.info_outline_rounded,
+                  color: AppColors.primary,
+                  onPressed: () {}, // TODO: Implement about screen
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildButton(
-    BuildContext context,
-    String text,
-    IconData icon,
-    Color color,
-    VoidCallback onPressed,
-    double iconSize,
-  ) {
-    return Container(
-      width: AppDimensions.buttonWidth(context),
+  Widget _buildButton({
+    required BuildContext context,
+    required String text,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
       height: AppDimensions.buttonHeight(context),
-      decoration: HomeStyles.buttonDecoration(context, color),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: iconSize),
-              SizedBox(width: AppDimensions.padding(context) * 0.625),
-              Text(text, style: AppTextStyles.button(context)),
-            ],
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
           ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: MediaQuery.of(context).size.width * 0.06),
+            SizedBox(width: AppDimensions.spacing(context) * 0.5),
+            Text(text, style: AppTextStyles.button(context)),
+          ],
         ),
       ),
     );
