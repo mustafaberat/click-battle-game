@@ -29,18 +29,28 @@ class ClickBattleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final darkMode = context.watch<SettingsService>().darkMode;
-    
     return MaterialApp(
       title: 'Click Battle',
       theme: ThemeData(
         primaryColor: AppColors.primary,
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: AppColors.primary,
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: MaterialColor(AppColors.primary.value, {
+            50: AppColors.primary.withOpacity(0.1),
+            100: AppColors.primary.withOpacity(0.2),
+            200: AppColors.primary.withOpacity(0.3),
+            300: AppColors.primary.withOpacity(0.4),
+            400: AppColors.primary.withOpacity(0.5),
+            500: AppColors.primary,
+            600: AppColors.primary.withOpacity(0.7),
+            700: AppColors.primary.withOpacity(0.8),
+            800: AppColors.primary.withOpacity(0.9),
+            900: AppColors.primary.withOpacity(1),
+          }),
+        ).copyWith(
           secondary: AppColors.accent,
+          brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: AppColors.background,
-        brightness: darkMode ? Brightness.dark : Brightness.light,
       ),
       initialRoute: '/',
       routes: {

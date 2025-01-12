@@ -39,51 +39,18 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: (value) => settings.setSoundEnabled(value),
                   activeColor: AppColors.accent,
                 ),
-                if (settings.soundEnabled) ...[
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppDimensions.padding(context),
-                      vertical: AppDimensions.padding(context) * 0.5,
+                if (settings.soundEnabled)
+                  ListTile(
+                    title: Text(
+                      'Volume',
+                      style: AppTextStyles.body(context),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.volume_down, color: Colors.white70),
-                        Expanded(
-                          child: Slider(
-                            value: settings.soundVolume,
-                            onChanged: (value) => settings.setSoundVolume(value),
-                            activeColor: AppColors.accent,
-                          ),
-                        ),
-                        Icon(Icons.volume_up, color: Colors.white70),
-                      ],
+                    subtitle: Slider(
+                      value: settings.soundVolume,
+                      onChanged: (value) => settings.setSoundVolume(value),
+                      activeColor: AppColors.accent,
                     ),
                   ),
-                ],
-                
-                // Haptic Feedback Section
-                _buildSectionHeader(context, 'Feedback'),
-                SwitchListTile(
-                  title: Text(
-                    'Haptic Feedback',
-                    style: AppTextStyles.body(context),
-                  ),
-                  value: settings.hapticEnabled,
-                  onChanged: (value) => settings.setHapticEnabled(value),
-                  activeColor: AppColors.accent,
-                ),
-
-                // Theme Settings Section
-                _buildSectionHeader(context, 'Appearance'),
-                SwitchListTile(
-                  title: Text(
-                    'Dark Mode',
-                    style: AppTextStyles.body(context),
-                  ),
-                  value: settings.darkMode,
-                  onChanged: (value) => settings.setDarkMode(value),
-                  activeColor: AppColors.accent,
-                ),
 
                 // About Section
                 _buildSectionHeader(context, 'About'),
@@ -105,7 +72,7 @@ class SettingsScreen extends StatelessWidget {
                     style: AppTextStyles.body(context),
                   ),
                   trailing: Text(
-                    'Mustafa Berat Aru',
+                    'Mustafa Berat ARU',
                     style: AppTextStyles.body(context).copyWith(
                       color: Colors.white70,
                     ),
