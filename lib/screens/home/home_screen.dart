@@ -6,87 +6,135 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primary,
-              AppColors.background,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppDimensions.padding(context),
+            vertical: AppDimensions.padding(context) * 0.5,
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // App Logo
+                      Container(
+                        padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBackground,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.accent.withOpacity(0.2),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.touch_app,
+                          size: MediaQuery.of(context).size.width * 0.15,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                      SizedBox(height: AppDimensions.spacing(context)),
+                      // App Title
+                      Text(
+                        'Click Battle',
+                        style: AppTextStyles.heading(context).copyWith(
+                          fontSize: AppDimensions.titleFontSize(context) * 1.2,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: AppDimensions.spacing(context) * 0.5),
+                      Text(
+                        'Test your clicking speed!',
+                        style: AppTextStyles.body(context).copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Bottom Buttons
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Play Button
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushNamed(context, '/mode_selection'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppDimensions.padding(context),
+                        vertical: AppDimensions.padding(context) * 0.75,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                      ),
+                      minimumSize: Size(
+                        double.infinity,
+                        AppDimensions.buttonHeight(context),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.play_arrow, color: Colors.white),
+                        SizedBox(width: AppDimensions.spacing(context)),
+                        Text(
+                          'PLAY',
+                          style: AppTextStyles.button(context).copyWith(
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: AppDimensions.spacing(context)),
+                  // Settings Button
+                  OutlinedButton(
+                    onPressed: () => Navigator.pushNamed(context, '/settings'),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.accent),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppDimensions.padding(context),
+                        vertical: AppDimensions.padding(context) * 0.75,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                      ),
+                      minimumSize: Size(
+                        double.infinity,
+                        AppDimensions.buttonHeight(context),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.settings, color: AppColors.accent),
+                        SizedBox(width: AppDimensions.spacing(context)),
+                        Text(
+                          'SETTINGS',
+                          style: AppTextStyles.button(context).copyWith(
+                            color: AppColors.accent,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(AppDimensions.padding(context)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'CLICK BATTLE',
-                  style: AppTextStyles.title(context),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: AppDimensions.spacing(context) * 3),
-                _buildButton(
-                  context: context,
-                  text: 'Play',
-                  icon: Icons.play_arrow_rounded,
-                  color: AppColors.accent,
-                  onPressed: () => Navigator.pushNamed(context, '/mode_selection'),
-                ),
-                SizedBox(height: AppDimensions.spacing(context)),
-                _buildButton(
-                  context: context,
-                  text: 'Settings',
-                  icon: Icons.settings_rounded,
-                  color: AppColors.surface,
-                  onPressed: () => Navigator.pushNamed(context, '/settings'),
-                ),
-                SizedBox(height: AppDimensions.spacing(context)),
-                _buildButton(
-                  context: context,
-                  text: 'About',
-                  icon: Icons.info_outline_rounded,
-                  color: AppColors.primary,
-                  onPressed: () {}, // TODO: Implement about screen
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButton({
-    required BuildContext context,
-    required String text,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      height: AppDimensions.buttonHeight(context),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: MediaQuery.of(context).size.width * 0.06),
-            SizedBox(width: AppDimensions.spacing(context) * 0.5),
-            Text(text, style: AppTextStyles.button(context)),
-          ],
         ),
       ),
     );

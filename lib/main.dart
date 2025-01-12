@@ -5,6 +5,7 @@ import 'package:clickbattle/screens/home/home_screen.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/screens/settings/settings_screen.dart';
 import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
+import 'package:clickbattle/screens/about/about_screen.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
@@ -57,6 +58,7 @@ class ClickBattleApp extends StatelessWidget {
         '/': (context) => const HomeScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/mode_selection': (context) => const ModeSelectionScreen(),
+        '/about': (context) => const AboutScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/game') {
