@@ -3,7 +3,7 @@ import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'dart:async';
-import 'dart:math' show max;
+import 'dart:math';
 
 class GameScreen extends StatefulWidget {
   final Map<String, dynamic> gameArgs;
@@ -70,12 +70,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       ),
     );
 
-    // Click effect animation
+    // Click effect animation with smoother curve
     _clickEffectController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _clickEffectAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+    _clickEffectAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _clickEffectController,
         curve: Curves.easeOut,
@@ -116,11 +116,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _startRobotClicks() {
     final interval = 1000 ~/ difficulty;
+    final random = Random();
+    
     _robotTimer = Timer.periodic(Duration(milliseconds: interval), (timer) {
       if (!gameEnded && isGameStarted) {
+        // Generate random position within the top half of the screen
         final robotClickPosition = Offset(
-          MediaQuery.of(context).size.width / 2,
-          MediaQuery.of(context).size.height / 4,
+          random.nextDouble() * MediaQuery.of(context).size.width,
+          random.nextDouble() * (MediaQuery.of(context).size.height / 2 - 50) + 25,
         );
         _updateScore(false, robotClickPosition);
       } else {
@@ -277,30 +280,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 children: [
                   RotatedBox(
                     quarterTurns: 2,
-                    child: Column(
-                      children: [
-                        Icon(
-                          isSinglePlayer ? Icons.smart_toy : Icons.person,
-                          size: iconSize * 0.8,
-                          color: Colors.red[700],
-                        ),
-                        Text(
-                          player2Score.toString(),
-                          style: GameStyles.scoreText(context).copyWith(
-                            color: Colors.red[700],
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      player2Score.toString(),
+                      style: GameStyles.scoreText(context).copyWith(
+                        color: Colors.red[700],
+                      ),
                     ),
                   ),
                   Text(
                     '|',
                     style: GameStyles.scoreText(context),
-                  ),
-                  Icon(
-                    Icons.person,
-                    size: iconSize * 0.8,
-                    color: Colors.blue[700],
                   ),
                   Text(
                     player1Score.toString(),
@@ -326,10 +315,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       child: Container(
                         width: double.infinity,
                         child: Center(
-                          child: Icon(
-                            isSinglePlayer ? Icons.smart_toy : Icons.person,
-                            size: iconSize,
-                            color: Colors.white,
+                          child: RotatedBox(
+                            quarterTurns: isSinglePlayer ? 0 : 2,
+                            child: Icon(
+                              isSinglePlayer ? Icons.smart_toy : Icons.person,
+                              size: iconSize,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -400,12 +392,20 @@ class ClickEffectPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Main circle
     final paint = Paint()
-      ..color = color.withOpacity(progress * 0.1)
+      ..color = color.withOpacity((1 - progress) * 0.7)
       ..style = PaintingStyle.fill;
 
-    final radius = progress * 0.1;
+    // Small expanding circle
+    final radius = 4.0 + (progress * 6.0);
     canvas.drawCircle(position, radius, paint);
+
+    // Tiny white dot in center
+    final dotPaint = Paint()
+      ..color = Colors.white.withOpacity((1 - progress) * 0.9)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(position, 1.5 * (1 - progress), dotPaint);
   }
 
   @override
