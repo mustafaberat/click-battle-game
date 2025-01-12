@@ -10,7 +10,16 @@ class HomeScreen extends StatelessWidget {
     
     return Scaffold(
       body: Container(
-        decoration: AppDecorations.gradientBackground,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary,
+              AppColors.background,
+            ],
+          ),
+        ),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(AppDimensions.padding(context)),
@@ -35,7 +44,7 @@ class HomeScreen extends StatelessWidget {
                   context: context,
                   text: 'Settings',
                   icon: Icons.settings_rounded,
-                  color: AppColors.secondary,
+                  color: AppColors.surface,
                   onPressed: () => Navigator.pushNamed(context, '/settings'),
                 ),
                 SizedBox(height: AppDimensions.spacing(context)),

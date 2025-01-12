@@ -242,33 +242,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           // Timer overlay (left)
           Positioned(
             left: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 - (screenSize.height * 0.15),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.5,
-                vertical: AppDimensions.padding(context) * 0.75,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-              ),
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Text(
-                  isTimeMode 
-                    ? (isGameStarted 
-                        ? _formatTime(remainingSeconds)
-                        : countdownSeconds.toString())
-                    : '${scoreLimit - max(player1Score, player2Score)}',
-                  style: GameStyles.timerText(context),
-                ),
-              ),
-            ),
-          ),
-          // Score overlay (right)
-          Positioned(
-            right: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 - (screenSize.height * 0.15),
+            top: screenSize.height * 0.5 - 50,
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: AppDimensions.padding(context) * 0.5,
@@ -282,6 +256,49 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 quarterTurns: 3,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      isTimeMode 
+                        ? (isGameStarted 
+                            ? '${remainingSeconds ~/ 60}'
+                            : countdownSeconds.toString())
+                        : '${scoreLimit - max(player1Score, player2Score)}',
+                      style: GameStyles.timerText(context),
+                    ),
+                    SizedBox(width: 2),
+                    Text(
+                      isTimeMode && isGameStarted ? ':' : '',
+                      style: GameStyles.timerText(context),
+                    ),
+                    SizedBox(width: 2),
+                    if (isTimeMode && isGameStarted) Text(
+                      '${(remainingSeconds % 60).toString().padLeft(2, '0')}',
+                      style: GameStyles.timerText(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Score overlay (right)
+          Positioned(
+            right: screenSize.width * 0.02,
+            top: screenSize.height * 0.5 - 50,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.padding(context) * 0.5,
+                vertical: AppDimensions.padding(context) * 0.75,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+              ),
+              child: RotatedBox(
+                quarterTurns: 3,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     RotatedBox(
                       quarterTurns: 2,
@@ -292,15 +309,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
+                    SizedBox(width: 8),
                     RotatedBox(
                       quarterTurns: 2,
                       child: Text(
-                        ' | ',
+                        '|',
                         style: GameStyles.scoreText(context),
                       ),
                     ),
+                    SizedBox(width: 8),
                     RotatedBox(
-                      quarterTurns: 1,
+                      quarterTurns: 2,
                       child: Text(
                         player1Score.toString(),
                         style: GameStyles.scoreText(context).copyWith(
@@ -384,6 +403,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               player1Score: player1Score,
               player2Score: player2Score,
               isSinglePlayer: isSinglePlayer,
+              gameArgs: widget.gameArgs,
             ),
         ],
       ),
@@ -406,18 +426,18 @@ class ClickEffectPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Main circle
     final paint = Paint()
-      ..color = color.withOpacity((1 - progress) * 0.7)
+      ..color = color.withOpacity((1 - progress) * 0.5)
       ..style = PaintingStyle.fill;
 
     // Small expanding circle
-    final radius = 4.0 + (progress * 6.0);
+    final radius = 2.0 + (progress * 4.0);
     canvas.drawCircle(position, radius, paint);
 
     // Tiny white dot in center
     final dotPaint = Paint()
-      ..color = Colors.white.withOpacity((1 - progress) * 0.9)
+      ..color = Colors.white.withOpacity((1 - progress) * 0.7)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(position, 1.5 * (1 - progress), dotPaint);
+    canvas.drawCircle(position, 1.0 * (1 - progress), dotPaint);
   }
 
   @override

@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/screens/game/game_styles.dart';
-
-enum GameMode { timeLimit, scoreLimit }
-enum PlayerMode { singlePlayer, twoPlayer }
 
 class ModeSelectionScreen extends StatefulWidget {
   const ModeSelectionScreen({Key? key}) : super(key: key);
@@ -13,44 +9,42 @@ class ModeSelectionScreen extends StatefulWidget {
 }
 
 class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
-  GameMode selectedMode = GameMode.timeLimit;
-  PlayerMode selectedPlayerMode = PlayerMode.twoPlayer;
-  int selectedTimeLimit = 10; // Default 60 seconds
-  int selectedScoreLimit = 10; // Default 100 clicks
-  int selectedDifficulty = 2; // Default normal difficulty (1=easy, 2=normal, 3=hard)
+  bool isSinglePlayer = true;
+  bool isTimeMode = true;
+  int timeLimit = 10;
+  int scoreLimit = 10;
+  int difficulty = 1;
 
-  final List<int> timeLimits = [10, 30, 60]; // in seconds
-  final List<int> scoreLimits = [10, 50,100];
-
-  void _startGame() {
-    Navigator.pushNamed(
-      context,
-      '/game',
-      arguments: {
-        'mode': selectedMode.toString(),
-        'playerMode': selectedPlayerMode.toString(),
-        'timeLimit': selectedTimeLimit,
-        'scoreLimit': selectedScoreLimit,
-        'difficulty': selectedDifficulty,
-      },
-    );
-  }
+  final List<int> timeLimits = [10, 30, 60];
+  final List<int> scoreLimits = [10, 50, 100];
+  final List<Map<String, dynamic>> difficulties = [
+    {'name': 'Easy', 'value': 1},
+    {'name': 'Normal', 'value': 3},
+    {'name': 'Hard', 'value': 9},
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Game Mode',
-          style: AppTextStyles.heading(context),
+          style: AppTextStyles.title(context),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.primary,
         elevation: 0,
       ),
       body: Container(
-        decoration: AppDecorations.gradientBackground,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary,
+              AppColors.background,
+            ],
+          ),
+        ),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(AppDimensions.padding(context)),
@@ -58,139 +52,96 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Player Mode Selection
-                Text(
-                  'Select Players',
-                  style: AppTextStyles.heading(context),
-                  textAlign: TextAlign.center,
+                _buildSectionHeader('Player Mode'),
+                _buildModeToggle(
+                  value: isSinglePlayer,
+                  onChanged: (value) => setState(() => isSinglePlayer = value),
+                  trueText: 'Single Player',
+                  falseText: 'Two Players',
+                  trueIcon: Icons.person,
+                  falseIcon: Icons.people,
                 ),
-                SizedBox(height: AppDimensions.spacing(context)),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildModeButton(
-                        'Single Player',
-                        Icons.person,
-                        isSelected: selectedPlayerMode == PlayerMode.singlePlayer,
-                        onTap: () => setState(() => selectedPlayerMode = PlayerMode.singlePlayer),
-                      ),
-                    ),
-                    SizedBox(width: AppDimensions.spacing(context)),
-                    Expanded(
-                      child: _buildModeButton(
-                        'Two Players',
-                        Icons.people,
-                        isSelected: selectedPlayerMode == PlayerMode.twoPlayer,
-                        onTap: () => setState(() => selectedPlayerMode = PlayerMode.twoPlayer),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: AppDimensions.spacing(context) * 1.5),
 
                 // Game Mode Selection
-                Text(
-                  'Select Game Mode',
-                  style: AppTextStyles.heading(context),
-                  textAlign: TextAlign.center,
+                _buildSectionHeader('Game Mode'),
+                _buildModeToggle(
+                  value: isTimeMode,
+                  onChanged: (value) => setState(() => isTimeMode = value),
+                  trueText: 'Time Limit',
+                  falseText: 'Score Limit',
+                  trueIcon: Icons.timer,
+                  falseIcon: Icons.score,
                 ),
-                SizedBox(height: AppDimensions.spacing(context)),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildModeButton(
-                        'Time Limit',
-                        Icons.timer,
-                        isSelected: selectedMode == GameMode.timeLimit,
-                        onTap: () => setState(() => selectedMode = GameMode.timeLimit),
-                      ),
-                    ),
-                    SizedBox(width: AppDimensions.spacing(context)),
-                    Expanded(
-                      child: _buildModeButton(
-                        'Score Limit',
-                        Icons.score,
-                        isSelected: selectedMode == GameMode.scoreLimit,
-                        onTap: () => setState(() => selectedMode = GameMode.scoreLimit),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: AppDimensions.spacing(context) * 1.5),
 
                 // Limit Selection
-                Text(
-                  selectedMode == GameMode.timeLimit
-                      ? 'Select Time Limit'
-                      : 'Select Score Target',
-                  style: AppTextStyles.heading(context),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: AppDimensions.spacing(context)),
+                _buildSectionHeader(isTimeMode ? 'Time Limit' : 'Score Target'),
                 Wrap(
-                  spacing: AppDimensions.spacing(context) * 0.5,
-                  runSpacing: AppDimensions.spacing(context) * 0.5,
+                  spacing: AppDimensions.spacing(context),
+                  runSpacing: AppDimensions.spacing(context),
                   alignment: WrapAlignment.center,
-                  children: selectedMode == GameMode.timeLimit
-                      ? timeLimits.map((time) => _buildLimitButton(
-                          '${time}s',
-                          time == selectedTimeLimit,
-                          () => setState(() => selectedTimeLimit = time),
-                        )).toList()
-                      : scoreLimits.map((score) => _buildLimitButton(
-                          score.toString(),
-                          score == selectedScoreLimit,
-                          () => setState(() => selectedScoreLimit = score),
-                        )).toList(),
+                  children: (isTimeMode ? timeLimits : scoreLimits).map((value) {
+                    return _buildLimitButton(
+                      text: isTimeMode ? '${value}s' : value.toString(),
+                      isSelected: isTimeMode ? timeLimit == value : scoreLimit == value,
+                      onTap: () => setState(() {
+                        if (isTimeMode) {
+                          timeLimit = value;
+                        } else {
+                          scoreLimit = value;
+                        }
+                      }),
+                    );
+                  }).toList(),
                 ),
 
                 // Difficulty Selection (Single Player Only)
-                if (selectedPlayerMode == PlayerMode.singlePlayer) ...[
-                  SizedBox(height: AppDimensions.spacing(context) * 1.5),
-                  Text(
-                    'Select Difficulty',
-                    style: AppTextStyles.heading(context),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: AppDimensions.spacing(context)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildLimitButton(
-                        'Easy',
-                        selectedDifficulty == 1,
-                        () => setState(() => selectedDifficulty = 1),
-                      ),
-                      SizedBox(width: AppDimensions.spacing(context) * 0.5),
-                      _buildLimitButton(
-                        'Normal',
-                        selectedDifficulty == 2,
-                        () => setState(() => selectedDifficulty = 2),
-                      ),
-                      SizedBox(width: AppDimensions.spacing(context) * 0.5),
-                      _buildLimitButton(
-                        'Hard',
-                        selectedDifficulty == 3,
-                        () => setState(() => selectedDifficulty = 3),
-                      ),
-                    ],
+                if (isSinglePlayer) ...[
+                  _buildSectionHeader('Difficulty'),
+                  Wrap(
+                    spacing: AppDimensions.spacing(context),
+                    runSpacing: AppDimensions.spacing(context),
+                    alignment: WrapAlignment.center,
+                    children: difficulties.map((diff) {
+                      return _buildLimitButton(
+                        text: diff['name'],
+                        isSelected: difficulty == diff['value'],
+                        onTap: () => setState(() => difficulty = diff['value']),
+                      );
+                    }).toList(),
                   ),
                 ],
 
-                SizedBox(height: AppDimensions.spacing(context) * 2),
-
-                // Start Button
+                SizedBox(height: AppDimensions.spacing(context) * 3),
+                
+                // Start Game Button
                 SizedBox(
                   height: AppDimensions.buttonHeight(context),
                   child: ElevatedButton(
-                    onPressed: _startGame,
-                    style: GameStyles.buttonStyle(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/game',
+                        arguments: {
+                          'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
+                          'playerMode': isSinglePlayer ? 'PlayerMode.singlePlayer' : 'PlayerMode.twoPlayer',
+                          'timeLimit': timeLimit,
+                          'scoreLimit': scoreLimit,
+                          'difficulty': difficulty,
+                        },
+                      );
+                    },
                     child: Text(
                       'Start Game',
                       style: AppTextStyles.button(context),
                     ),
                   ),
                 ),
-                SizedBox(height: AppDimensions.spacing(context)),
               ],
             ),
           ),
@@ -199,83 +150,110 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     );
   }
 
-  Widget _buildModeButton(String text, IconData icon, {
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final screenSize = MediaQuery.of(context).size;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: AppDimensions.padding(context)),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isSelected
-                ? [AppColors.accent, AppColors.accent.withOpacity(0.8)]
-                : [Colors.white24, Colors.white10],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: AppDimensions.borderRadius(context) * 0.5,
-                    spreadRadius: AppDimensions.borderRadius(context) * 0.1,
-                  )
-                ]
-              : [],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: screenSize.width * 0.08,
-            ),
-            SizedBox(height: AppDimensions.spacing(context) * 0.5),
-            Text(
-              text,
-              style: AppTextStyles.button(context),
-            ),
-          ],
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.padding(context),
+        AppDimensions.padding(context) * 1.5,
+        AppDimensions.padding(context),
+        AppDimensions.padding(context) * 0.5,
+      ),
+      child: Text(
+        title.toUpperCase(),
+        style: AppTextStyles.heading(context).copyWith(
+          color: AppColors.accent,
+          fontSize: AppDimensions.bodyFontSize(context),
         ),
       ),
     );
   }
 
-  Widget _buildLimitButton(String text, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppDimensions.padding(context) * 1.5,
-          vertical: AppDimensions.padding(context) * 0.75,
-        ),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isSelected
-                ? [AppColors.accent, AppColors.accent.withOpacity(0.8)]
-                : [Colors.white24, Colors.white10],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+  Widget _buildModeToggle({
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required String trueText,
+    required String falseText,
+    required IconData trueIcon,
+    required IconData falseIcon,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildModeButton(
+            text: trueText,
+            icon: trueIcon,
+            isSelected: value,
+            onTap: () => onChanged(true),
           ),
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: AppDimensions.borderRadius(context) * 0.5,
-                    spreadRadius: AppDimensions.borderRadius(context) * 0.1,
-                  )
-                ]
-              : [],
         ),
-        child: Text(
-          text,
-          style: AppTextStyles.button(context),
+        SizedBox(width: AppDimensions.spacing(context)),
+        Expanded(
+          child: _buildModeButton(
+            text: falseText,
+            icon: falseIcon,
+            isSelected: !value,
+            onTap: () => onChanged(false),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModeButton({
+    required String text,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected ? AppColors.accent : Colors.white24,
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+        child: Padding(
+          padding: EdgeInsets.all(AppDimensions.padding(context)),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: Colors.white,
+                size: MediaQuery.of(context).size.width * 0.08,
+              ),
+              SizedBox(height: AppDimensions.spacing(context) * 0.5),
+              Text(
+                text,
+                style: AppTextStyles.body(context),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLimitButton({
+    required String text,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected ? AppColors.accent : Colors.white24,
+      borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppDimensions.padding(context) * 1.5,
+            vertical: AppDimensions.padding(context) * 0.75,
+          ),
+          child: Text(
+            text,
+            style: AppTextStyles.button(context),
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

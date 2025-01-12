@@ -1,125 +1,180 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:clickbattle/screens/game/game_settings.dart';
+import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/services/settings_service.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Colors.blue[900],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue[900]!,
-              Colors.blue[600]!,
-            ],
+    return Consumer<SettingsService>(
+      builder: (context, settings, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Settings',
+              style: AppTextStyles.title(context),
+            ),
+            backgroundColor: AppColors.primary,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-        ),
-        child: Consumer<GameSettings>(
-          builder: (context, settings, child) {
-            return ListView(
-              padding: const EdgeInsets.all(16.0),
+          body: Container(
+            color: AppColors.background,
+            child: ListView(
+              padding: EdgeInsets.all(AppDimensions.padding(context)),
               children: [
-                _buildSwitchTile(
-                  title: 'Sound Effects',
-                  value: settings.isSoundEnabled,
-                  onChanged: (value) => settings.toggleSound(),
-                  icon: Icons.volume_up,
+                // Sound Settings Section
+                _buildSectionHeader(context, 'Sound'),
+                SwitchListTile(
+                  title: Text(
+                    'Sound Effects',
+                    style: AppTextStyles.body(context),
+                  ),
+                  value: settings.soundEnabled,
+                  onChanged: (value) => settings.setSoundEnabled(value),
+                  activeColor: AppColors.accent,
                 ),
-                _buildSwitchTile(
-                  title: 'Background Music',
-                  value: settings.isMusicEnabled,
-                  onChanged: (value) => settings.toggleMusic(),
-                  icon: Icons.music_note,
+                if (settings.soundEnabled) ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.padding(context),
+                      vertical: AppDimensions.padding(context) * 0.5,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.volume_down, color: Colors.white70),
+                        Expanded(
+                          child: Slider(
+                            value: settings.soundVolume,
+                            onChanged: (value) => settings.setSoundVolume(value),
+                            activeColor: AppColors.accent,
+                          ),
+                        ),
+                        Icon(Icons.volume_up, color: Colors.white70),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                // Haptic Feedback Section
+                _buildSectionHeader(context, 'Feedback'),
+                SwitchListTile(
+                  title: Text(
+                    'Haptic Feedback',
+                    style: AppTextStyles.body(context),
+                  ),
+                  value: settings.hapticEnabled,
+                  onChanged: (value) => settings.setHapticEnabled(value),
+                  activeColor: AppColors.accent,
                 ),
-                _buildSwitchTile(
-                  title: 'Vibration',
-                  value: settings.isVibrationEnabled,
-                  onChanged: (value) => settings.toggleVibration(),
-                  icon: Icons.vibration,
+
+                // Theme Settings Section
+                _buildSectionHeader(context, 'Appearance'),
+                SwitchListTile(
+                  title: Text(
+                    'Dark Mode',
+                    style: AppTextStyles.body(context),
+                  ),
+                  value: settings.darkMode,
+                  onChanged: (value) => settings.setDarkMode(value),
+                  activeColor: AppColors.accent,
                 ),
-                const SizedBox(height: 20),
-                _buildVolumeSlider(settings),
+
+                // About Section
+                _buildSectionHeader(context, 'About'),
+                ListTile(
+                  title: Text(
+                    'Version',
+                    style: AppTextStyles.body(context),
+                  ),
+                  trailing: Text(
+                    '1.0.0',
+                    style: AppTextStyles.body(context).copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: Text(
+                    'Developer',
+                    style: AppTextStyles.body(context),
+                  ),
+                  trailing: Text(
+                    'Mustafa Berat Aru',
+                    style: AppTextStyles.body(context).copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+                
+                // Reset Settings Button
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.padding(context),
+                    vertical: AppDimensions.padding(context),
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppDimensions.padding(context),
+                      ),
+                    ),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Reset Settings?'),
+                          content: Text('This will restore all settings to their default values.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                settings.resetToDefaults();
+                                Navigator.pop(context);
+                              },
+                              child: Text('Reset'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Reset Settings',
+                      style: AppTextStyles.button(context),
+                    ),
+                  ),
+                ),
               ],
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSwitchTile({
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-    required IconData icon,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(15),
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.padding(context),
+        AppDimensions.padding(context) * 1.5,
+        AppDimensions.padding(context),
+        AppDimensions.padding(context) * 0.5,
       ),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.white),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
+      child: Text(
+        title.toUpperCase(),
+        style: AppTextStyles.heading(context).copyWith(
+          color: AppColors.accent,
+          fontSize: AppDimensions.bodyFontSize(context),
         ),
-        trailing: Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: Colors.green,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVolumeSlider(GameSettings settings) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.volume_up,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 16),
-              const Text(
-                'Volume',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-          Slider(
-            value: settings.volume,
-            onChanged: settings.setVolume,
-            activeColor: Colors.green,
-            inactiveColor: Colors.white.withOpacity(0.3),
-          ),
-        ],
       ),
     );
   }
