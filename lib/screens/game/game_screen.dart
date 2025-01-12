@@ -242,23 +242,26 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           // Timer overlay (left)
           Positioned(
             left: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 - (screenSize.height * 0.05),
+            top: screenSize.height * 0.5 - (screenSize.height * 0.15),
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.75,
-                vertical: AppDimensions.padding(context) * 0.5,
+                horizontal: AppDimensions.padding(context) * 0.5,
+                vertical: AppDimensions.padding(context) * 0.75,
               ),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: Text(
-                isTimeMode 
-                  ? (isGameStarted 
-                      ? _formatTime(remainingSeconds)
-                      : countdownSeconds.toString())
-                  : '${scoreLimit - max(player1Score, player2Score)}',
-                style: GameStyles.timerText(context),
+              child: RotatedBox(
+                quarterTurns: 3,
+                child: Text(
+                  isTimeMode 
+                    ? (isGameStarted 
+                        ? _formatTime(remainingSeconds)
+                        : countdownSeconds.toString())
+                    : '${scoreLimit - max(player1Score, player2Score)}',
+                  style: GameStyles.timerText(context),
+                ),
               ),
             ),
           ),
@@ -268,36 +271,45 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             top: screenSize.height * 0.5 - (screenSize.height * 0.15),
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.75,
-                vertical: AppDimensions.padding(context),
+                horizontal: AppDimensions.padding(context) * 0.5,
+                vertical: AppDimensions.padding(context) * 0.75,
               ),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RotatedBox(
-                    quarterTurns: 2,
-                    child: Text(
-                      player2Score.toString(),
-                      style: GameStyles.scoreText(context).copyWith(
-                        color: Colors.red[700],
+              child: RotatedBox(
+                quarterTurns: 3,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RotatedBox(
+                      quarterTurns: 2,
+                      child: Text(
+                        player2Score.toString(),
+                        style: GameStyles.scoreText(context).copyWith(
+                          color: Colors.red[700],
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    '|',
-                    style: GameStyles.scoreText(context),
-                  ),
-                  Text(
-                    player1Score.toString(),
-                    style: GameStyles.scoreText(context).copyWith(
-                      color: Colors.blue[700],
+                    RotatedBox(
+                      quarterTurns: 2,
+                      child: Text(
+                        ' | ',
+                        style: GameStyles.scoreText(context),
+                      ),
                     ),
-                  ),
-                ],
+                    RotatedBox(
+                      quarterTurns: 1,
+                      child: Text(
+                        player1Score.toString(),
+                        style: GameStyles.scoreText(context).copyWith(
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

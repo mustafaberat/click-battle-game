@@ -16,5 +16,3 @@ class ClickBattleConfig {
   static double timerFontSize = 24;
   static double timerIconSize = 30;
 }
-
-parnibu nodejs - Elif
