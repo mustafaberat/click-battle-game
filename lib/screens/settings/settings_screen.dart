@@ -6,128 +6,6 @@ import 'package:clickbattle/services/settings_service.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<SettingsService>(
-      builder: (context, settings, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              'Settings',
-              style: AppTextStyles.title(context),
-            ),
-            backgroundColor: AppColors.primary,
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: Container(
-            color: AppColors.background,
-            child: ListView(
-              padding: EdgeInsets.all(AppDimensions.padding(context)),
-              children: [
-                // Sound Settings Section
-                _buildSectionHeader(context, 'Sound'),
-                SwitchListTile(
-                  title: Text(
-                    'Sound Effects',
-                    style: AppTextStyles.body(context),
-                  ),
-                  value: settings.soundEnabled,
-                  onChanged: (value) => settings.setSoundEnabled(value),
-                  activeColor: AppColors.accent,
-                ),
-                if (settings.soundEnabled)
-                  ListTile(
-                    title: Text(
-                      'Volume',
-                      style: AppTextStyles.body(context),
-                    ),
-                    subtitle: Slider(
-                      value: settings.soundVolume,
-                      onChanged: (value) => settings.setSoundVolume(value),
-                      activeColor: AppColors.accent,
-                    ),
-                  ),
-
-                // About Section
-                _buildSectionHeader(context, 'About'),
-                ListTile(
-                  title: Text(
-                    'Version',
-                    style: AppTextStyles.body(context),
-                  ),
-                  trailing: Text(
-                    '1.0.0',
-                    style: AppTextStyles.body(context).copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ),
-                ListTile(
-                  title: Text(
-                    'Developer',
-                    style: AppTextStyles.body(context),
-                  ),
-                  trailing: Text(
-                    'Mustafa Berat ARU',
-                    style: AppTextStyles.body(context).copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ),
-                
-                // Reset Settings Button
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppDimensions.padding(context),
-                    vertical: AppDimensions.padding(context),
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      padding: EdgeInsets.symmetric(
-                        vertical: AppDimensions.padding(context),
-                      ),
-                    ),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Reset Settings?'),
-                          content: Text('This will restore all settings to their default values.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                settings.resetToDefaults();
-                                Navigator.pop(context);
-                              },
-                              child: Text('Reset'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Reset Settings',
-                      style: AppTextStyles.button(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -138,11 +16,169 @@ class SettingsScreen extends StatelessWidget {
       ),
       child: Text(
         title.toUpperCase(),
-        style: AppTextStyles.heading(context).copyWith(
+        style: AppTextStyles.subtitle(context).copyWith(
           color: AppColors.accent,
-          fontSize: AppDimensions.bodyFontSize(context),
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SettingsService>(
+      builder: (context, settings, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Settings',
+              style: AppTextStyles.title(context).copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: AppColors.primary,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: Container(
+            color: AppColors.background,
+            child: ListView(
+              children: [
+                // Audio Settings Section
+                _buildSectionHeader(context, 'Audio'),
+                Card(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.padding(context),
+                    vertical: AppDimensions.padding(context) * 0.5,
+                  ),
+                  color: AppColors.cardBackground,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        title: Text(
+                          'Background Music',
+                          style: AppTextStyles.body(context),
+                        ),
+                        secondary: const Icon(Icons.music_note, color: AppColors.accent),
+                        value: settings.backgroundMusicEnabled,
+                        onChanged: (value) => settings.setBackgroundMusicEnabled(value),
+                        activeColor: AppColors.accent,
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      SwitchListTile(
+                        title: Text(
+                          'Touch Sounds',
+                          style: AppTextStyles.body(context),
+                        ),
+                        secondary: const Icon(Icons.touch_app, color: AppColors.accent),
+                        value: settings.touchSoundEnabled,
+                        onChanged: (value) => settings.setTouchSoundEnabled(value),
+                        activeColor: AppColors.accent,
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      ListTile(
+                        title: Text(
+                          'Volume',
+                          style: AppTextStyles.body(context),
+                        ),
+                        leading: const Icon(Icons.volume_up, color: AppColors.accent),
+                        subtitle: Slider(
+                          value: settings.volume,
+                          onChanged: (value) => settings.setVolume(value),
+                          activeColor: AppColors.accent,
+                          inactiveColor: AppColors.accent.withOpacity(0.3),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // About Section
+                _buildSectionHeader(context, 'About'),
+                Card(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.padding(context),
+                    vertical: AppDimensions.padding(context) * 0.5,
+                  ),
+                  color: AppColors.cardBackground,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.info_outline, color: AppColors.accent),
+                        title: Text(
+                          'Version',
+                          style: AppTextStyles.body(context),
+                        ),
+                        trailing: Text(
+                          '1.0.0',
+                          style: AppTextStyles.body(context).copyWith(
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      ListTile(
+                        leading: const Icon(Icons.business, color: AppColors.accent),
+                        title: Text(
+                          'Developer',
+                          style: AppTextStyles.body(context),
+                        ),
+                        trailing: Text(
+                          'ARU Soft',
+                          style: AppTextStyles.body(context).copyWith(
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Reset Settings Button
+                Padding(
+                  padding: EdgeInsets.all(AppDimensions.padding(context)),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      settings.resetToDefaults();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Settings reset to defaults'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppDimensions.padding(context),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Reset to Defaults',
+                      style: AppTextStyles.button(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 } 
