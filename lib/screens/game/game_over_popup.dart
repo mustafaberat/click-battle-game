@@ -139,18 +139,24 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                 // Game Over Text with Scale Animation
                 ScaleTransition(
                   scale: _gameOverScale,
-                  child: Text(
-                    'Game Over!',
-                    style: GameStyles.gameOverText(context).copyWith(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          color: winnerColor.withOpacity(0.5),
-                          blurRadius: 20,
+                  child: Container(
+                    width: screenSize.width * 0.9,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Game Over!',
+                        style: GameStyles.gameOverText(context).copyWith(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: winnerColor.withOpacity(0.5),
+                              blurRadius: 20,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -161,38 +167,45 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                   opacity: _resultOpacity,
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (widget.isSinglePlayer && !isWinner) Icon(Icons.smart_toy, color: Colors.red[500], size: 32),
-                          if (widget.isSinglePlayer && !isWinner) SizedBox(width: 8),
-                          Text(
-                            widget.player1Score > widget.player2Score 
-                              ? (widget.isSinglePlayer ? 'You Win!' : 'Player 1 Wins!')
-                              : widget.player2Score > widget.player1Score
-                                ? (widget.isSinglePlayer ? 'Robot Wins!' : 'Player 2 Wins!')
-                                : 'It\'s a Tie!',
-                            style: GameStyles.winnerText(context).copyWith(
-                              color: Colors.white,
-                              fontSize: 32,
-                              shadows: [
-                                Shadow(
-                                  color: winnerColor.withOpacity(0.5),
-                                  blurRadius: 10,
+                      Container(
+                        width: screenSize.width * 0.9,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (widget.isSinglePlayer && !isWinner) Icon(Icons.smart_toy, color: Colors.red[500], size: 32),
+                              if (widget.isSinglePlayer && !isWinner) SizedBox(width: 8),
+                              Text(
+                                widget.player1Score > widget.player2Score 
+                                  ? (widget.isSinglePlayer ? 'You Win!' : 'Player 1 Wins!')
+                                  : widget.player2Score > widget.player1Score
+                                    ? (widget.isSinglePlayer ? 'Robot Wins!' : 'Player 2 Wins!')
+                                    : 'It\'s a Tie!',
+                                style: GameStyles.winnerText(context).copyWith(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  shadows: [
+                                    Shadow(
+                                      color: winnerColor.withOpacity(0.5),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              if (isWinner) SizedBox(width: 8),
+                              if (isWinner) Icon(Icons.emoji_events, color: Colors.amber, size: 32),
+                            ],
                           ),
-                          if (isWinner) SizedBox(width: 8),
-                          if (isWinner) Icon(Icons.emoji_events, color: Colors.amber, size: 32),
-                        ],
+                        ),
                       ),
                       SizedBox(height: AppDimensions.spacing(context) * 3),
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: screenSize.width * 0.1),
+                        width: screenSize.width * 0.9,
                         padding: EdgeInsets.symmetric(
-                          horizontal: AppDimensions.padding(context) * 2,
-                          vertical: AppDimensions.padding(context) * 1.5,
+                          horizontal: AppDimensions.padding(context) * 0.75,
+                          vertical: AppDimensions.padding(context) * 0.75,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
@@ -204,21 +217,27 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                             Expanded(
                               child: Column(
                                 children: [
-                                  Text(
-                                    widget.isSinglePlayer ? 'You' : 'Player 1',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      widget.isSinglePlayer ? 'You' : 'Player 1',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 8),
-                                  Text(
-                                    widget.player1Score.toString(),
-                                    style: TextStyle(
-                                      color: Colors.blue[400],
-                                      fontSize: 56,
-                                      fontWeight: FontWeight.bold,
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      widget.player1Score.toString(),
+                                      style: TextStyle(
+                                        color: Colors.blue[400],
+                                        fontSize: 56,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -232,21 +251,27 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                             Expanded(
                               child: Column(
                                 children: [
-                                  Text(
-                                    widget.isSinglePlayer ? 'Robot' : 'Player 2',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      widget.isSinglePlayer ? 'Robot' : 'Player 2',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                   SizedBox(height: 8),
-                                  Text(
-                                    widget.player2Score.toString(),
-                                    style: TextStyle(
-                                      color: Colors.red[400],
-                                      fontSize: 56,
-                                      fontWeight: FontWeight.bold,
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      widget.player2Score.toString(),
+                                      style: TextStyle(
+                                        color: Colors.red[400],
+                                        fontSize: 56,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -266,25 +291,25 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                     opacity: _buttonsOpacity.value,
                     child: Transform.scale(
                       scale: _buttonsScale.value,
-                      child: Padding(
-                        padding: EdgeInsets.only(
+                      child: Container(
+                        width: screenSize.width * 0.9,
+                        margin: EdgeInsets.only(
                           top: AppDimensions.spacing(context) * 4,
-                          left: screenSize.width * 0.1,
-                          right: screenSize.width * 0.1,
                         ),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             // Play Again Button
-                            MouseRegion(
-                              onEnter: (_) => setState(() => _isPlayAgainHovered = true),
-                              onExit: (_) => setState(() => _isPlayAgainHovered = false),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                transform: Matrix4.identity()
-                                  ..scale(_isPlayAgainHovered ? 1.05 : 1.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 70,
+                            SizedBox(
+                              width: double.infinity,
+                              height: 70,
+                              child: MouseRegion(
+                                onEnter: (_) => setState(() => _isPlayAgainHovered = true),
+                                onExit: (_) => setState(() => _isPlayAgainHovered = false),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  transform: Matrix4.identity()
+                                    ..scale(_isPlayAgainHovered ? 1.05 : 1.0),
                                   child: ElevatedButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.resolveWith<Color>(
@@ -311,37 +336,41 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                                         ),
                                       );
                                     },
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.replay_rounded, color: Colors.white, size: 32),
-                                        SizedBox(width: 16),
-                                        Text(
-                                          'Play Again',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.bold,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.replay_rounded, color: Colors.white, size: 32),
+                                          SizedBox(width: 16),
+                                          Text(
+                                            'Play Again',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                             SizedBox(height: AppDimensions.spacing(context) * 2),
-                            // Home Button (Same size and style as Play Again)
-                            MouseRegion(
-                              onEnter: (_) => setState(() => _isHomeHovered = true),
-                              onExit: (_) => setState(() => _isHomeHovered = false),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                transform: Matrix4.identity()
-                                  ..scale(_isHomeHovered ? 1.05 : 1.0),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 70,
+                            // Home Button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 70,
+                              child: MouseRegion(
+                                onEnter: (_) => setState(() => _isHomeHovered = true),
+                                onExit: (_) => setState(() => _isHomeHovered = false),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  transform: Matrix4.identity()
+                                    ..scale(_isHomeHovered ? 1.05 : 1.0),
                                   child: ElevatedButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.resolveWith<Color>(
@@ -355,20 +384,24 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                                       elevation: MaterialStateProperty.all(_isHomeHovered ? 12 : 6),
                                     ),
                                     onPressed: () => Navigator.pop(context),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.home_rounded, color: Colors.white, size: 32),
-                                        SizedBox(width: 16),
-                                        Text(
-                                          'Back to Home',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.bold,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.home_rounded, color: Colors.white, size: 32),
+                                          SizedBox(width: 16),
+                                          Text(
+                                            'Back to Home',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
