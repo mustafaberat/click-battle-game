@@ -8,10 +8,13 @@ import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
 import 'package:clickbattle/screens/about/about_screen.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/services/audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+  final audioService = AudioService();
+  await audioService.initialize();
   
   runApp(
     MultiProvider(
