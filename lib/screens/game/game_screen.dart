@@ -339,20 +339,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               children: [
                 // Player 2 (top) / Robot
                 Expanded(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTapDown: isSinglePlayer ? null : (details) => _updateScore(false, details.globalPosition),
-                      child: Container(
-                        width: double.infinity,
-                        child: Center(
-                          child: RotatedBox(
-                            quarterTurns: isSinglePlayer ? 0 : 2,
-                            child: Icon(
-                              isSinglePlayer ? Icons.smart_toy : Icons.person,
-                              size: iconSize,
-                              color: Colors.white,
-                            ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: isSinglePlayer ? null : (details) => _updateScore(false, details.globalPosition),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.transparent,
+                      child: Center(
+                        child: RotatedBox(
+                          quarterTurns: isSinglePlayer ? 0 : 2,
+                          child: Icon(
+                            isSinglePlayer ? Icons.smart_toy : Icons.person,
+                            size: iconSize,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -366,18 +366,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
                 // Player 1 (bottom)
                 Expanded(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTapDown: (details) => _updateScore(true, details.globalPosition),
-                      child: Container(
-                        width: double.infinity,
-                        child: Center(
-                          child: Icon(
-                            Icons.person,
-                            size: iconSize,
-                            color: Colors.white,
-                          ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (details) => _updateScore(true, details.globalPosition),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.transparent,
+                      child: Center(
+                        child: Icon(
+                          Icons.person,
+                          size: iconSize,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -424,20 +424,108 @@ class ClickEffectPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Main circle
-    final paint = Paint()
-      ..color = color.withOpacity((1 - progress) * 0.5)
-      ..style = PaintingStyle.fill;
+    // Main expanding ring with gradient
+    final outerPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withOpacity((1 - progress) * 0.6),
+          color.withOpacity(0),
+        ],
+      ).createShader(Rect.fromCircle(
+        center: position,
+        radius: 40.0 + (progress * 30.0),
+      ))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8.0;
+    
+    final outerRadius = 20.0 + (progress * 30.0);
+    canvas.drawCircle(position, outerRadius, outerPaint);
 
-    // Small expanding circle
-    final radius = 2.0 + (progress * 4.0);
-    canvas.drawCircle(position, radius, paint);
-
-    // Tiny white dot in center
-    final dotPaint = Paint()
-      ..color = Colors.white.withOpacity((1 - progress) * 0.7)
+    // Inner glowing circle
+    final innerPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withOpacity((1 - progress) * 0.8),
+          color.withOpacity((1 - progress) * 0.3),
+        ],
+      ).createShader(Rect.fromCircle(
+        center: position,
+        radius: 15.0,
+      ))
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(position, 1.0 * (1 - progress), dotPaint);
+    
+    final innerRadius = 12.0 * (1 - progress * 0.3);
+    canvas.drawCircle(position, innerRadius, innerPaint);
+
+    // Rotating sparkles
+    final sparkleCount = 12;
+    final baseRotation = progress * 2 * pi; // Full rotation during animation
+    
+    for (var i = 0; i < sparkleCount; i++) {
+      final sparkleProgress = (progress - (i / sparkleCount * 0.2)).clamp(0.0, 1.0);
+      if (sparkleProgress <= 0) continue;
+
+      // Calculate sparkle positions with outward spiral motion
+      final angle = (i * 2 * pi / sparkleCount) + baseRotation;
+      final distance = 15.0 + (sparkleProgress * 40.0); // Spiral out
+      final sparklePos = Offset(
+        position.dx + cos(angle) * distance,
+        position.dy + sin(angle) * distance,
+      );
+
+      // Draw connecting line with gradient
+      final linePaint = Paint()
+        ..shader = LinearGradient(
+          colors: [
+            color.withOpacity((1 - sparkleProgress) * 0.5),
+            color.withOpacity(0),
+          ],
+        ).createShader(Rect.fromPoints(position, sparklePos))
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+      
+      canvas.drawLine(position, sparklePos, linePaint);
+
+      // Draw sparkle
+      final sparklePaint = Paint()
+        ..color = Colors.white.withOpacity((1 - sparkleProgress) * 0.9)
+        ..style = PaintingStyle.fill;
+      
+      // Draw star-shaped sparkle
+      final sparkleSize = 3.0 * (1 - sparkleProgress);
+      _drawStar(canvas, sparklePos, sparkleSize, sparklePaint, angle);
+    }
+
+    // Center pulse effect
+    final pulsePaint = Paint()
+      ..color = Colors.white.withOpacity((1 - progress) * 0.4)
+      ..style = PaintingStyle.fill;
+    
+    final pulseRadius = 5.0 * (1 + sin(progress * pi * 2) * 0.3);
+    canvas.drawCircle(position, pulseRadius, pulsePaint);
+  }
+
+  void _drawStar(Canvas canvas, Offset center, double size, Paint paint, double rotation) {
+    final path = Path();
+    final points = 4;
+    
+    for (var i = 0; i < points * 2; i++) {
+      final radius = i.isEven ? size : size * 0.5;
+      final angle = (i * pi / points) + rotation;
+      final point = Offset(
+        center.dx + cos(angle) * radius,
+        center.dy + sin(angle) * radius,
+      );
+      
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    
+    path.close();
+    canvas.drawPath(path, paint);
   }
 
   @override
