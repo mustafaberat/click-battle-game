@@ -458,7 +458,7 @@ class ClickEffectPainter extends CustomPainter {
     canvas.drawCircle(position, innerRadius, innerPaint);
 
     // Rotating sparkles
-    final sparkleCount = 12;
+    final sparkleCount = 24;
     final baseRotation = progress * 2 * pi; // Full rotation during animation
     
     for (var i = 0; i < sparkleCount; i++) {
@@ -467,7 +467,7 @@ class ClickEffectPainter extends CustomPainter {
 
       // Calculate sparkle positions with outward spiral motion
       final angle = (i * 2 * pi / sparkleCount) + baseRotation;
-      final distance = 15.0 + (sparkleProgress * 40.0); // Spiral out
+      final distance = 25.0 + (sparkleProgress * 40.0); // Spiral out
       final sparklePos = Offset(
         position.dx + cos(angle) * distance,
         position.dy + sin(angle) * distance,

@@ -164,8 +164,8 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (!isWinner) Icon(Icons.smart_toy, color: Colors.red[500], size: 32),
-                          if (!isWinner) SizedBox(width: 8),
+                          if (widget.isSinglePlayer && !isWinner) Icon(Icons.smart_toy, color: Colors.red[500], size: 32),
+                          if (widget.isSinglePlayer && !isWinner) SizedBox(width: 8),
                           Text(
                             widget.player1Score > widget.player2Score 
                               ? (widget.isSinglePlayer ? 'You Win!' : 'Player 1 Wins!')
