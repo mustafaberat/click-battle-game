@@ -55,9 +55,15 @@ class GameOverPopup extends StatelessWidget {
                         ),
                       );
                     },
-                    child: Text(
-                      'Play Again',
-                      style: AppTextStyles.button(context),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Play\nAgain',
+                        style: AppTextStyles.button(context).copyWith(
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
