@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/settings_service.dart';
-import 'package:clickbattle/screens/about/about_screen.dart';
 import 'package:clickbattle/services/audio_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -21,7 +20,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _isMusicEnabled = _audioService.isMusicEnabled;
-    _volume = _audioService.volume;
+    _volume = 0.2; // Set default volume to 30%
+    _audioService.setVolume(_volume); // Ensure the audio service reflects this change
   }
 
   @override
@@ -90,7 +90,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             children: [
                               Text(
                                 'Background Music',
-                                style: AppTextStyles.body(context),
+                                style: AppTextStyles.body(context).copyWith(
+                                  color:  Colors.white,
+                                ),
                               ),
                               Switch(
                                 value: _isMusicEnabled,
@@ -101,6 +103,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   _audioService.toggleMusic(value);
                                 },
                                 activeColor: AppColors.accent,
+                                inactiveTrackColor: Colors.white.withOpacity(0.3),
+                                inactiveThumbColor: Colors.grey[400],
                               ),
                             ],
                           ),
@@ -134,6 +138,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ],
                             ),
                           ],
+                        ],
+                      ),
+                    ),
+
+                    // About section
+                    SizedBox(height: AppDimensions.spacing(context) * 2),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(AppDimensions.padding(context)),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBackground,
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'About',
+                            style: AppTextStyles.heading(context).copyWith(
+                              fontSize: AppDimensions.titleFontSize(context) * 0.8,
+                            ),
+                          ),
+                          SizedBox(height: AppDimensions.spacing(context)),
+                          Text(
+                            'Click Battle',
+                            style: AppTextStyles.body(context).copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          SizedBox(height: AppDimensions.spacing(context) * 0.5),
+                          Text(
+                            'Version 1.0.0',
+                            style: AppTextStyles.body(context).copyWith(
+                              color: Colors.white70,
+                            ),
+                          ),
+                          SizedBox(height: AppDimensions.spacing(context) * 0.5),
+                          Text(
+                            'Developed by ARU Soft',
+                            style: AppTextStyles.body(context).copyWith(
+                              color: Colors.white70,
+                            ),
+                          ),
                         ],
                       ),
                     ),

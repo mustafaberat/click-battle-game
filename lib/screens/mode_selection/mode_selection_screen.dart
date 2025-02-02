@@ -8,8 +8,8 @@ class ModeSelectionScreen extends StatefulWidget {
   _ModeSelectionScreenState createState() => _ModeSelectionScreenState();
 }
 
-class _ModeSelectionScreenState extends State<ModeSelectionScreen> with SingleTickerProviderStateMixin {
-  bool isSinglePlayer = true;
+class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
+  bool isSinglePlayer = false;
   bool isTimeMode = true;
   int timeLimit = 10;
   int scoreLimit = 10;
@@ -26,149 +26,84 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(AppDimensions.padding(context)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Back Button and Title
-              Row(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: EdgeInsets.all(AppDimensions.paddingMedium),
+              child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Spacer(),
                   Text(
                     'Game Setup',
-                    style: AppTextStyles.heading(context).copyWith(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.heading(context),
                   ),
                   const Spacer(),
-                  SizedBox(width: 48), // Balance for back button
+                  SizedBox(width: 48),
                 ],
               ),
-              SizedBox(height: AppDimensions.spacing(context) * 3),
+            ),
 
-              // Player Mode Selection
-              Container(
-                width: screenSize.width * 0.9,
-                padding: EdgeInsets.all(AppDimensions.padding(context)),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Choose Players',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+            // Content
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
+                children: [
+                  _buildSection(
+                    title: 'Select Mode',
+                    subtitle: 'Face AI or challenge a friend',
+                    child: _buildOptionRow([
+                      _buildOption(
+                        text: 'Two Players',
+                        icon: Icons.person_outline_rounded,
+                        secondaryIcon: Icons.person_outline_rounded,
+                        isSelected: !isSinglePlayer,
+                        onTap: () => setState(() => isSinglePlayer = false),
+                        color: AppColors.player2,
                       ),
-                    ),
-                    SizedBox(height: AppDimensions.spacing(context)),
-                    Row(
-                      children: [
-                        _buildModeButton(
-                          text: 'Single Player',
-                          icon: Icons.person_outline_rounded,
-                          secondaryIcon: Icons.smart_toy_outlined,
-                          isSelected: isSinglePlayer,
-                          onTap: () => setState(() => isSinglePlayer = true),
-                          color: Colors.blue[400]!,
-                        ),
-                        SizedBox(width: AppDimensions.spacing(context)),
-                        _buildModeButton(
-                          text: 'Two Players',
-                          icon: Icons.person_outline_rounded,
-                          secondaryIcon: Icons.person_outline_rounded,
-                          isSelected: !isSinglePlayer,
-                          onTap: () => setState(() => isSinglePlayer = false),
-                          color: Colors.red[400]!,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: AppDimensions.spacing(context) * 2),
-
-              // Game Mode Selection
-              Container(
-                width: screenSize.width * 0.9,
-                padding: EdgeInsets.all(AppDimensions.padding(context)),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Choose Mode',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                      _buildOption(
+                        text: 'Single Player',
+                        icon: Icons.smart_toy_outlined,
+                        secondaryIcon: Icons.person_outline_rounded,
+                        isSelected: isSinglePlayer,
+                        onTap: () => setState(() => isSinglePlayer = true),
+                        color: AppColors.player1,
                       ),
-                    ),
-                    SizedBox(height: AppDimensions.spacing(context)),
-                    Row(
-                      children: [
-                        _buildModeButton(
-                          text: 'Time Mode',
-                          icon: Icons.timer,
-                          isSelected: isTimeMode,
-                          onTap: () => setState(() => isTimeMode = true),
-                          color: Colors.orange[400]!,
-                        ),
-                        SizedBox(width: AppDimensions.spacing(context)),
-                        _buildModeButton(
-                          text: 'Score Mode',
-                          icon: Icons.score,
-                          isSelected: !isTimeMode,
-                          onTap: () => setState(() => isTimeMode = false),
-                          color: Colors.green[400]!,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: AppDimensions.spacing(context) * 2),
-
-              // Limit Selection
-              Container(
-                width: screenSize.width * 0.9,
-                padding: EdgeInsets.all(AppDimensions.padding(context)),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      isTimeMode ? 'Time Limit' : 'Score Target',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                    ]),
+                  ),
+                  _buildSection(
+                    title: 'Choose Mode',
+                    subtitle: 'Set duration or score target',
+                    child: _buildOptionRow([
+                      _buildOption(
+                        text: 'Time Mode',
+                        icon: Icons.timer_outlined,
+                        isSelected: isTimeMode,
+                        onTap: () => setState(() => isTimeMode = true),
+                        color: AppColors.timeMode,
                       ),
-                    ),
-                    SizedBox(height: AppDimensions.spacing(context)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: (isTimeMode ? timeLimits : scoreLimits).map((value) {
-                        return _buildLimitButton(
+                      _buildOption(
+                        text: 'Score Mode',
+                        icon: Icons.flag_outlined,
+                        isSelected: !isTimeMode,
+                        onTap: () => setState(() => isTimeMode = false),
+                        color: AppColors.scoreMode,
+                      ),
+                    ]),
+                  ),
+                  _buildSection(
+                    title: isTimeMode ? 'Time Limit' : 'Score Target',
+                    subtitle: isTimeMode ? 'Set the match duration' : 'Set the winning score',
+                    child: _buildOptionRow(
+                      (isTimeMode ? timeLimits : scoreLimits).map((value) => 
+                        _buildSmallOption(
                           text: isTimeMode ? '${value}s' : value.toString(),
                           isSelected: isTimeMode ? timeLimit == value : scoreLimit == value,
                           onTap: () => setState(() {
@@ -178,120 +113,79 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> with SingleTi
                               scoreLimit = value;
                             }
                           }),
-                          color: isTimeMode ? Colors.orange[400]! : Colors.green[400]!,
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: AppDimensions.spacing(context) * 2),
-
-              // Difficulty Selection (Single Player Only)
-              if (isSinglePlayer)
-                Container(
-                  width: screenSize.width * 0.9,
-                  padding: EdgeInsets.all(AppDimensions.padding(context)),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Difficulty',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
+                          color: isTimeMode ? AppColors.timeMode : AppColors.scoreMode,
                         ),
-                      ),
-                      SizedBox(height: AppDimensions.spacing(context)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: difficulties.map((diff) {
-                          final Color diffColor = diff['value'] == 1 
-                              ? Colors.green[400]! 
-                              : diff['value'] == 3 
-                                  ? Colors.orange[400]! 
-                                  : Colors.red[400]!;
-                          return _buildDifficultyButton(
+                      ).toList(),
+                    ),
+                  ),
+                  if (isSinglePlayer)
+                    _buildSection(
+                      title: 'Difficulty',
+                      subtitle: 'Choose AI opponent level',
+                      child: _buildOptionRow(
+                        difficulties.map((diff) => 
+                          _buildSmallOption(
                             text: diff['name'],
                             icon: diff['icon'],
                             isSelected: difficulty == diff['value'],
                             onTap: () => setState(() => difficulty = diff['value']),
-                            color: diffColor,
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-
-              SizedBox(height: AppDimensions.spacing(context) * 3),
-              
-              // Start Game Button
-              MouseRegion(
-                onEnter: (_) => setState(() => _isStartHovered = true),
-                onExit: (_) => setState(() => _isStartHovered = false),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  transform: Matrix4.identity()
-                    ..scale(_isStartHovered ? 1.05 : 1.0),
-                  child: SizedBox(
-                    height: 70,
-                    child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                          (states) => _isStartHovered ? Colors.blue[500]! : Colors.blue[400]!,
-                        ),
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            color: diff['value'] == 1 
+                                ? AppColors.accentGreen 
+                                : diff['value'] == 3 
+                                    ? AppColors.timeMode 
+                                    : AppColors.player2,
                           ),
-                        ),
-                        elevation: MaterialStateProperty.all(_isStartHovered ? 12 : 6),
-                      ),
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/game',
-                          arguments: {
-                            'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
-                            'playerMode': isSinglePlayer ? 'PlayerMode.singlePlayer' : 'PlayerMode.twoPlayer',
-                            'timeLimit': timeLimit,
-                            'scoreLimit': scoreLimit,
-                            'difficulty': difficulty,
-                          },
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.play_arrow_rounded, color: Colors.white, size: 32),
-                          SizedBox(width: 16),
-                          Text(
-                            'START BATTLE',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                        ).toList(),
                       ),
                     ),
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+            // Start Button
+            Padding(
+              padding: EdgeInsets.all(AppDimensions.paddingMedium),
+              child: _buildStartButton(),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildModeButton({
+  Widget _buildSection({
+    required String title,
+    required String subtitle,
+    required Widget child,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: AppDimensions.paddingMedium),
+      padding: EdgeInsets.all(AppDimensions.paddingMedium),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTextStyles.title(context)),
+          SizedBox(height: 4),
+          Text(subtitle, style: AppTextStyles.caption(context)),
+          SizedBox(height: AppDimensions.paddingMedium),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionRow(List<Widget> children) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: children,
+    );
+  }
+
+  Widget _buildOption({
     required String text,
     required IconData icon,
     IconData? secondaryIcon,
@@ -299,168 +193,139 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> with SingleTi
     required VoidCallback onTap,
     required Color color,
   }) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(15),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: isSelected ? color : Colors.white10,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: isSelected ? [
-                BoxShadow(
-                  color: color.withOpacity(0.3),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ] : [],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (secondaryIcon != null)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        width: 2,
-                        height: 20,
-                        color: Colors.white38,
-                      ),
-                      Icon(
-                        secondaryIcon,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ],
-                  )
-                else
-                  Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                SizedBox(height: 8),
-                Text(
-                  text,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.35,
+        height: 80,
+        decoration: BoxDecoration(
+          color: isSelected ? color : AppColors.white10,
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : AppColors.white24,
+            width: 1,
           ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (secondaryIcon != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: AppColors.white, size: 24),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 6),
+                    height: 16,
+                    width: 1,
+                    color: AppColors.white38,
+                  ),
+                  Icon(secondaryIcon, color: AppColors.white, size: 24),
+                ],
+              )
+            else
+              Icon(icon, color: AppColors.white, size: 28),
+            SizedBox(height: 12),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildLimitButton({
+  Widget _buildSmallOption({
     required String text,
+    IconData? icon,
     required bool isSelected,
     required VoidCallback onTap,
     required Color color,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.22,
+        height: 52,
+        decoration: BoxDecoration(
+          color: isSelected ? color : AppColors.white10,
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : AppColors.white24,
+            width: 1,
           ),
-          decoration: BoxDecoration(
-            color: isSelected ? color : Colors.white10,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: isSelected ? color.withOpacity(0.5) : Colors.white24,
-              width: 2,
-            ),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: color.withOpacity(0.3),
-                blurRadius: 8,
-                spreadRadius: 1,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: AppColors.white, size: 20),
+              SizedBox(height: 6),
+            ],
+            Text(
+              text,
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
-            ] : [],
-          ),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDifficultyButton({
-    required String text,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 12,
-          ),
+  Widget _buildStartButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          '/game',
+          arguments: {
+            'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
+            'playerMode': isSinglePlayer ? 'PlayerMode.singlePlayer' : 'PlayerMode.twoPlayer',
+            'timeLimit': timeLimit,
+            'scoreLimit': scoreLimit,
+            'difficulty': difficulty,
+          },
+        );
+      },
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isStartHovered = true),
+        onExit: (_) => setState(() => _isStartHovered = false),
+        child: Container(
+          height: 56,
           decoration: BoxDecoration(
-            color: isSelected ? color : Colors.white10,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: isSelected ? color.withOpacity(0.5) : Colors.white24,
-              width: 2,
-            ),
-            boxShadow: isSelected ? [
+            color: _isStartHovered ? AppColors.hoveredBlue : AppColors.primaryBlue,
+            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+            boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.3),
+                color: AppColors.primaryBlue.withOpacity(0.3),
                 blurRadius: 8,
-                spreadRadius: 1,
+                offset: Offset(0, 4),
               ),
-            ] : [],
+            ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.amber : Colors.white70,
-                size: 28,
-              ),
-              SizedBox(height: 8),
+              Icon(Icons.play_arrow_rounded, color: AppColors.white, size: 26),
+              SizedBox(width: 8),
               Text(
-                text,
+                'START BATTLE',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
