@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
 class ModeSelectionStyles {
-  static BoxDecoration buttonDecoration(Color color) => BoxDecoration(
-    borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+  static BoxDecoration buttonDecoration(Color color, BuildContext context) => BoxDecoration(
+    borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
     gradient: LinearGradient(
       colors: [
         color,
@@ -40,11 +40,11 @@ class ModeSelectionStyles {
     ],
   );
 
-  static TextStyle get modeTitle => AppTextStyles.heading;
+  static TextStyle Function(BuildContext context) get modeTitle => AppTextStyles.heading;
   
-  static TextStyle get difficultyText => AppTextStyles.button;
+  static TextStyle Function(BuildContext context) get difficultyText => AppTextStyles.button;
   
-  static TextStyle get speedText => AppTextStyles.body.copyWith(
+  static TextStyle speedText(BuildContext context) => AppTextStyles.body(context).copyWith(
     color: Colors.white.withOpacity(0.8),
     fontSize: 14,
   );

@@ -7,7 +7,7 @@ class SettingsStyles {
     borderRadius: BorderRadius.circular(15),
   );
 
-  static TextStyle get itemText => AppTextStyles.body;
+  static TextStyle itemText(BuildContext context) => AppTextStyles.body(context);
 
   static Color get activeColor => AppColors.accent;
   static Color get inactiveColor => Colors.white.withOpacity(0.3);

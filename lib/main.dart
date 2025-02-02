@@ -13,8 +13,6 @@ import 'package:clickbattle/services/audio_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  final audioService = AudioService();
-  await audioService.initialize();
   
   runApp(
     MultiProvider(
@@ -28,8 +26,24 @@ void main() async {
   );
 }
 
-class ClickBattleApp extends StatelessWidget {
+class ClickBattleApp extends StatefulWidget {
   const ClickBattleApp({Key? key}) : super(key: key);
+
+  @override
+  State<ClickBattleApp> createState() => _ClickBattleAppState();
+}
+
+class _ClickBattleAppState extends State<ClickBattleApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeAudio();
+  }
+
+  Future<void> _initializeAudio() async {
+    final audioService = AudioService();
+    await audioService.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {

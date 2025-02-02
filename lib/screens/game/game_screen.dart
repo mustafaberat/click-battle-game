@@ -157,13 +157,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _isPlayer1Click = isPlayer1;
     _particles.clear();
     
-    final baseColor = isPlayer1 ? Colors.blue : Colors.red;
-    final colors = [
-      baseColor[300]!,
-      Colors.white,
-      baseColor[400]!,
-      baseColor[200]!,
-    ];
+    // Player 1 (blue) clicks create red and white sparks
+    // Player 2 (red) clicks create blue and white sparks
+    final colors = isPlayer1 
+        ? [Colors.red[700]!, Colors.white, Colors.red[700]!, Colors.white]
+        : [Colors.blue[700]!, Colors.white, Colors.blue[700]!, Colors.white];
     
     for (int i = 0; i < 20; i++) {
       final angle = _random.nextDouble() * 2 * pi;
