@@ -3,7 +3,7 @@ import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' show pi, Random, cos, sin, max;
 
 class GameScreen extends StatefulWidget {
   final Map<String, dynamic> gameArgs;
@@ -43,6 +43,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Offset? _lastClickPosition;
   bool _isPlayer1Click = false;
 
+  final List<SparkParticle> _particles = [];
+  final Random _random = Random();
+
   @override
   void initState() {
     super.initState();
@@ -70,17 +73,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       ),
     );
 
-    // Click effect animation with smoother curve
+    // Replace click effect animation with new spark animation
     _clickEffectController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _clickEffectAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _clickEffectController,
-        curve: Curves.easeOut,
-      ),
-    );
+
+    _clickEffectController.addListener(() {
+      if (_clickEffectController.isAnimating) {
+        setState(() {});
+      }
+    });
   }
 
   void startCountdown() {
@@ -149,6 +152,35 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _createSparkEffect(bool isPlayer1, Offset position) {
+    _lastClickPosition = position;
+    _isPlayer1Click = isPlayer1;
+    _particles.clear();
+    
+    final baseColor = isPlayer1 ? Colors.blue : Colors.red;
+    final colors = [
+      baseColor[300]!,
+      Colors.white,
+      baseColor[400]!,
+      baseColor[200]!,
+    ];
+    
+    for (int i = 0; i < 20; i++) {
+      final angle = _random.nextDouble() * 2 * pi;
+      final velocity = 2.0 + _random.nextDouble() * 3.0;
+      final color = colors[_random.nextInt(4)];
+
+      _particles.add(SparkParticle(
+        position: position,
+        angle: angle,
+        velocity: velocity,
+        color: color,
+      ));
+    }
+    
+    _clickEffectController.forward(from: 0.0);
+  }
+
   void _updateScore(bool isPlayer1, Offset tapPosition) {
     if (gameEnded || !isGameStarted) return;
 
@@ -159,8 +191,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         player2Score++;
       }
 
-      _lastClickPosition = tapPosition;
-      _isPlayer1Click = isPlayer1;
+      _createSparkEffect(isPlayer1, tapPosition);
 
       double totalScore = (player1Score + player2Score).toDouble();
       double newRatio = totalScore > 0 
@@ -180,7 +211,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       
       colorRatio = newRatio;
       _colorAnimationController.forward(from: 0.0);
-      _clickEffectController.forward(from: 0.0);
 
       if (!isTimeMode && (player1Score >= scoreLimit || player2Score >= scoreLimit)) {
         _endGame();
@@ -224,20 +254,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               );
             },
           ),
-          // Click effect overlay
+          // Replace click effect overlay
           if (_lastClickPosition != null)
-            AnimatedBuilder(
-              animation: _clickEffectAnimation,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: ClickEffectPainter(
-                    position: _lastClickPosition!,
-                    progress: _clickEffectAnimation.value,
-                    color: _isPlayer1Click ? Colors.blue : Colors.red,
-                  ),
-                  size: Size.infinite,
-                );
-              },
+            CustomPaint(
+              painter: SparkPainter(
+                particles: _particles,
+                progress: _clickEffectController.value,
+              ),
+              size: Size.infinite,
             ),
           // Timer overlay (left)
           Positioned(
@@ -411,127 +435,64 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 }
 
-class ClickEffectPainter extends CustomPainter {
-  final Offset position;
-  final double progress;
+class SparkParticle {
+  Offset position;
+  final double angle;
+  final double velocity;
   final Color color;
 
-  ClickEffectPainter({
+  SparkParticle({
     required this.position,
-    required this.progress,
+    required this.angle,
+    required this.velocity,
     required this.color,
   });
 
+  void update(double progress) {
+    final dx = cos(angle) * velocity * progress * 100;
+    final dy = sin(angle) * velocity * progress * 100;
+    position = position.translate(dx, dy);
+  }
+}
+
+class SparkPainter extends CustomPainter {
+  final List<SparkParticle> particles;
+  final double progress;
+
+  SparkPainter({required this.particles, required this.progress});
+
   @override
   void paint(Canvas canvas, Size size) {
-    // Main expanding ring with gradient
-    final outerPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          color.withOpacity((1 - progress) * 0.6),
-          color.withOpacity(0),
-        ],
-      ).createShader(Rect.fromCircle(
-        center: position,
-        radius: 40.0 + (progress * 30.0),
-      ))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 8.0;
-    
-    final outerRadius = 20.0 + (progress * 30.0);
-    canvas.drawCircle(position, outerRadius, outerPaint);
+    for (final particle in particles) {
+      particle.update(progress);
+      
+      final paint = Paint()
+        ..color = particle.color.withOpacity((1 - progress) * 0.8)
+        ..style = PaintingStyle.fill
+        ..strokeWidth = 2.0;
 
-    // Inner glowing circle
-    final innerPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.white.withOpacity((1 - progress) * 0.8),
-          color.withOpacity((1 - progress) * 0.3),
-        ],
-      ).createShader(Rect.fromCircle(
-        center: position,
-        radius: 15.0,
-      ))
-      ..style = PaintingStyle.fill;
-    
-    final innerRadius = 12.0 * (1 - progress * 0.3);
-    canvas.drawCircle(position, innerRadius, innerPaint);
-
-    // Rotating sparkles
-    final sparkleCount = 24;
-    final baseRotation = progress * 2 * pi; // Full rotation during animation
-    
-    for (var i = 0; i < sparkleCount; i++) {
-      final sparkleProgress = (progress - (i / sparkleCount * 0.2)).clamp(0.0, 1.0);
-      if (sparkleProgress <= 0) continue;
-
-      // Calculate sparkle positions with outward spiral motion
-      final angle = (i * 2 * pi / sparkleCount) + baseRotation;
-      final distance = 25.0 + (sparkleProgress * 40.0); // Spiral out
-      final sparklePos = Offset(
-        position.dx + cos(angle) * distance,
-        position.dy + sin(angle) * distance,
+      // Draw particle trail
+      final path = Path();
+      final trailLength = 10.0 * (1 - progress);
+      final endPoint = particle.position;
+      final startPoint = Offset(
+        endPoint.dx - cos(particle.angle) * trailLength,
+        endPoint.dy - sin(particle.angle) * trailLength,
       );
 
-      // Draw connecting line with gradient
-      final linePaint = Paint()
-        ..shader = LinearGradient(
-          colors: [
-            color.withOpacity((1 - sparkleProgress) * 0.5),
-            color.withOpacity(0),
-          ],
-        ).createShader(Rect.fromPoints(position, sparklePos))
-        ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke;
-      
-      canvas.drawLine(position, sparklePos, linePaint);
+      path.moveTo(startPoint.dx, startPoint.dy);
+      path.lineTo(endPoint.dx, endPoint.dy);
+
+      canvas.drawPath(path, paint);
 
       // Draw sparkle
-      final sparklePaint = Paint()
-        ..color = Colors.white.withOpacity((1 - sparkleProgress) * 0.9)
-        ..style = PaintingStyle.fill;
-      
-      // Draw star-shaped sparkle
-      final sparkleSize = 3.0 * (1 - sparkleProgress);
-      _drawStar(canvas, sparklePos, sparkleSize, sparklePaint, angle);
+      final sparkSize = 3.0 * (1 - progress);
+      canvas.drawCircle(particle.position, sparkSize, paint);
     }
-
-    // Center pulse effect
-    final pulsePaint = Paint()
-      ..color = Colors.white.withOpacity((1 - progress) * 0.4)
-      ..style = PaintingStyle.fill;
-    
-    final pulseRadius = 5.0 * (1 + sin(progress * pi * 2) * 0.3);
-    canvas.drawCircle(position, pulseRadius, pulsePaint);
-  }
-
-  void _drawStar(Canvas canvas, Offset center, double size, Paint paint, double rotation) {
-    final path = Path();
-    final points = 4;
-    
-    for (var i = 0; i < points * 2; i++) {
-      final radius = i.isEven ? size : size * 0.5;
-      final angle = (i * pi / points) + rotation;
-      final point = Offset(
-        center.dx + cos(angle) * radius,
-        center.dy + sin(angle) * radius,
-      );
-      
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
-      }
-    }
-    
-    path.close();
-    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(ClickEffectPainter oldDelegate) {
-    return oldDelegate.position != position ||
-           oldDelegate.progress != progress ||
-           oldDelegate.color != color;
+  bool shouldRepaint(SparkPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 } 
