@@ -19,8 +19,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _isMusicEnabled = _audioService.isMusicEnabled;
-    _volume = 0.2; // Set default volume to 30%
+    _isMusicEnabled = false;
+    _volume = 0.1; // Set default volume to 10%
     _audioService.setVolume(_volume); // Ensure the audio service reflects this change
   }
 
