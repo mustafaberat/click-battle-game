@@ -308,8 +308,7 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                                 onExit: (_) => setState(() => _isPlayAgainHovered = false),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  transform: Matrix4.identity()
-                                    ..scale(_isPlayAgainHovered ? 1.05 : 1.0),
+                                  transform: Matrix4.identity(),
                                   child: ElevatedButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.resolveWith<Color>(
@@ -359,7 +358,7 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                                 ),
                               ),
                             ),
-                            SizedBox(height: AppDimensions.spacing(context) * 2),
+                            SizedBox(height: AppDimensions.spacing(context)),
                             // Home Button
                             SizedBox(
                               width: double.infinity,
@@ -369,8 +368,7 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
                                 onExit: (_) => setState(() => _isHomeHovered = false),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  transform: Matrix4.identity()
-                                    ..scale(_isHomeHovered ? 1.05 : 1.0),
+                                  transform: Matrix4.identity(),
                                   child: ElevatedButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.resolveWith<Color>(
