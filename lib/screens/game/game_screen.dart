@@ -126,7 +126,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _colorAnimationController.dispose();
     // Dispose all particle group controllers
     for (final group in _particleGroups) {
-      group.controller.dispose();
+      group.animationController.dispose();
     }
     super.dispose();
   }
@@ -162,14 +162,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     
     // Create a new animation controller for this particle group
     final controller = AnimationController(
-      duration: const Duration(milliseconds: 800),  // Faster animation
+      duration: const Duration(milliseconds: 1000),  // Slightly longer for spiral effect
       vsync: this,
+    );
+
+    // Create a curved animation for smoother motion
+    final curvedAnimation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOutCirc,  // Smooth deceleration
     );
 
     // Create a new particle group and add it to the list
     final particleGroup = ParticleGroup(
       particles: particles,
-      controller: controller,
+      animationController: controller,
       isPlayer1: isPlayer1,
     );
     
@@ -262,12 +268,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           // Particle effects overlay
           Stack(
             children: _particleGroups.map((group) => AnimatedBuilder(
-              animation: group.controller,
+              animation: group.animation,
               builder: (context, child) {
                 return CustomPaint(
                   painter: SparkPainter(
                     particles: group.particles,
-                    progress: group.controller.value,
+                    progress: group.animation.value,
                   ),
                   size: Size.infinite,
                 );
@@ -457,6 +463,7 @@ class SparkParticle {
   final Color color;
   final ParticleType type;
   final double size;
+  final double spiralFactor;  // Controls how much spiral effect is applied
 
   SparkParticle({
     required this.position,
@@ -465,13 +472,14 @@ class SparkParticle {
     required this.color,
     required this.type,
     required this.size,
-  });
+  }) : spiralFactor = 1.5;  // Fixed spiral factor for consistent effect
 
   void update(double progress) {
-    // Smooth circular expansion
+    // Combine circular expansion with spiral motion
     final radius = velocity * 100 * progress;
-    final dx = cos(angle) * radius;
-    final dy = sin(angle) * radius;
+    final spiralAngle = angle + (progress * pi * spiralFactor);  // Spiral rotation
+    final dx = cos(spiralAngle) * radius;
+    final dy = sin(spiralAngle) * radius;
     position = position.translate(dx * 0.015, dy * 0.015);
   }
 }
@@ -487,18 +495,31 @@ class SparkPainter extends CustomPainter {
     for (final particle in particles) {
       particle.update(progress);
       
-      // Fade out gradually
-      final opacity = (1 - progress) * 0.8;
+      // Enhanced fade out effect
+      final opacity = (1 - progress) * 0.9;  // Slightly increased opacity
       final paint = Paint()
         ..color = particle.color.withOpacity(opacity)
         ..style = PaintingStyle.fill
         ..strokeWidth = 2.0;
 
-      // Draw expanding circle
+      // Draw expanding circle with slight trail effect
+      final trailPaint = Paint()
+        ..color = particle.color.withOpacity(opacity * 0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0;
+
+      // Draw main particle
       canvas.drawCircle(
         particle.position, 
-        particle.size * (1 - progress * 0.5), 
+        particle.size * (1 - progress * 0.3),  // Reduced size reduction
         paint
+      );
+
+      // Draw subtle trail
+      canvas.drawCircle(
+        particle.position,
+        particle.size * (1 + progress * 0.5),
+        trailPaint
       );
 
       // Draw connecting lines between adjacent particles if they're close enough
@@ -506,11 +527,11 @@ class SparkPainter extends CustomPainter {
         final prevParticle = particles[particles.indexOf(particle) - 1];
         final distance = (particle.position - prevParticle.position).distance;
         
-        if (distance < 50) {
+        if (distance < 60) {  // Increased connection distance
           canvas.drawLine(
             prevParticle.position,
             particle.position,
-            paint..strokeWidth = 1.0
+            paint..strokeWidth = 0.5  // Thinner lines
           );
         }
       }
@@ -525,12 +546,14 @@ class SparkPainter extends CustomPainter {
 
 class ParticleGroup {
   final List<SparkParticle> particles;
-  final AnimationController controller;
+  final AnimationController animationController;
+  final Animation<double> animation;
   final bool isPlayer1;
 
   ParticleGroup({
     required this.particles,
-    required this.controller,
+    required AnimationController animationController,
     required this.isPlayer1,
-  });
+  }) : this.animationController = animationController,
+       this.animation = animationController;
 } 
