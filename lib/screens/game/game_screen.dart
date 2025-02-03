@@ -36,14 +36,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   // Animation controllers
   late AnimationController _colorAnimationController;
   late Animation<double> _colorAnimation;
-  late AnimationController _clickEffectController;
-  late Animation<double> _clickEffectAnimation;
 
-  // Click effect positions
-  Offset? _lastClickPosition;
-  bool _isPlayer1Click = false;
-
-  final List<SparkParticle> _particles = [];
+  // Particle groups for multiple simultaneous animations
+  final List<ParticleGroup> _particleGroups = [];
   final Random _random = Random();
 
   @override
@@ -72,18 +67,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         curve: Curves.easeInOut,
       ),
     );
-
-    // Replace click effect animation with new spark animation
-    _clickEffectController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    _clickEffectController.addListener(() {
-      if (_clickEffectController.isAnimating) {
-        setState(() {});
-      }
-    });
   }
 
   void startCountdown() {
@@ -141,7 +124,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     countdownTimer?.cancel();
     _robotTimer?.cancel();
     _colorAnimationController.dispose();
-    _clickEffectController.dispose();
+    // Dispose all particle group controllers
+    for (final group in _particleGroups) {
+      group.controller.dispose();
+    }
     super.dispose();
   }
 
@@ -153,9 +139,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _createSparkEffect(bool isPlayer1, Offset position) {
-    _lastClickPosition = position;
-    _isPlayer1Click = isPlayer1;
-    _particles.clear();
+    final List<SparkParticle> particles = [];
     
     // Player 1 (blue) clicks create red and white sparks
     // Player 2 (red) clicks create blue and white sparks
@@ -168,7 +152,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       final velocity = 2.0 + _random.nextDouble() * 3.0;
       final color = colors[_random.nextInt(4)];
 
-      _particles.add(SparkParticle(
+      particles.add(SparkParticle(
         position: position,
         angle: angle,
         velocity: velocity,
@@ -176,7 +160,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       ));
     }
     
-    _clickEffectController.forward(from: 0.0);
+    // Create a new animation controller for this particle group
+    final controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    // Create a new particle group and add it to the list
+    final particleGroup = ParticleGroup(
+      particles: particles,
+      controller: controller,
+      isPlayer1: isPlayer1,
+    );
+    
+    setState(() {
+      _particleGroups.add(particleGroup);
+    });
+
+    // Start the animation and remove the group when done
+    controller.forward().then((_) {
+      setState(() {
+        _particleGroups.remove(particleGroup);
+      });
+      controller.dispose();
+    });
   }
 
   void _updateScore(bool isPlayer1, Offset tapPosition) {
@@ -252,15 +259,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               );
             },
           ),
-          // Replace click effect overlay
-          if (_lastClickPosition != null)
-            CustomPaint(
-              painter: SparkPainter(
-                particles: _particles,
-                progress: _clickEffectController.value,
-              ),
-              size: Size.infinite,
-            ),
+          // Particle effects overlay
+          Stack(
+            children: _particleGroups.map((group) => AnimatedBuilder(
+              animation: group.controller,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: SparkPainter(
+                    particles: group.particles,
+                    progress: group.controller.value,
+                  ),
+                  size: Size.infinite,
+                );
+              },
+            )).toList(),
+          ),
           // Timer overlay (left)
           Positioned(
             left: screenSize.width * 0.02,
@@ -493,4 +506,16 @@ class SparkPainter extends CustomPainter {
   bool shouldRepaint(SparkPainter oldDelegate) {
     return oldDelegate.progress != progress;
   }
+}
+
+class ParticleGroup {
+  final List<SparkParticle> particles;
+  final AnimationController controller;
+  final bool isPlayer1;
+
+  ParticleGroup({
+    required this.particles,
+    required this.controller,
+    required this.isPlayer1,
+  });
 } 
