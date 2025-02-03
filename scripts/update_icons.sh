@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Source icon path
-ICON_PATH="lib/assets/app-icon.jpeg"
+ICON_PATH="../lib/assets/app-icon.jpg"
 
 # Check if source icon exists
 if [ ! -f "$ICON_PATH" ]; then
@@ -41,7 +41,7 @@ echo -e "${YELLOW}🔍 Updating Android app icons...${NC}"
 for entry in "${MIPMAP_DIRS[@]}"; do
     dir="${entry%%:*}"
     size="${entry##*:}"
-    target_dir="android/app/src/main/res/$dir"
+    target_dir="../android/app/src/main/res/$dir"
     mkdir -p "$target_dir"
     
     # Create both regular and round icons

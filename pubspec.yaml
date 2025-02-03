@@ -23,6 +23,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - lib/assets/app-icon.jpeg
+    - lib/assets/app-icon.jpg
     - lib/assets/audio/bg-music.mp3
 
