@@ -196,7 +196,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.35,
+        width: MediaQuery.of(context).size.width * 0.38,
         height: 80,
         decoration: BoxDecoration(
           color: isSelected ? color : AppColors.white10,
