@@ -141,28 +141,28 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void _createSparkEffect(bool isPlayer1, Offset position) {
     final List<SparkParticle> particles = [];
     
-    // Player 1 (blue) clicks create red and white sparks
-    // Player 2 (red) clicks create blue and white sparks
-    final colors = isPlayer1 
-        ? [Colors.red[700]!, Colors.white, Colors.red[700]!, Colors.white]
-        : [Colors.blue[700]!, Colors.white, Colors.blue[700]!, Colors.white];
+    // Player-specific colors
+    final mainColor = isPlayer1 
+        ? Colors.red[400]!  // Player 1: Red
+        : Colors.blue[400]!;  // Player 2: Blue
     
-    for (int i = 0; i < 20; i++) {
-      final angle = _random.nextDouble() * 2 * pi;
-      final velocity = 2.0 + _random.nextDouble() * 3.0;
-      final color = colors[_random.nextInt(4)];
-
+    // Create circular ring particles
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * pi / 6);  // Evenly distributed in a circle
+      
       particles.add(SparkParticle(
         position: position,
         angle: angle,
-        velocity: velocity,
-        color: color,
+        velocity: 2.0,
+        color: i % 2 == 0 ? Colors.white : mainColor,  // Alternating colors
+        type: ParticleType.circle,
+        size: 3.0,
       ));
     }
     
     // Create a new animation controller for this particle group
     final controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 800),  // Faster animation
       vsync: this,
     );
 
@@ -446,23 +446,33 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 }
 
+enum ParticleType {
+  circle,
+}
+
 class SparkParticle {
   Offset position;
   final double angle;
   final double velocity;
   final Color color;
+  final ParticleType type;
+  final double size;
 
   SparkParticle({
     required this.position,
     required this.angle,
     required this.velocity,
     required this.color,
+    required this.type,
+    required this.size,
   });
 
   void update(double progress) {
-    final dx = cos(angle) * velocity * progress * 100;
-    final dy = sin(angle) * velocity * progress * 100;
-    position = position.translate(dx, dy);
+    // Smooth circular expansion
+    final radius = velocity * 100 * progress;
+    final dx = cos(angle) * radius;
+    final dy = sin(angle) * radius;
+    position = position.translate(dx * 0.015, dy * 0.015);
   }
 }
 
@@ -477,28 +487,33 @@ class SparkPainter extends CustomPainter {
     for (final particle in particles) {
       particle.update(progress);
       
+      // Fade out gradually
+      final opacity = (1 - progress) * 0.8;
       final paint = Paint()
-        ..color = particle.color.withOpacity((1 - progress) * 0.8)
+        ..color = particle.color.withOpacity(opacity)
         ..style = PaintingStyle.fill
         ..strokeWidth = 2.0;
 
-      // Draw particle trail
-      final path = Path();
-      final trailLength = 10.0 * (1 - progress);
-      final endPoint = particle.position;
-      final startPoint = Offset(
-        endPoint.dx - cos(particle.angle) * trailLength,
-        endPoint.dy - sin(particle.angle) * trailLength,
+      // Draw expanding circle
+      canvas.drawCircle(
+        particle.position, 
+        particle.size * (1 - progress * 0.5), 
+        paint
       );
 
-      path.moveTo(startPoint.dx, startPoint.dy);
-      path.lineTo(endPoint.dx, endPoint.dy);
-
-      canvas.drawPath(path, paint);
-
-      // Draw sparkle
-      final sparkSize = 3.0 * (1 - progress);
-      canvas.drawCircle(particle.position, sparkSize, paint);
+      // Draw connecting lines between adjacent particles if they're close enough
+      if (particles.indexOf(particle) > 0) {
+        final prevParticle = particles[particles.indexOf(particle) - 1];
+        final distance = (particle.position - prevParticle.position).distance;
+        
+        if (distance < 50) {
+          canvas.drawLine(
+            prevParticle.position,
+            particle.position,
+            paint..strokeWidth = 1.0
+          );
+        }
+      }
     }
   }
 
