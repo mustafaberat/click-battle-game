@@ -20,8 +20,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   final List<int> scoreLimits = [10, 50, 100];
   final List<Map<String, dynamic>> difficulties = [
     {'name': 'Easy', 'value': 1, 'icon': Icons.star_border_rounded},
-    {'name': 'Normal', 'value': 3, 'icon': Icons.star_half_rounded},
-    {'name': 'Hard', 'value': 9, 'icon': Icons.star_rounded},
+    {'name': 'Normal', 'value': 6, 'icon': Icons.star_half_rounded},
+    {'name': 'Hard', 'value': 12, 'icon': Icons.star_rounded},
   ];
 
   @override
@@ -37,7 +37,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white),
+                    icon:
+                        Icon(Icons.arrow_back_ios_new, color: AppColors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Spacer(),
@@ -54,7 +55,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             // Content
             Expanded(
               child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppDimensions.paddingMedium),
                 children: [
                   _buildSection(
                     title: 'Select Mode',
@@ -100,22 +102,30 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                   ),
                   _buildSection(
                     title: isTimeMode ? 'Time Limit' : 'Score Target',
-                    subtitle: isTimeMode ? 'Set the match duration' : 'Set the winning score',
+                    subtitle: isTimeMode
+                        ? 'Set the match duration'
+                        : 'Set the winning score',
                     child: _buildOptionRow(
-                      (isTimeMode ? timeLimits : scoreLimits).map((value) => 
-                        _buildSmallOption(
-                          text: isTimeMode ? '${value}s' : value.toString(),
-                          isSelected: isTimeMode ? timeLimit == value : scoreLimit == value,
-                          onTap: () => setState(() {
-                            if (isTimeMode) {
-                              timeLimit = value;
-                            } else {
-                              scoreLimit = value;
-                            }
-                          }),
-                          color: isTimeMode ? AppColors.timeMode : AppColors.scoreMode,
-                        ),
-                      ).toList(),
+                      (isTimeMode ? timeLimits : scoreLimits)
+                          .map(
+                            (value) => _buildSmallOption(
+                              text: isTimeMode ? '${value}s' : value.toString(),
+                              isSelected: isTimeMode
+                                  ? timeLimit == value
+                                  : scoreLimit == value,
+                              onTap: () => setState(() {
+                                if (isTimeMode) {
+                                  timeLimit = value;
+                                } else {
+                                  scoreLimit = value;
+                                }
+                              }),
+                              color: isTimeMode
+                                  ? AppColors.timeMode
+                                  : AppColors.scoreMode,
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
                   if (isSinglePlayer)
@@ -123,19 +133,22 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                       title: 'Difficulty',
                       subtitle: 'Choose AI opponent level',
                       child: _buildOptionRow(
-                        difficulties.map((diff) => 
-                          _buildSmallOption(
-                            text: diff['name'],
-                            icon: diff['icon'],
-                            isSelected: difficulty == diff['value'],
-                            onTap: () => setState(() => difficulty = diff['value']),
-                            color: diff['value'] == 1 
-                                ? AppColors.accentGreen 
-                                : diff['value'] == 3 
-                                    ? AppColors.timeMode 
-                                    : AppColors.player2,
-                          ),
-                        ).toList(),
+                        difficulties
+                            .map(
+                              (diff) => _buildSmallOption(
+                                text: diff['name'],
+                                icon: diff['icon'],
+                                isSelected: difficulty == diff['value'],
+                                onTap: () =>
+                                    setState(() => difficulty = diff['value']),
+                                color: diff['value'] == 1
+                                    ? AppColors.accentGreen
+                                    : diff['value'] == 3
+                                        ? AppColors.timeMode
+                                        : AppColors.player2,
+                              ),
+                            )
+                            .toList(),
                       ),
                     ),
                 ],
@@ -291,7 +304,9 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
           '/game',
           arguments: {
             'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
-            'playerMode': isSinglePlayer ? 'PlayerMode.singlePlayer' : 'PlayerMode.twoPlayer',
+            'playerMode': isSinglePlayer
+                ? 'PlayerMode.singlePlayer'
+                : 'PlayerMode.twoPlayer',
             'timeLimit': timeLimit,
             'scoreLimit': scoreLimit,
             'difficulty': difficulty,
@@ -304,8 +319,10 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
         child: Container(
           height: 56,
           decoration: BoxDecoration(
-            color: _isStartHovered ? AppColors.hoveredBlue : AppColors.primaryBlue,
-            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+            color:
+                _isStartHovered ? AppColors.hoveredBlue : AppColors.primaryBlue,
+            borderRadius:
+                BorderRadius.circular(AppDimensions.borderRadiusLarge),
             boxShadow: [
               BoxShadow(
                 color: AppColors.primaryBlue.withOpacity(0.3),
@@ -334,4 +351,4 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
       ),
     );
   }
-} 
+}
