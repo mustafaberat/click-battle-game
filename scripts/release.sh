@@ -89,7 +89,7 @@ echo -e "\n${YELLOW}Build Complete!${NC} 🎉\n"
 # Check and display results
 if [ -f "../build/app/outputs/flutter-apk/app-release.apk" ]; then
     echo -e "${GREEN}✅ APK created at: build/app/outputs/flutter-apk/app-release.apk${NC}"
-    echo "   Size: $(ls -lh build/app/outputs/flutter-apk/app-release.apk | awk '{print $5}')"
+    echo "   Size: $(ls -lh ../build/app/outputs/flutter-apk/app-release.apk | awk '{print $5}')"
 else
     echo -e "${RED}❌ APK build failed${NC}"
     echo "   Check build/logs/apk_build.log for details"
@@ -97,7 +97,7 @@ fi
 
 if [ -f "../build/app/outputs/bundle/release/app-release.aab" ]; then
     echo -e "${GREEN}✅ App Bundle created at: build/app/outputs/bundle/release/app-release.aab${NC}"
-    echo "   Size: $(ls -lh build/app/outputs/bundle/release/app-release.aab | awk '{print $5}')"
+    echo "   Size: $(ls -lh ../build/app/outputs/bundle/release/app-release.aab | awk '{print $5}')"
 else
     echo -e "${RED}❌ App Bundle build failed${NC}"
     echo "   Check build/logs/bundle_build.log for details"
