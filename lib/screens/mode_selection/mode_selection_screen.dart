@@ -17,14 +17,34 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   int scoreLimit = 10;
   int difficulty = 1;
   bool _isStartHovered = false;
+  final ScrollController _scrollController = ScrollController();
 
   final List<int> timeLimits = [10, 30, 60];
   final List<int> scoreLimits = [10, 50, 100];
   final List<Map<String, dynamic>> difficulties = [
-    {'name': 'Easy', 'value': 1, 'icon': Icons.star_border_rounded},
-    {'name': 'Normal', 'value': 6, 'icon': Icons.star_half_rounded},
-    {'name': 'Hard', 'value': 12, 'icon': Icons.star_rounded},
+    {'name': 'Easy', 'value': 1, 'stars': 1},
+    {'name': 'Normal', 'value': 6, 'stars': 2},
+    {'name': 'Hard', 'value': 12, 'stars': 3},
   ];
+
+  Color _getDifficultyColor(int value) {
+    switch (value) {
+      case 1:
+        return AppColors.accentGreen;
+      case 6:
+        return AppColors.timeMode;
+      case 12:
+        return AppColors.hardMode;
+      default:
+        return AppColors.accent;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,106 +77,108 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
             // Content
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppDimensions.paddingMedium),
-                children: [
-                  _buildSection(
-                    title: localizationService.getText('selectMode'),
-                    subtitle: localizationService.getText('selectModeSubtitle'),
-                    child: _buildOptionRow([
-                      _buildOption(
-                        text: localizationService.getText('twoPlayers'),
-                        icon: Icons.person_outline_rounded,
-                        secondaryIcon: Icons.person_outline_rounded,
-                        isSelected: !isSinglePlayer,
-                        onTap: () => setState(() => isSinglePlayer = false),
-                        color: AppColors.player2,
-                      ),
-                      _buildOption(
-                        text: localizationService.getText('singlePlayer'),
-                        icon: Icons.smart_toy_outlined,
-                        secondaryIcon: Icons.person_outline_rounded,
-                        isSelected: isSinglePlayer,
-                        onTap: () => setState(() => isSinglePlayer = true),
-                        color: AppColors.player1,
-                      ),
-                    ]),
-                  ),
-                  _buildSection(
-                    title: localizationService.getText('chooseMode'),
-                    subtitle: localizationService.getText('chooseModeSubtitle'),
-                    child: _buildOptionRow([
-                      _buildOption(
-                        text: localizationService.getText('timeAttack'),
-                        icon: Icons.timer_outlined,
-                        isSelected: isTimeMode,
-                        onTap: () => setState(() => isTimeMode = true),
-                        color: AppColors.timeMode,
-                      ),
-                      _buildOption(
-                        text: localizationService.getText('survival'),
-                        icon: Icons.flag_outlined,
-                        isSelected: !isTimeMode,
-                        onTap: () => setState(() => isTimeMode = false),
-                        color: AppColors.scoreMode,
-                      ),
-                    ]),
-                  ),
-                  _buildSection(
-                    title: isTimeMode ? localizationService.getText('timeLimit') : localizationService.getText('targetScore'),
-                    subtitle: isTimeMode
-                        ? localizationService.getText('timeLimitSubtitle')
-                        : localizationService.getText('targetScoreSubtitle'),
-                    child: _buildOptionRow(
-                      (isTimeMode ? timeLimits : scoreLimits)
-                          .map(
-                            (value) => _buildSmallOption(
-                              text: isTimeMode 
-                                ? '$value ${localizationService.getText('seconds')}' 
-                                : '$value ${localizationService.getText('points')}',
-                              isSelected: isTimeMode
-                                  ? timeLimit == value
-                                  : scoreLimit == value,
-                              onTap: () => setState(() {
-                                if (isTimeMode) {
-                                  timeLimit = value;
-                                } else {
-                                  scoreLimit = value;
-                                }
-                              }),
-                              color: isTimeMode
-                                  ? AppColors.timeMode
-                                  : AppColors.scoreMode,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                  if (isSinglePlayer)
+              child: RawScrollbar(
+                controller: _scrollController,
+                thumbColor: Colors.white.withOpacity(0.3),
+                radius: const Radius.circular(20),
+                thickness: 8,
+                thumbVisibility: true,
+                child: ListView(
+                  controller: _scrollController,
+                  padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
+                  children: [
                     _buildSection(
-                      title: localizationService.getText('difficulty'),
-                      subtitle: localizationService.getText('difficultySubtitle'),
+                      title: localizationService.getText('selectMode'),
+                      subtitle: localizationService.getText('selectModeSubtitle'),
+                      child: _buildOptionRow([
+                        _buildOption(
+                          text: localizationService.getText('twoPlayers'),
+                          icon: Icons.person_outline_rounded,
+                          secondaryIcon: Icons.person_outline_rounded,
+                          isSelected: !isSinglePlayer,
+                          onTap: () => setState(() => isSinglePlayer = false),
+                          color: AppColors.player2,
+                        ),
+                        _buildOption(
+                          text: localizationService.getText('singlePlayer'),
+                          icon: Icons.smart_toy_outlined,
+                          secondaryIcon: Icons.person_outline_rounded,
+                          isSelected: isSinglePlayer,
+                          onTap: () => setState(() => isSinglePlayer = true),
+                          color: AppColors.player1,
+                        ),
+                      ]),
+                    ),
+                    _buildSection(
+                      title: localizationService.getText('chooseMode'),
+                      subtitle: localizationService.getText('chooseModeSubtitle'),
+                      child: _buildOptionRow([
+                        _buildOption(
+                          text: localizationService.getText('timeAttack'),
+                          icon: Icons.timer_outlined,
+                          isSelected: isTimeMode,
+                          onTap: () => setState(() => isTimeMode = true),
+                          color: AppColors.timeMode,
+                        ),
+                        _buildOption(
+                          text: localizationService.getText('survival'),
+                          icon: Icons.flag_outlined,
+                          isSelected: !isTimeMode,
+                          onTap: () => setState(() => isTimeMode = false),
+                          color: AppColors.scoreMode,
+                        ),
+                      ]),
+                    ),
+                    _buildSection(
+                      title: isTimeMode ? localizationService.getText('timeLimit') : localizationService.getText('targetScore'),
+                      subtitle: isTimeMode
+                          ? localizationService.getText('timeLimitSubtitle')
+                          : localizationService.getText('targetScoreSubtitle'),
                       child: _buildOptionRow(
-                        difficulties
+                        (isTimeMode ? timeLimits : scoreLimits)
                             .map(
-                              (diff) => _buildSmallOption(
-                                text: localizationService.getText(diff['name'].toLowerCase()),
-                                icon: diff['icon'],
-                                isSelected: difficulty == diff['value'],
-                                onTap: () =>
-                                    setState(() => difficulty = diff['value']),
-                                color: diff['value'] == 1
-                                    ? AppColors.accentGreen
-                                    : diff['value'] == 3
-                                        ? AppColors.timeMode
-                                        : AppColors.player2,
+                              (value) => _buildSmallOption(
+                                text: isTimeMode 
+                                  ? '$value ${localizationService.getText('seconds')}' 
+                                  : '$value ${localizationService.getText('points')}',
+                                isSelected: isTimeMode
+                                    ? timeLimit == value
+                                    : scoreLimit == value,
+                                onTap: () => setState(() {
+                                  if (isTimeMode) {
+                                    timeLimit = value;
+                                  } else {
+                                    scoreLimit = value;
+                                  }
+                                }),
+                                color: isTimeMode
+                                    ? AppColors.timeMode
+                                    : AppColors.scoreMode,
                               ),
                             )
                             .toList(),
                       ),
                     ),
-                ],
+                    if (isSinglePlayer)
+                      _buildSection(
+                        title: localizationService.getText('difficulty'),
+                        subtitle: localizationService.getText('difficultySubtitle'),
+                        child: _buildOptionRow(
+                          difficulties
+                              .map(
+                                (diff) => _buildSmallOption(
+                                  text: localizationService.getText(diff['name'].toLowerCase()),
+                                  isSelected: difficulty == diff['value'],
+                                  onTap: () => setState(() => difficulty = diff['value']),
+                                  color: _getDifficultyColor(diff['value']),
+                                  stars: diff['stars'],
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
 
@@ -262,39 +284,49 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
   Widget _buildSmallOption({
     required String text,
-    IconData? icon,
     required bool isSelected,
     required VoidCallback onTap,
     required Color color,
+    int? stars,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.22,
-        height: 52,
+        width: MediaQuery.of(context).size.width * 0.25,
+        height: 64,
         decoration: BoxDecoration(
-          color: isSelected ? color : AppColors.white10,
+          color: isSelected ? color.withOpacity(0.2) : Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
           border: Border.all(
-            color: isSelected ? Colors.transparent : AppColors.white24,
-            width: 1,
+            color: isSelected ? color : Colors.white24,
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
-              Icon(icon, color: AppColors.white, size: 20),
-              SizedBox(height: 6),
-            ],
             Text(
               text,
               style: TextStyle(
-                color: AppColors.white,
+                color: isSelected ? Colors.white : Colors.white70,
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
+            if (stars != null) ...[
+              SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  stars,
+                  (index) => Icon(
+                    Icons.star,
+                    color: isSelected ? color : Colors.white70,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
