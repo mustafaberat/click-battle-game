@@ -239,7 +239,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
       double totalScore = (player1Score + player2Score).toDouble();
       double newRatio = totalScore > 0 
-          ? player2Score.toDouble() / totalScore  // Changed to player2Score to match the visual layout
+          ? player1Score.toDouble() / totalScore  // Using player1Score instead of player2Score
           : 0.5;
       
       double maxChange = 0.1;
@@ -315,143 +315,59 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           ),
           // Timer overlay (left-center) - For P1 (Blue area)
           Positioned(
-            left: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 + 20,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.75,
-                vertical: AppDimensions.padding(context) * 0.75,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isTimeMode ? Icons.timer : Icons.flag,
-                    color: Colors.white70,
-                    size: 24,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    isTimeMode 
-                      ? (isGameStarted 
-                          ? '${remainingSeconds ~/ 60}'
-                          : countdownSeconds.toString())
-                      : '${scoreLimit - max(player1Score, player2Score)}',
-                    style: GameStyles.timerText(context),
-                  ),
-                  if (isTimeMode && isGameStarted) ...[
-                    Text(
-                      ':',
-                      style: GameStyles.timerText(context),
-                    ),
-                    Text(
-                      '${(remainingSeconds % 60).toString().padLeft(2, '0')}',
-                      style: GameStyles.timerText(context),
-                    ),
-                  ],
-                ],
-              ),
+            left: screenSize.width * 0.04,
+            top: screenSize.height * 0.5 + 10,
+            child: GameInfoDisplay(
+              icon: isTimeMode ? Icons.timer : Icons.flag,
+              value: isTimeMode 
+                ? (isGameStarted 
+                    ? _formatTime(remainingSeconds)
+                    : countdownSeconds.toString())
+                : '${scoreLimit - max(player1Score, player2Score)}',
+              color: Colors.blue[400]!,
+              isAnimating: isGameStarted,
             ),
           ),
           // Timer overlay (left-center) - For P2 (Red area)
           Positioned(
-            left: screenSize.width * 0.02,
-            bottom: screenSize.height * 0.5 + 20,
+            left: screenSize.width * 0.04,
+            bottom: screenSize.height * 0.5 + 10,
             child: Transform(
               alignment: Alignment.center,
               transform: Matrix4.rotationX(pi),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppDimensions.padding(context) * 0.75,
-                  vertical: AppDimensions.padding(context) * 0.75,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isTimeMode ? Icons.timer : Icons.flag,
-                      color: Colors.white70,
-                      size: 24,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      isTimeMode 
-                        ? (isGameStarted 
-                            ? '${remainingSeconds ~/ 60}'
-                            : countdownSeconds.toString())
-                        : '${scoreLimit - max(player1Score, player2Score)}',
-                      style: GameStyles.timerText(context),
-                    ),
-                    if (isTimeMode && isGameStarted) ...[
-                      Text(
-                        ':',
-                        style: GameStyles.timerText(context),
-                      ),
-                      Text(
-                        '${(remainingSeconds % 60).toString().padLeft(2, '0')}',
-                        style: GameStyles.timerText(context),
-                      ),
-                    ],
-                  ],
-                ),
+              child: GameInfoDisplay(
+                icon: isTimeMode ? Icons.timer : Icons.flag,
+                value: isTimeMode 
+                  ? (isGameStarted 
+                      ? _formatTime(remainingSeconds)
+                      : countdownSeconds.toString())
+                  : '${scoreLimit - max(player1Score, player2Score)}',
+                color: Colors.red[400]!,
+                isAnimating: isGameStarted,
               ),
             ),
           ),
           // P1 Score (right-center, Blue area)
           Positioned(
-            right: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 + 20,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.75,
-                vertical: AppDimensions.padding(context) * 0.75,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-              ),
-              child: Text(
-                player1Score.toString(),
-                style: GameStyles.scoreText(context).copyWith(
-                  color: Colors.blue[400],
-                  fontSize: AppDimensions.headingFontSize(context) * 1.5,
-                ),
-              ),
+            right: screenSize.width * 0.04,
+            top: screenSize.height * 0.5 + 10,
+            child: ScoreDisplay(
+              score: player1Score,
+              color: Colors.blue[400]!,
+              isAnimating: true,
             ),
           ),
           // P2 Score (right-center, Red area)
           Positioned(
-            right: screenSize.width * 0.02,
-            bottom: screenSize.height * 0.5 + 20,
+            right: screenSize.width * 0.04,
+            bottom: screenSize.height * 0.5 + 10,
             child: Transform(
               alignment: Alignment.center,
               transform: Matrix4.rotationX(pi),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppDimensions.padding(context) * 0.75,
-                  vertical: AppDimensions.padding(context) * 0.75,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-                ),
-                child: Text(
-                  player2Score.toString(),
-                  style: GameStyles.scoreText(context).copyWith(
-                    color: Colors.red[400],
-                    fontSize: AppDimensions.headingFontSize(context) * 1.5,
-                  ),
-                ),
+              child: ScoreDisplay(
+                score: player2Score,
+                color: Colors.red[400]!,
+                isAnimating: true,
               ),
             ),
           ),
@@ -464,7 +380,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTapDown: isSinglePlayer ? null : (details) => _updateScore(false, details.globalPosition),
+                    onTapDown: isSinglePlayer ? null : (details) {
+                      _updateScore(false, details.globalPosition);
+                      // Scale up the opponent's area when clicked
+                      _player2ClickController.forward(from: 0.0).then((_) {
+                        _player2ClickController.reverse();
+                      });
+                    },
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
@@ -475,12 +397,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           builder: (context, child) {
                             // Inverse scale for top player (smaller when bottom player scores more)
                             final dynamicScale = 1.0 + (0.5 - _colorAnimation.value).clamp(-0.3, 0.3);
-                            return PlayerIcon(
-                              isRobot: isSinglePlayer,
-                              isTopPlayer: true,
-                              iconSize: iconSize * dynamicScale,
-                              scaleAnimation: _player2ClickScale,
-                              color: Colors.red[400]!,
+                            return Transform.scale(
+                              scale: dynamicScale,
+                              child: PlayerIcon(
+                                isRobot: isSinglePlayer,
+                                isTopPlayer: true,
+                                iconSize: iconSize,
+                                scaleAnimation: _player2ClickScale,
+                                color: Colors.red[400]!,
+                              ),
                             );
                           },
                         ),
@@ -490,14 +415,29 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
                 // Center divider
                 Container(
-                  height: 1,
-                  color: Colors.white,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.3),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
                 ),
                 // Player 1 (bottom)
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTapDown: (details) => _updateScore(true, details.globalPosition),
+                    onTapDown: (details) {
+                      _updateScore(true, details.globalPosition);
+                      // Scale up the opponent's area when clicked
+                      _player1ClickController.forward(from: 0.0).then((_) {
+                        _player1ClickController.reverse();
+                      });
+                    },
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
@@ -508,12 +448,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           builder: (context, child) {
                             // Direct scale for bottom player (larger when scoring more)
                             final dynamicScale = 1.0 + (_colorAnimation.value - 0.5).clamp(-0.3, 0.3);
-                            return PlayerIcon(
-                              isRobot: false,
-                              isTopPlayer: false,
-                              iconSize: iconSize * dynamicScale,
-                              scaleAnimation: _player1ClickScale,
-                              color: Colors.blue[400]!,
+                            return Transform.scale(
+                              scale: dynamicScale,
+                              child: PlayerIcon(
+                                isRobot: false,
+                                isTopPlayer: false,
+                                iconSize: iconSize,
+                                scaleAnimation: _player1ClickScale,
+                                color: Colors.blue[400]!,
+                              ),
                             );
                           },
                         ),
@@ -718,6 +661,208 @@ class PlayerIcon extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GameInfoDisplay extends StatefulWidget {
+  final IconData icon;
+  final String value;
+  final Color color;
+  final bool isAnimating;
+
+  const GameInfoDisplay({
+    Key? key,
+    required this.icon,
+    required this.value,
+    required this.color,
+    required this.isAnimating,
+  }) : super(key: key);
+
+  @override
+  _GameInfoDisplayState createState() => _GameInfoDisplayState();
+}
+
+class _GameInfoDisplayState extends State<GameInfoDisplay> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    if (widget.isAnimating) {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(GameInfoDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isAnimating != oldWidget.isAnimating) {
+      if (widget.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      } else {
+        _pulseController.stop();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppDimensions.padding(context) * 0.6,
+        vertical: AppDimensions.padding(context) * 0.4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+        boxShadow: [
+          BoxShadow(
+            color: widget.color.withOpacity(0.4),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+        border: Border.all(
+          color: widget.color.withOpacity(0.6),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ScaleTransition(
+            scale: _pulseAnimation,
+            child: Icon(
+              widget.icon,
+              color: Colors.white.withOpacity(0.95),
+              size: 22,
+            ),
+          ),
+          SizedBox(width: 8),
+          Text(
+            widget.value,
+            style: GameStyles.timerText(context).copyWith(
+              color: Colors.white.withOpacity(0.95),
+              fontWeight: FontWeight.w600,
+              fontSize: AppDimensions.headingFontSize(context) * 0.7,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ScoreDisplay extends StatefulWidget {
+  final int score;
+  final Color color;
+  final bool isAnimating;
+
+  const ScoreDisplay({
+    Key? key,
+    required this.score,
+    required this.color,
+    required this.isAnimating,
+  }) : super(key: key);
+
+  @override
+  _ScoreDisplayState createState() => _ScoreDisplayState();
+}
+
+class _ScoreDisplayState extends State<ScoreDisplay> with SingleTickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+  int _lastScore = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastScore = widget.score;
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _bounceAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 50,
+      ),
+    ]).animate(_bounceController);
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(ScoreDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.score != _lastScore) {
+      _bounceController.forward(from: 0.0);
+      _lastScore = widget.score;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppDimensions.padding(context) * 0.8,
+        vertical: AppDimensions.padding(context) * 0.5,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+        boxShadow: [
+          BoxShadow(
+            color: widget.color.withOpacity(0.4),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+        border: Border.all(
+          color: widget.color.withOpacity(0.6),
+          width: 1.5,
+        ),
+      ),
+      child: ScaleTransition(
+        scale: _bounceAnimation,
+        child: Text(
+          widget.score.toString(),
+          style: GameStyles.scoreText(context).copyWith(
+            color: Colors.white.withOpacity(0.95),
+            fontSize: AppDimensions.headingFontSize(context) * 1.4,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
