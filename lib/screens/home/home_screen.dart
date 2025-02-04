@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/services/localization_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final localizationService = Provider.of<LocalizationService>(context);
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -44,7 +48,7 @@ class HomeScreen extends StatelessWidget {
                   SizedBox(height: AppDimensions.spacing(context)),
                   // App Title
                   Text(
-                    'Click Battle',
+                    localizationService.getText('clickBattle'),
                     style: AppTextStyles.heading(context).copyWith(
                       fontSize: AppDimensions.titleFontSize(context) * 1.2,
                       fontWeight: FontWeight.w800,
@@ -53,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   SizedBox(height: AppDimensions.spacing(context) * 0.5),
                   Text(
-                    'Test your clicking speed!',
+                    localizationService.getText('welcomeMessage'),
                     style: AppTextStyles.body(context).copyWith(
                       color: Colors.white70,
                     ),
@@ -88,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                         Icon(Icons.play_arrow, color: AppColors.background, size: 32),
                         SizedBox(width: AppDimensions.spacing(context)),
                         Text(
-                          'PLAY',
+                          localizationService.getText('tapToStart'),
                           style: AppTextStyles.button(context).copyWith(
                             color: AppColors.background,
                             letterSpacing: 1.5,
@@ -122,7 +126,7 @@ class HomeScreen extends StatelessWidget {
                         const Icon(Icons.settings, color: Colors.white),
                         SizedBox(width: AppDimensions.spacing(context)),
                         Text(
-                          'SETTINGS',
+                          localizationService.getText('settings'),
                           style: AppTextStyles.button(context).copyWith(
                             color: Colors.white,
                             letterSpacing: 1.5,

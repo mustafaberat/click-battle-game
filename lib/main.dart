@@ -8,6 +8,7 @@ import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/audio_service.dart';
+import 'package:clickbattle/services/localization_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(
           create: (_) => SettingsService(prefs),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => LocalizationService(),
         ),
       ],
       child: const ClickBattleApp(),

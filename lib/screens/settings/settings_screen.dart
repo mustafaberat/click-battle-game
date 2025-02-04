@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/services/audio_service.dart';
+import 'package:clickbattle/services/localization_service.dart';
+import 'package:clickbattle/constants/app_strings.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -20,19 +22,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _isMusicEnabled = false;
-    _volume = 0.1; // Set default volume to 10%
-    _audioService.setVolume(_volume); // Ensure the audio service reflects this change
+    _volume = 0.1;
+    _audioService.setVolume(_volume);
+  }
+
+  Widget _buildLanguageOption(BuildContext context, String languageCode, String languageName, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: MediaQuery.of(context).size.width * 0.25,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.accent.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.accent : Colors.white24,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _getFlagEmoji(languageCode),
+              style: const TextStyle(fontSize: 40),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              languageName,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white70,
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final localizationService = Provider.of<LocalizationService>(context);
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with back button
             Padding(
               padding: EdgeInsets.all(AppDimensions.padding(context)),
               child: Row(
@@ -43,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   SizedBox(width: AppDimensions.spacing(context)),
                   Text(
-                    'Settings',
+                    localizationService.getText('settings'),
                     style: AppTextStyles.heading(context).copyWith(
                       fontSize: AppDimensions.titleFontSize(context),
                     ),
@@ -52,14 +93,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             
-            // Settings content
             Expanded(
               child: Container(
                 padding: EdgeInsets.all(AppDimensions.padding(context)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Audio settings section
+                    // Language Settings
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(AppDimensions.padding(context)),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBackground,
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.language,
+                                color: AppColors.accent,
+                                size: 24,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                localizationService.getText('language'),
+                                style: AppTextStyles.heading(context).copyWith(
+                                  fontSize: AppDimensions.titleFontSize(context) * 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: AppDimensions.spacing(context) * 1.5),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                for (var language in LocalizationService.supportedLanguages.entries)
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 8),
+                                    child: _buildLanguageOption(
+                                      context,
+                                      language.key,
+                                      language.value,
+                                      localizationService.currentLanguage == language.key,
+                                      () => localizationService.setLanguage(language.key),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: AppDimensions.spacing(context)),
+
+                    // Audio Settings
                     Container(
                       padding: EdgeInsets.all(AppDimensions.padding(context)),
                       decoration: BoxDecoration(
@@ -77,21 +176,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Audio Settings',
+                            localizationService.getText('audioSettings'),
                             style: AppTextStyles.heading(context).copyWith(
                               fontSize: AppDimensions.titleFontSize(context) * 0.8,
                             ),
                           ),
                           SizedBox(height: AppDimensions.spacing(context)),
-                          
-                          // Music toggle
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Background Music',
+                                localizationService.getText('backgroundMusic'),
                                 style: AppTextStyles.body(context).copyWith(
-                                  color:  Colors.white,
+                                  color: Colors.white,
                                 ),
                               ),
                               Switch(
@@ -108,16 +205,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ],
                           ),
-                          
-                          // Volume slider
                           if (_isMusicEnabled) ...[
                             SizedBox(height: AppDimensions.spacing(context)),
                             Row(
                               children: [
-                                Icon(
-                                  Icons.volume_down,
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
+                                Icon(Icons.volume_down, color: Colors.white.withOpacity(0.7)),
                                 Expanded(
                                   child: Slider(
                                     value: _volume,
@@ -131,10 +223,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     inactiveColor: Colors.white.withOpacity(0.3),
                                   ),
                                 ),
-                                Icon(
-                                  Icons.volume_up,
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
+                                Icon(Icons.volume_up, color: Colors.white.withOpacity(0.7)),
                               ],
                             ),
                           ],
@@ -142,8 +231,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
 
-                    // About section
                     SizedBox(height: AppDimensions.spacing(context) * 2),
+                    
+                    // About section
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(AppDimensions.padding(context)),
@@ -162,14 +252,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'About',
+                            localizationService.getText('about'),
                             style: AppTextStyles.heading(context).copyWith(
                               fontSize: AppDimensions.titleFontSize(context) * 0.8,
                             ),
                           ),
                           SizedBox(height: AppDimensions.spacing(context)),
                           Text(
-                            'Click Battle',
+                            localizationService.getText('clickBattle'),
                             style: AppTextStyles.body(context).copyWith(
                               fontWeight: FontWeight.w800,
                             ),
@@ -183,7 +273,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           SizedBox(height: AppDimensions.spacing(context) * 0.5),
                           Text(
-                            'Developed by ARU Soft',
+                            localizationService.getText('developedBy'),
                             style: AppTextStyles.body(context).copyWith(
                               color: Colors.white70,
                             ),
@@ -199,5 +289,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  String _getFlagEmoji(String languageCode) {
+    switch (languageCode) {
+      case 'en':
+        return '🇬🇧';
+      case 'tr':
+        return '🇹🇷';
+      case 'zh':
+        return '🇨🇳';
+      case 'de':
+        return '🇩🇪';
+      case 'es':
+        return '🇪🇸';
+      default:
+        return '🏳️';
+    }
   }
 } 

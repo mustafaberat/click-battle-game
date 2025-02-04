@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/services/localization_service.dart';
 
 class ModeSelectionScreen extends StatefulWidget {
   const ModeSelectionScreen({Key? key}) : super(key: key);
@@ -26,6 +28,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizationService = Provider.of<LocalizationService>(context);
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -37,13 +41,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon:
-                        Icon(Icons.arrow_back_ios_new, color: AppColors.white),
+                    icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Spacer(),
                   Text(
-                    'Game Setup',
+                    localizationService.getText('gameSetup'),
                     style: AppTextStyles.heading(context),
                   ),
                   const Spacer(),
@@ -59,11 +62,11 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     horizontal: AppDimensions.paddingMedium),
                 children: [
                   _buildSection(
-                    title: 'Select Mode',
-                    subtitle: 'Face AI or challenge a friend',
+                    title: localizationService.getText('selectMode'),
+                    subtitle: localizationService.getText('selectModeSubtitle'),
                     child: _buildOptionRow([
                       _buildOption(
-                        text: 'Two Players',
+                        text: localizationService.getText('twoPlayers'),
                         icon: Icons.person_outline_rounded,
                         secondaryIcon: Icons.person_outline_rounded,
                         isSelected: !isSinglePlayer,
@@ -71,7 +74,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         color: AppColors.player2,
                       ),
                       _buildOption(
-                        text: 'Single Player',
+                        text: localizationService.getText('singlePlayer'),
                         icon: Icons.smart_toy_outlined,
                         secondaryIcon: Icons.person_outline_rounded,
                         isSelected: isSinglePlayer,
@@ -81,18 +84,18 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     ]),
                   ),
                   _buildSection(
-                    title: 'Choose Mode',
-                    subtitle: 'Set duration or score target',
+                    title: localizationService.getText('chooseMode'),
+                    subtitle: localizationService.getText('chooseModeSubtitle'),
                     child: _buildOptionRow([
                       _buildOption(
-                        text: 'Time Mode',
+                        text: localizationService.getText('timeAttack'),
                         icon: Icons.timer_outlined,
                         isSelected: isTimeMode,
                         onTap: () => setState(() => isTimeMode = true),
                         color: AppColors.timeMode,
                       ),
                       _buildOption(
-                        text: 'Score Mode',
+                        text: localizationService.getText('survival'),
                         icon: Icons.flag_outlined,
                         isSelected: !isTimeMode,
                         onTap: () => setState(() => isTimeMode = false),
@@ -101,15 +104,17 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     ]),
                   ),
                   _buildSection(
-                    title: isTimeMode ? 'Time Limit' : 'Score Target',
+                    title: isTimeMode ? localizationService.getText('timeLimit') : localizationService.getText('targetScore'),
                     subtitle: isTimeMode
-                        ? 'Set the match duration'
-                        : 'Set the winning score',
+                        ? localizationService.getText('timeLimitSubtitle')
+                        : localizationService.getText('targetScoreSubtitle'),
                     child: _buildOptionRow(
                       (isTimeMode ? timeLimits : scoreLimits)
                           .map(
                             (value) => _buildSmallOption(
-                              text: isTimeMode ? '${value}s' : value.toString(),
+                              text: isTimeMode 
+                                ? '$value ${localizationService.getText('seconds')}' 
+                                : '$value ${localizationService.getText('points')}',
                               isSelected: isTimeMode
                                   ? timeLimit == value
                                   : scoreLimit == value,
@@ -130,13 +135,13 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                   ),
                   if (isSinglePlayer)
                     _buildSection(
-                      title: 'Difficulty',
-                      subtitle: 'Choose AI opponent level',
+                      title: localizationService.getText('difficulty'),
+                      subtitle: localizationService.getText('difficultySubtitle'),
                       child: _buildOptionRow(
                         difficulties
                             .map(
                               (diff) => _buildSmallOption(
-                                text: diff['name'],
+                                text: localizationService.getText(diff['name'].toLowerCase()),
                                 icon: diff['icon'],
                                 isSelected: difficulty == diff['value'],
                                 onTap: () =>
@@ -158,7 +163,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             // Start Button
             Padding(
               padding: EdgeInsets.all(AppDimensions.paddingMedium),
-              child: _buildStartButton(),
+              child: _buildStartButton(localizationService),
             ),
           ],
         ),
@@ -296,7 +301,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     );
   }
 
-  Widget _buildStartButton() {
+  Widget _buildStartButton(LocalizationService localizationService) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
@@ -337,7 +342,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
               Icon(Icons.play_arrow_rounded, color: AppColors.white, size: 26),
               SizedBox(width: 8),
               Text(
-                'START BATTLE',
+                localizationService.getText('startBattle'),
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 16,
