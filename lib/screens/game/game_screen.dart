@@ -334,7 +334,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             bottom: screenSize.height * 0.5 + 10,
             child: Transform(
               alignment: Alignment.center,
-              transform: Matrix4.rotationX(pi),
+              transform: Matrix4.rotationZ(pi),
               child: GameInfoDisplay(
                 icon: isTimeMode ? Icons.timer : Icons.flag,
                 value: isTimeMode 
@@ -363,7 +363,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             bottom: screenSize.height * 0.5 + 10,
             child: Transform(
               alignment: Alignment.center,
-              transform: Matrix4.rotationX(pi),
+              transform: Matrix4.rotationZ(pi),
               child: ScoreDisplay(
                 score: player2Score,
                 color: Colors.red[400]!,
