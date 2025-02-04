@@ -344,12 +344,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     RotatedBox(
                       quarterTurns: 2,
                       child: Text(
-                        player2Score.toString(),
+                        player1Score.toString(),
                         style: GameStyles.scoreText(context).copyWith(
-                          color: Colors.red[700],
+                          color: Colors.blue[700],
                         ),
                       ),
                     ),
+                    
                     SizedBox(width: 8),
                     RotatedBox(
                       quarterTurns: 2,
@@ -362,9 +363,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     RotatedBox(
                       quarterTurns: 2,
                       child: Text(
-                        player1Score.toString(),
+                        player2Score.toString(),
                         style: GameStyles.scoreText(context).copyWith(
-                          color: Colors.blue[700],
+                          color: Colors.red[700],
                         ),
                       ),
                     ),
