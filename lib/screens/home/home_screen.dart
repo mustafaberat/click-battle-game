@@ -9,135 +9,157 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizationService = Provider.of<LocalizationService>(context);
+    final size = MediaQuery.of(context).size;
     
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF001554),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: AppDimensions.padding(context),
-            vertical: AppDimensions.padding(context) * 0.5,
+            horizontal: AppDimensions.paddingMedium,
+            vertical: AppDimensions.paddingSmall,
           ),
           child: Column(
             children: [
-              const Spacer(flex: 3),
-              // App Logo and Title
+              const Spacer(),
+              // Logo and Title section
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // App Logo
                   Container(
-                    padding: EdgeInsets.all(AppDimensions.padding(context) * 0.75),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accent.withOpacity(0.2),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.touch_app,
-                      size: MediaQuery.of(context).size.width * 0.15,
-                      color: AppColors.accent,
+                    width: size.width * 0.8,
+                    height: size.width * 0.8,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'lib/assets/app-icon.jpg',
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   SizedBox(height: AppDimensions.spacing(context)),
                   // App Title
                   Text(
                     localizationService.getText('clickBattle'),
+                    textAlign: TextAlign.center,
                     style: AppTextStyles.heading(context).copyWith(
-                      fontSize: AppDimensions.titleFontSize(context) * 1.2,
-                      fontWeight: FontWeight.w800,
+                      fontSize: AppDimensions.fontSizeLarge * 1.5,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 1.2,
+                      height: 1,
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(height: AppDimensions.spacing(context) * 0.5),
-                  Text(
-                    localizationService.getText('welcomeMessage'),
-                    style: AppTextStyles.body(context).copyWith(
-                      color: Colors.white70,
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.paddingMedium,
+                      vertical: AppDimensions.paddingSmall * 0.8,
+                    ),
+                    child: Text(
+                      localizationService.getText('welcomeMessage'),
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.subtitle(context).copyWith(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: AppDimensions.fontSizeSmall,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const Spacer(flex: 2),
-              // Bottom Buttons
+              const Spacer(),
+              // Action Buttons
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Play Button
-                  ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/mode_selection'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppDimensions.padding(context),
-                        vertical: AppDimensions.padding(context),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-                      ),
-                      minimumSize: Size(
-                        double.infinity,
-                        AppDimensions.buttonHeight(context) * 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.play_arrow, color: AppColors.background, size: 32),
-                        SizedBox(width: AppDimensions.spacing(context)),
-                        Text(
-                          localizationService.getText('tapToStart'),
-                          style: AppTextStyles.button(context).copyWith(
-                            color: AppColors.background,
-                            letterSpacing: 1.5,
-                            fontSize: AppDimensions.buttonFontSize(context) * 1.2,
-                          ),
+                  Container(
+                    height: AppDimensions.buttonHeightLarge,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.blue[600],
+                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
                         ),
                       ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/mode_selection'),
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.sports_esports_rounded,
+                                color: Colors.white,
+                                size: AppDimensions.iconSizeLarge,
+                              ),
+                              SizedBox(width: AppDimensions.spacing(context)),
+                              Text(
+                                localizationService.getText('tapToStart').toUpperCase(),
+                                style: AppTextStyles.button(context).copyWith(
+                                  fontSize: AppDimensions.fontSizeMedium,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: AppDimensions.spacing(context)),
+                  SizedBox(height: AppDimensions.spacing(context) * 1.25),
                   // Settings Button
-                  OutlinedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/settings'),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppDimensions.padding(context),
-                        vertical: AppDimensions.padding(context) * 0.75,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-                      ),
-                      minimumSize: Size(
-                        double.infinity,
-                        AppDimensions.buttonHeight(context),
-                      ),
+                  Container(
+                    height: AppDimensions.buttonHeightMedium,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.settings, color: Colors.white),
-                        SizedBox(width: AppDimensions.spacing(context)),
-                        Text(
-                          localizationService.getText('settings'),
-                          style: AppTextStyles.button(context).copyWith(
-                            color: Colors.white,
-                            letterSpacing: 1.5,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/settings'),
+                        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.settings_rounded,
+                                color: Colors.white.withOpacity(0.7),
+                                size: AppDimensions.iconSizeMedium,
+                              ),
+                              SizedBox(width: AppDimensions.spacing(context)),
+                              Text(
+                                localizationService.getText('settings').toUpperCase(),
+                                style: AppTextStyles.button(context).copyWith(
+                                  color: Colors.white.withOpacity(0.7),
+                                  letterSpacing: 2,
+                                  fontSize: AppDimensions.fontSizeSmall,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              const Spacer(flex: 1),
+              const Spacer(),
             ],
           ),
         ),

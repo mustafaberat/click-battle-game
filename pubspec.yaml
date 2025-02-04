@@ -1,7 +1,7 @@
 name: clickbattle
 description: A competitive two-player tapping game.
 publish_to: 'none'
-version: 2.0.0+22  # Updated version code and build number
+version: 2.0.1+23  # Updated version code and build number
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
