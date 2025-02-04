@@ -21,9 +21,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _isMusicEnabled = false;
-    _volume = 0.1;
-    _audioService.setVolume(_volume);
+    _isMusicEnabled = _audioService.isMusicEnabled;
+    _volume = _audioService.volume;
   }
 
   Widget _buildLanguageOption(BuildContext context, String languageCode, String languageName, bool isSelected, VoidCallback onTap) {

@@ -5,39 +5,40 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
-  factory AudioService() => _instance;
-  AudioService._internal();
-
-  final AudioPlayer _bgmPlayer = AudioPlayer();
-  bool _isMusicEnabled = true;
+  final AudioPlayer _player = AudioPlayer();
+  static const String _musicEnabledKey = 'music_enabled';
+  static const String _volumeKey = 'volume';
+  static const double defaultVolume = 0.2;
+  late SharedPreferences _prefs;
+  bool _isMusicEnabled = false;
   double _volume = 0.5;
   bool _isInitialized = false;
 
-  static const String _musicEnabledKey = 'music_enabled';
-  static const String _volumeKey = 'music_volume';
+  factory AudioService() {
+    return _instance;
+  }
+
+  AudioService._internal();
+
+  bool get isMusicEnabled => _isMusicEnabled;
+  double get volume => _player.volume;
 
   Future<void> initialize() async {
     if (_isInitialized) return;
     
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _isMusicEnabled = prefs.getBool(_musicEnabledKey) ?? false;
-      _volume = prefs.getDouble(_volumeKey) ?? 0.5;
-
-      await _bgmPlayer.setAsset('lib/assets/audio/bg-music.mp3');
-      await _bgmPlayer.setLoopMode(LoopMode.all);
-      await _bgmPlayer.setVolume(_isMusicEnabled ? _volume : 0);
+      _prefs = await SharedPreferences.getInstance();
+      _isMusicEnabled = _prefs.getBool(_musicEnabledKey) ?? false;
+      double savedVolume = _prefs.getDouble(_volumeKey) ?? defaultVolume;
+      
+      await _player.setAsset('lib/assets/audio/bg-music.mp3');
+      await _player.setLoopMode(LoopMode.all);
+      await setVolume(savedVolume);
       
       _isInitialized = true;
       
-      // Only autoplay on non-web platforms and after user interaction
-      if (_isMusicEnabled && !kIsWeb) {
-        try {
-          await _bgmPlayer.play();
-        } catch (e) {
-          debugPrint('Failed to autoplay music: $e');
-          // Ignore autoplay errors
-        }
+      if (_isMusicEnabled) {
+        await _player.play();
       }
     } catch (e) {
       debugPrint('Failed to initialize audio service: $e');
@@ -53,7 +54,7 @@ class AudioService {
     
     if (_isMusicEnabled) {
       try {
-        await _bgmPlayer.play();
+        await _player.play();
       } catch (e) {
         debugPrint('Failed to start music: $e');
       }
@@ -62,38 +63,26 @@ class AudioService {
 
   Future<void> setVolume(double volume) async {
     _volume = volume;
-    if (_isInitialized) {
-      await _bgmPlayer.setVolume(_isMusicEnabled ? volume : 0);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble(_volumeKey, volume);
-    }
+    await _player.setVolume(volume);
+    await _prefs.setDouble(_volumeKey, volume);
   }
 
   Future<void> toggleMusic(bool enabled) async {
     _isMusicEnabled = enabled;
-    if (_isInitialized) {
-      if (enabled) {
-        await _bgmPlayer.setVolume(_volume);
-        try {
-          await _bgmPlayer.play();
-        } catch (e) {
-          debugPrint('Failed to toggle music: $e');
-        }
-      } else {
-        await _bgmPlayer.setVolume(0);
-      }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_musicEnabledKey, enabled);
+    await _prefs.setBool(_musicEnabledKey, enabled);
+    
+    if (enabled) {
+      await _player.play();
+    } else {
+      await _player.pause();
     }
   }
 
-  double get volume => _volume;
-  bool get isMusicEnabled => _isMusicEnabled;
   bool get isInitialized => _isInitialized;
 
-  Future<void> dispose() async {
+  void dispose() {
     if (_isInitialized) {
-      await _bgmPlayer.dispose();
+      _player.dispose();
     }
   }
 } 
