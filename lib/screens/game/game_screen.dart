@@ -176,8 +176,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     
     // Player-specific colors
     final mainColor = isPlayer1 
-        ? Colors.red[400]!  // Player 1: Red
-        : Colors.blue[400]!;  // Player 2: Blue
+        ? Colors.blue[400]!  // Player 1: Blue
+        : Colors.red[400]!;  // Player 2: Red
     
     // Create circular ring particles
     for (int i = 0; i < 12; i++) {
@@ -239,7 +239,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
       double totalScore = (player1Score + player2Score).toDouble();
       double newRatio = totalScore > 0 
-          ? player1Score.toDouble() / totalScore
+          ? player2Score.toDouble() / totalScore  // Changed to player2Score to match the visual layout
           : 0.5;
       
       double maxChange = 0.1;
@@ -313,25 +313,77 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               },
             )).toList(),
           ),
-          // Timer overlay (left)
+          // Timer overlay (left-center) - For P1 (Blue area)
           Positioned(
             left: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 - 50,
+            top: screenSize.height * 0.5 + 20,
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.5,
+                horizontal: AppDimensions.padding(context) * 0.75,
                 vertical: AppDimensions.padding(context) * 0.75,
               ),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: RotatedBox(
-                quarterTurns: 3,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isTimeMode ? Icons.timer : Icons.flag,
+                    color: Colors.white70,
+                    size: 24,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    isTimeMode 
+                      ? (isGameStarted 
+                          ? '${remainingSeconds ~/ 60}'
+                          : countdownSeconds.toString())
+                      : '${scoreLimit - max(player1Score, player2Score)}',
+                    style: GameStyles.timerText(context),
+                  ),
+                  if (isTimeMode && isGameStarted) ...[
+                    Text(
+                      ':',
+                      style: GameStyles.timerText(context),
+                    ),
+                    Text(
+                      '${(remainingSeconds % 60).toString().padLeft(2, '0')}',
+                      style: GameStyles.timerText(context),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          // Timer overlay (left-center) - For P2 (Red area)
+          Positioned(
+            left: screenSize.width * 0.02,
+            bottom: screenSize.height * 0.5 + 20,
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.rotationX(pi),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.padding(context) * 0.75,
+                  vertical: AppDimensions.padding(context) * 0.75,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      isTimeMode ? Icons.timer : Icons.flag,
+                      color: Colors.white70,
+                      size: 24,
+                    ),
+                    SizedBox(width: 8),
                     Text(
                       isTimeMode 
                         ? (isGameStarted 
@@ -340,78 +392,65 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         : '${scoreLimit - max(player1Score, player2Score)}',
                       style: GameStyles.timerText(context),
                     ),
-                    SizedBox(width: 2),
-                    Text(
-                      isTimeMode && isGameStarted ? ':' : '',
-                      style: GameStyles.timerText(context),
-                    ),
-                    SizedBox(width: 2),
-                    if (isTimeMode && isGameStarted) Text(
-                      '${(remainingSeconds % 60).toString().padLeft(2, '0')}',
-                      style: GameStyles.timerText(context),
-                    ),
+                    if (isTimeMode && isGameStarted) ...[
+                      Text(
+                        ':',
+                        style: GameStyles.timerText(context),
+                      ),
+                      Text(
+                        '${(remainingSeconds % 60).toString().padLeft(2, '0')}',
+                        style: GameStyles.timerText(context),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
-          // Score overlay (right)
+          // P1 Score (right-center, Blue area)
           Positioned(
             right: screenSize.width * 0.02,
-            top: screenSize.height * 0.5 - 50,
+            top: screenSize.height * 0.5 + 20,
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: AppDimensions.padding(context) * 0.5,
+                horizontal: AppDimensions.padding(context) * 0.75,
                 vertical: AppDimensions.padding(context) * 0.75,
               ),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
               ),
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    RotatedBox(
-                      quarterTurns: 2,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            player1Score.toString(),
-                            style: GameStyles.scoreText(context).copyWith(
-                              color: Colors.blue[400],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    RotatedBox(
-                      quarterTurns: 2,
-                      child: Text(
-                        '|',
-                        style: GameStyles.scoreText(context),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    RotatedBox(
-                      quarterTurns: 2,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            player2Score.toString(),
-                            style: GameStyles.scoreText(context).copyWith(
-                              color: Colors.red[400],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              child: Text(
+                player1Score.toString(),
+                style: GameStyles.scoreText(context).copyWith(
+                  color: Colors.blue[400],
+                  fontSize: AppDimensions.headingFontSize(context) * 1.5,
+                ),
+              ),
+            ),
+          ),
+          // P2 Score (right-center, Red area)
+          Positioned(
+            right: screenSize.width * 0.02,
+            bottom: screenSize.height * 0.5 + 20,
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.rotationX(pi),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppDimensions.padding(context) * 0.75,
+                  vertical: AppDimensions.padding(context) * 0.75,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
+                ),
+                child: Text(
+                  player2Score.toString(),
+                  style: GameStyles.scoreText(context).copyWith(
+                    color: Colors.red[400],
+                    fontSize: AppDimensions.headingFontSize(context) * 1.5,
+                  ),
                 ),
               ),
             ),
