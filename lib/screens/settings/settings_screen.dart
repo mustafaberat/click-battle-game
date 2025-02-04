@@ -132,23 +132,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ],
                           ),
-                          SizedBox(height: AppDimensions.spacing(context) * 1.5),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                for (var language in LocalizationService.supportedLanguages.entries)
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8),
-                                    child: _buildLanguageOption(
-                                      context,
-                                      language.key,
-                                      language.value,
-                                      localizationService.currentLanguage == language.key,
-                                      () => localizationService.setLanguage(language.key),
+                          SizedBox(height: AppDimensions.spacing(context)),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white24,
+                                width: 1,
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: localizationService.currentLanguage,
+                                icon: Icon(Icons.keyboard_arrow_down, color: Colors.white70),
+                                isExpanded: true,
+                                dropdownColor: AppColors.cardBackground,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                                items: LocalizationService.supportedLanguages.entries.map((language) {
+                                  return DropdownMenuItem<String>(
+                                    value: language.key,
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          _getFlagEmoji(language.key),
+                                          style: TextStyle(fontSize: 20),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          language.value,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                              ],
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    localizationService.setLanguage(newValue);
+                                  }
+                                },
+                              ),
                             ),
                           ),
                         ],
