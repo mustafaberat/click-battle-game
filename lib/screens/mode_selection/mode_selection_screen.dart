@@ -204,13 +204,23 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTextStyles.title(context)),
+          Text(title, style: AppTextStyles.title(context).copyWith(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          )),
           SizedBox(height: 4),
-          Text(subtitle, style: AppTextStyles.caption(context)),
+          Text(subtitle, style: AppTextStyles.caption(context).copyWith(
+            color: Colors.white70,
+            height: 1.2,
+          )),
           SizedBox(height: AppDimensions.paddingMedium),
           child,
         ],
@@ -219,9 +229,16 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   }
 
   Widget _buildOptionRow(List<Widget> children) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: children,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: NeverScrollableScrollPhysics(),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: children.map((child) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: 2),
+          child: child,
+        )).toList(),
+      ),
     );
   }
 
@@ -233,18 +250,27 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     required VoidCallback onTap,
     required Color color,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.38,
+        width: screenWidth * 0.38,
         height: 80,
+        margin: EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? color : AppColors.white10,
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+          color: isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
           border: Border.all(
-            color: isSelected ? Colors.transparent : AppColors.white24,
-            width: 1,
+            color: isSelected ? color : Colors.white24,
+            width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ] : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -253,26 +279,26 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: AppColors.white, size: 24),
+                  Icon(icon, color: isSelected ? color : Colors.white70, size: 24),
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 6),
                     height: 16,
                     width: 1,
-                    color: AppColors.white38,
+                    color: isSelected ? color.withOpacity(0.3) : Colors.white24,
                   ),
-                  Icon(secondaryIcon, color: AppColors.white, size: 24),
+                  Icon(secondaryIcon, color: isSelected ? color : Colors.white70, size: 24),
                 ],
               )
             else
-              Icon(icon, color: AppColors.white, size: 28),
-            SizedBox(height: 12),
+              Icon(icon, color: isSelected ? color : Colors.white70, size: 28),
+            SizedBox(height: 8),
             Text(
               text,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.white70,
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 height: 1.1,
               ),
             ),
@@ -289,41 +315,77 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     required Color color,
     int? stars,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.25,
+        width: screenWidth * 0.24,
         height: 64,
+        margin: EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.2) : Colors.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+          color: isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
           border: Border.all(
             color: isSelected ? color : Colors.white24,
             width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ] : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              text,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
             if (stars != null) ...[
+              Text(
+                text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white70,
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  height: 1.1,
+                ),
+              ),
               SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   stars,
-                  (index) => Icon(
-                    Icons.star,
-                    color: isSelected ? color : Colors.white70,
-                    size: 16,
+                  (index) => Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 1),
+                    child: Icon(
+                      Icons.star_rounded,
+                      color: isSelected ? color : Colors.white38,
+                      size: 16,
+                    ),
                   ),
+                ),
+              ),
+            ] else ...[
+              Text(
+                text.split(' ')[0],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white70,
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  height: 1.1,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                text.split(' ')[1],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected ? Colors.white70 : Colors.white38,
+                  fontSize: 11,
+                  fontWeight: FontWeight.normal,
+                  height: 1.1,
                 ),
               ),
             ],
