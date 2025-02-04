@@ -24,7 +24,8 @@ class GameOverPopup extends StatefulWidget {
   State<GameOverPopup> createState() => _GameOverPopupState();
 }
 
-class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateMixin {
+class _GameOverPopupState extends State<GameOverPopup>
+    with TickerProviderStateMixin {
   late AnimationController _gameOverController;
   late AnimationController _resultController;
   late AnimationController _buttonsController;
@@ -40,7 +41,7 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    
+
     // Game Over text animation
     _gameOverController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -98,13 +99,13 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
 
     // Wait for score display to complete
     await Future.delayed(const Duration(milliseconds: 1500));
-    
+
     // Show buttons
     setState(() {
       _showButtons = true;
     });
     _buttonsController.forward();
-    
+
     // Enable interaction after all animations
     await Future.delayed(const Duration(milliseconds: 800));
     setState(() {
@@ -122,215 +123,252 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final bool isWinner = widget.player1Score > widget.player2Score;
-    final Color winnerColor = isWinner ? Colors.blue[500]! : Colors.red[500]!;
-    final screenSize = MediaQuery.of(context).size;
     final localizationService = Provider.of<LocalizationService>(context);
-    
-    return AbsorbPointer(
-      absorbing: !_canInteract,
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: const Color(0xFF1A1A1A),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(AppDimensions.padding(context)),
+
+    final bool isTie = widget.player1Score == widget.player2Score;
+    final bool isPlayer1Winner = widget.player1Score > widget.player2Score;
+
+    final Color winnerColor = isTie
+        ? Colors.orangeAccent[400]!
+        : (isPlayer1Winner ? Colors.blue[400]! : Colors.red[400]!);
+
+    final String winnerText = isTie
+        ? localizationService.getText('tie')
+        : '${localizationService.getText('winner')}: ${widget.isSinglePlayer ? localizationService.getText(isPlayer1Winner ? 'player1' : 'robot') : localizationService.getText(isPlayer1Winner ? 'player1' : 'player2')}';
+
+    // Calculate safe font sizes for small screens
+    final double gameOverFontSize =
+        (MediaQuery.of(context).size.width * 0.07).clamp(20.0, 28.0);
+    final double winnerFontSize =
+        (MediaQuery.of(context).size.width * 0.05).clamp(16.0, 20.0);
+    final double scoreFontSize =
+        (MediaQuery.of(context).size.width * 0.1).clamp(28.0, 40.0);
+    final double labelFontSize =
+        (MediaQuery.of(context).size.width * 0.035).clamp(12.0, 16.0);
+
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Colors.black.withOpacity(0.8),
+      child: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            constraints: BoxConstraints(maxWidth: 400),
+            margin: EdgeInsets.symmetric(vertical: 24),
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Color(0xFF2A2D3E),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: winnerColor.withOpacity(0.3),
+                width: 2,
+              ),
+            ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Game Over Text with Scale Animation
-                ScaleTransition(
-                  scale: _gameOverScale,
-                  child: Container(
-                    width: screenSize.width * 0.9,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        localizationService.getText('gameOver'),
-                        style: GameStyles.gameOverText(context).copyWith(
-                          color: Colors.white,
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              color: winnerColor.withOpacity(0.5),
-                              blurRadius: 20,
-                            ),
-                          ],
-                        ),
+                // Game Over Text
+                Container(
+                  margin: EdgeInsets.only(top: 20),
+                  child: ScaleTransition(
+                    scale: _gameOverScale,
+                    child: Text(
+                      localizationService.getText('gameOver'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: gameOverFontSize,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: AppDimensions.spacing(context) * 3),
-                
-                // Results with Fade Animation
+                SizedBox(height: 40),
+
+                // Winner Display with Animation
                 FadeTransition(
                   opacity: _resultOpacity,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: screenSize.width * 0.9,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (widget.isSinglePlayer && !isWinner) Icon(Icons.smart_toy, color: Colors.red[500], size: 32),
-                              if (widget.isSinglePlayer && !isWinner) SizedBox(width: 8),
-                              Text(
-                                '${localizationService.getText('winner')}: ' +
-                                (widget.player1Score > widget.player2Score 
-                                  ? (widget.isSinglePlayer ? localizationService.getText('you') : localizationService.getText('player1'))
-                                  : widget.player2Score > widget.player1Score
-                                    ? (widget.isSinglePlayer ? localizationService.getText('robot') : localizationService.getText('player2'))
-                                    : localizationService.getText('tie')),
-                                style: GameStyles.winnerText(context).copyWith(
-                                  color: Colors.white,
-                                  fontSize: 32,
-                                  shadows: [
-                                    Shadow(
-                                      color: winnerColor.withOpacity(0.5),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (isWinner) SizedBox(width: 8),
-                              if (isWinner) Icon(Icons.emoji_events, color: Colors.amber, size: 32),
-                            ],
+                  child: Container(
+                    width: double.infinity,
+                    constraints: BoxConstraints(maxWidth: 280),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: winnerColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.workspace_premium_rounded,
+                          color: winnerColor,
+                          size: 24,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          winnerText,
+                          style: TextStyle(
+                            color: winnerColor,
+                            fontSize: winnerFontSize,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      SizedBox(height: AppDimensions.spacing(context) * 3),
-                      Container(
-                        width: screenSize.width * 0.9,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppDimensions.padding(context) * 0.75,
-                          vertical: AppDimensions.padding(context) * 0.75,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context) * 2),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      widget.isSinglePlayer 
-                                        ? localizationService.getText('you')
-                                        : localizationService.getText('player1'),
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      '${widget.player1Score}',
-                                      style: TextStyle(
-                                        color: Colors.blue[400],
-                                        fontSize: 56,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              height: 80,
-                              width: 2,
-                              color: Colors.white12,
-                            ),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      widget.isSinglePlayer 
-                                        ? localizationService.getText('robot')
-                                        : localizationService.getText('player2'),
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      '${widget.player2Score}',
-                                      style: TextStyle(
-                                        color: Colors.red[400],
-                                        fontSize: 56,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-                
-                if (_showButtons) ...[
-                  SizedBox(height: AppDimensions.spacing(context) * 4),
-                  // Buttons with Scale and Fade Animation
+                SizedBox(height: 32),
+
+                // Score Display with Animation
+                FadeTransition(
+                  opacity: _resultOpacity,
+                  child: Container(
+                    width: double.infinity,
+                    constraints: BoxConstraints(maxWidth: 280),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: _buildScoreColumn(
+                              localizationService.getText('player1'),
+                              widget.player1Score,
+                              Colors.blue[400]!,
+                              scoreFontSize,
+                              labelFontSize,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 80,
+                          width: 1,
+                          margin: EdgeInsets.symmetric(horizontal: 20),
+                          color: Colors.white24,
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: _buildScoreColumn(
+                              widget.isSinglePlayer
+                                  ? localizationService.getText('robot')
+                                  : localizationService.getText('player2'),
+                              widget.player2Score,
+                              Colors.red[400]!,
+                              scoreFontSize,
+                              labelFontSize,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 32),
+
+                // Buttons with Animation
+                if (_showButtons)
                   ScaleTransition(
                     scale: _buttonsScale,
                     child: FadeTransition(
                       opacity: _buttonsOpacity,
-                      child: Column(
-                        children: [
-                          _buildButton(
-                            text: localizationService.getText('playAgain'),
-                            icon: Icons.replay_rounded,
-                            isHovered: _isPlayAgainHovered,
-                            onHover: (value) => setState(() => _isPlayAgainHovered = value),
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => GameScreen(gameArgs: widget.gameArgs),
+                      child: Container(
+                        width: double.infinity,
+                        constraints: BoxConstraints(maxWidth: 280),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          GameScreen(gameArgs: widget.gameArgs),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: winnerColor,
+                                  foregroundColor: Colors.white,
+                                  elevation: 4,
+                                  padding: EdgeInsets.symmetric(horizontal: 24),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
                                 ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: AppDimensions.spacing(context)),
-                          _buildButton(
-                            text: localizationService.getText('backToHome'),
-                            icon: Icons.home_rounded,
-                            isHovered: _isHomeHovered,
-                            onHover: (value) => setState(() => _isHomeHovered = value),
-                            onTap: () {
-                              Navigator.popUntil(context, (route) => route.isFirst);
-                            },
-                            isPrimary: false,
-                          ),
-                        ],
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.play_arrow_rounded,
+                                        color: Colors.white, size: 26),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      localizationService.getText('playAgain'),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Colors.white.withOpacity(0.1),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: EdgeInsets.symmetric(horizontal: 24),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.home_rounded,
+                                        color: Colors.white, size: 26),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      localizationService.getText('backToHome'),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ],
               ],
             ),
           ),
@@ -339,58 +377,30 @@ class _GameOverPopupState extends State<GameOverPopup> with TickerProviderStateM
     );
   }
 
-  Widget _buildButton({
-    required String text,
-    required IconData icon,
-    required bool isHovered,
-    required Function(bool) onHover,
-    required Function() onTap,
-    bool isPrimary = true,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 70,
-      child: MouseRegion(
-        onEnter: (_) => onHover(true),
-        onExit: (_) => onHover(false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          transform: Matrix4.identity(),
-          child: ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                (states) => isPrimary ? (isHovered ? Colors.blue[500]! : Colors.blue[400]!) : Colors.white12,
-              ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              elevation: MaterialStateProperty.all(isPrimary ? (isHovered ? 12 : 6) : 0),
-            ),
-            onPressed: onTap,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, color: Colors.white, size: 32),
-                  SizedBox(width: 16),
-                  Text(
-                    text,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  Widget _buildScoreColumn(String label, int score, Color color,
+      double scoreFontSize, double labelFontSize) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: labelFontSize,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ),
+        SizedBox(height: 8),
+        Text(
+          score.toString(),
+          style: TextStyle(
+            color: color,
+            fontSize: scoreFontSize,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
-} 
+}

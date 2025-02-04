@@ -41,6 +41,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   final List<ParticleGroup> _particleGroups = [];
   final Random _random = Random();
 
+  // Replace pulse controllers with click controllers
+  late final AnimationController _player1ClickController;
+  late final AnimationController _player2ClickController;
+  late final Animation<double> _player1ClickScale;
+  late final Animation<double> _player2ClickScale;
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +71,31 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       CurvedAnimation(
         parent: _colorAnimationController,
         curve: Curves.easeInOut,
+      ),
+    );
+
+    // Initialize click animations
+    _player1ClickController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _player2ClickController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _player1ClickScale = Tween<double>(begin: 1.0, end: 0.85).animate(
+      CurvedAnimation(
+        parent: _player1ClickController,
+        curve: Curves.easeInOutBack,
+      ),
+    );
+
+    _player2ClickScale = Tween<double>(begin: 1.0, end: 0.85).animate(
+      CurvedAnimation(
+        parent: _player2ClickController,
+        curve: Curves.easeInOutBack,
       ),
     );
   }
@@ -128,6 +159,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     for (final group in _particleGroups) {
       group.animationController.dispose();
     }
+    _player1ClickController.dispose();
+    _player2ClickController.dispose();
     super.dispose();
   }
 
@@ -343,14 +376,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   children: [
                     RotatedBox(
                       quarterTurns: 2,
-                      child: Text(
-                        player1Score.toString(),
-                        style: GameStyles.scoreText(context).copyWith(
-                          color: Colors.blue[700],
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            player1Score.toString(),
+                            style: GameStyles.scoreText(context).copyWith(
+                              color: Colors.blue[400],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    
                     SizedBox(width: 8),
                     RotatedBox(
                       quarterTurns: 2,
@@ -362,11 +399,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     SizedBox(width: 8),
                     RotatedBox(
                       quarterTurns: 2,
-                      child: Text(
-                        player2Score.toString(),
-                        style: GameStyles.scoreText(context).copyWith(
-                          color: Colors.red[700],
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            player2Score.toString(),
+                            style: GameStyles.scoreText(context).copyWith(
+                              color: Colors.red[400],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -389,13 +431,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       height: double.infinity,
                       color: Colors.transparent,
                       child: Center(
-                        child: RotatedBox(
-                          quarterTurns: isSinglePlayer ? 0 : 2,
-                          child: Icon(
-                            isSinglePlayer ? Icons.smart_toy : Icons.person,
-                            size: iconSize,
-                            color: Colors.white,
-                          ),
+                        child: AnimatedBuilder(
+                          animation: _colorAnimation,
+                          builder: (context, child) {
+                            // Inverse scale for top player (smaller when bottom player scores more)
+                            final dynamicScale = 1.0 + (0.5 - _colorAnimation.value).clamp(-0.3, 0.3);
+                            return PlayerIcon(
+                              isRobot: isSinglePlayer,
+                              isTopPlayer: true,
+                              iconSize: iconSize * dynamicScale,
+                              scaleAnimation: _player2ClickScale,
+                              color: Colors.red[400]!,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -416,10 +464,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       height: double.infinity,
                       color: Colors.transparent,
                       child: Center(
-                        child: Icon(
-                          Icons.person,
-                          size: iconSize,
-                          color: Colors.white,
+                        child: AnimatedBuilder(
+                          animation: _colorAnimation,
+                          builder: (context, child) {
+                            // Direct scale for bottom player (larger when scoring more)
+                            final dynamicScale = 1.0 + (_colorAnimation.value - 0.5).clamp(-0.3, 0.3);
+                            return PlayerIcon(
+                              isRobot: false,
+                              isTopPlayer: false,
+                              iconSize: iconSize * dynamicScale,
+                              scaleAnimation: _player1ClickScale,
+                              color: Colors.blue[400]!,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -557,4 +614,74 @@ class ParticleGroup {
     required this.isPlayer1,
   }) : this.animationController = animationController,
        this.animation = animationController;
+}
+
+class PlayerIcon extends StatelessWidget {
+  final bool isRobot;
+  final bool isTopPlayer;
+  final double iconSize;
+  final Animation<double> scaleAnimation;
+  final Color color;
+
+  const PlayerIcon({
+    Key? key,
+    required this.isRobot,
+    required this.isTopPlayer,
+    required this.iconSize,
+    required this.scaleAnimation,
+    required this.color,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: scaleAnimation,
+      child: Container(
+        width: iconSize * 2,
+        height: iconSize * 2,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(0.15),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background glow
+              Container(
+                width: iconSize * 1.2,
+                height: iconSize * 1.2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withOpacity(0.1),
+                ),
+              ),
+              // Click icon
+              RotatedBox(
+                quarterTurns: (isTopPlayer && !isRobot) ? 2 : 0,
+                child: Icon(
+                  isRobot 
+                    ? Icons.smart_toy_rounded 
+                    : Icons.touch_app_rounded,
+                  size: iconSize,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 } 
