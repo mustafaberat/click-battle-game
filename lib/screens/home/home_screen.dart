@@ -28,8 +28,12 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   // App Logo
                   Container(
-                    width: size.width * 0.8,
-                    height: size.width * 0.8,
+                    width: size.height * 0.3,
+                    height: size.height * 0.3,
+                    constraints: BoxConstraints(
+                      maxWidth: 300,
+                      maxHeight: 300,
+                    ),
                     child: ClipOval(
                       child: Image.asset(
                         'lib/assets/app-icon.jpg',
@@ -54,7 +58,7 @@ class HomeScreen extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: AppDimensions.paddingMedium,
-                      vertical: AppDimensions.paddingSmall * 0.8,
+                      vertical: AppDimensions.paddingSmall * 0.5,
                     ),
                     child: Text(
                       localizationService.getText('welcomeMessage'),
