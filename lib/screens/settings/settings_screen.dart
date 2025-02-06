@@ -297,7 +297,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           SizedBox(height: AppDimensions.spacing(context) * 0.5),
                           Text(
-                            'Version 2.0.1',
+                            'Version 2.0.2',
                             style: AppTextStyles.body(context).copyWith(
                               color: Colors.white70,
                             ),
