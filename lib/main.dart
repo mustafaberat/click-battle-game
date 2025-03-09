@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:clickbattle/screens/home/home_screen.dart';
@@ -9,9 +10,22 @@ import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/audio_service.dart';
 import 'package:clickbattle/services/localization_service.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Modern system UI handling for edge-to-edge display
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+    overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+  );
+
+  // Optimize for release
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   final prefs = await SharedPreferences.getInstance();
   
   runApp(
@@ -73,10 +87,15 @@ class _ClickBattleAppState extends State<ClickBattleApp> {
           brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: AppColors.background,
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           backgroundColor: AppColors.primary,
           elevation: 0,
-          iconTheme: IconThemeData(color: Colors.white),
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.dark,
+          ),
         ),
       ),
       initialRoute: '/',

@@ -31,7 +31,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.arusoft.clickbattle"
-    compileSdkVersion 34
+    compileSdkVersion 35
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -42,7 +42,7 @@ android {
     defaultConfig {
         applicationId "com.arusoft.clickbattle"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         ndk {
@@ -76,6 +76,8 @@ flutter {
 dependencies {
     implementation "androidx.datastore:datastore-core:1.1.0"
     implementation "androidx.datastore:datastore-preferences:1.1.0"
+    implementation "androidx.core:core:1.12.0"
+    implementation "androidx.core:core-ktx:1.12.0"
     constraints {
         implementation("androidx.datastore:datastore-core") {
             version { strictly "1.1.0" }
