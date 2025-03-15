@@ -8,6 +8,7 @@ import 'package:clickbattle/constants/app_strings.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 import 'package:clickbattle/components/custom_scrollbar.dart';
+import 'package:clickbattle/components/screen_head.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -88,38 +89,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with back button
-            Container(
-              padding: EdgeInsets.all(AppDimensions.padding(context)),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.shadowMedium,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  SizedBox(width: AppDimensions.spacing(context)),
-                  Text(
-                    localizationService.getText('settings'),
-                    style: AppTextStyles.heading(context).copyWith(
-                      fontSize: AppDimensions.titleFontSize(context),
-                      color: AppColors.white,
-                    ),
-                  ),
-                ],
-              ),
+            ScreenHead(
+              title: localizationService.getText('settings'),
+              onBackPressed: () => Navigator.pop(context),
             ),
 
             // Scrollable content

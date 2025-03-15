@@ -4,6 +4,7 @@ import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/localization_service.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 import 'package:clickbattle/components/custom_scrollbar.dart';
+import 'package:clickbattle/components/screen_head.dart';
 
 class ModeSelectionScreen extends StatefulWidget {
   const ModeSelectionScreen({Key? key}) : super(key: key);
@@ -58,30 +59,9 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
         child: Column(
           children: [
             // Header
-            Padding(
-              padding: EdgeInsets.all(AppDimensions.paddingMedium),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon:
-                        Icon(Icons.arrow_back_ios_new, color: AppColors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          localizationService.getText('gameSetup'),
-                          style: AppTextStyles.heading(context),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 48), // Same width as back button for symmetry
-                ],
-              ),
+            ScreenHead(
+              title: localizationService.getText('gameSetup'),
+              onBackPressed: () => Navigator.pop(context),
             ),
 
             // Content
