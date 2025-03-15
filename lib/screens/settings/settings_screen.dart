@@ -86,7 +86,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with back button
             ScreenHead(
@@ -100,7 +99,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 controller: _scrollController,
                 child: ListView(
                   controller: _scrollController,
-                  padding: EdgeInsets.all(AppDimensions.padding(context)),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.paddingMedium),
                   children: [
                     // Language Settings
                     Container(
@@ -337,10 +337,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                 RoundSliderOverlayShape(
                                               overlayRadius: 16,
                                             ),
-                                            activeTrackColor: AppColors.primaryBlue,
-                                            inactiveTrackColor: AppColors.white10,
+                                            activeTrackColor:
+                                                AppColors.primaryBlue,
+                                            inactiveTrackColor:
+                                                AppColors.white10,
                                             thumbColor: AppColors.primaryBlue,
-                                            overlayColor: AppColors.primaryBlue.withOpacity(0.2),
+                                            overlayColor: AppColors.primaryBlue
+                                                .withOpacity(0.2),
                                           ),
                                           child: Slider(
                                             value: _volume,
@@ -430,7 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               color: AppColors.white05,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.amberShadow,
+                                color: AppColors.white10,
                                 width: 1,
                               ),
                             ),
@@ -466,7 +469,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       foregroundColor: Colors.black87,
                                       elevation: 2,
                                       shadowColor: AppColors.amberOverlay,
-                                      padding: EdgeInsets.symmetric(horizontal: 20),
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),

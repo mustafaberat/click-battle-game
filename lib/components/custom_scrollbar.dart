@@ -21,7 +21,7 @@ class CustomScrollbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return RawScrollbar(
       controller: controller,
-      thumbColor: AppColors.white24,
+      thumbColor: AppColors.white38,
       radius: Radius.circular(radius),
       thickness: thickness,
       thumbVisibility: isVisible,

@@ -44,7 +44,7 @@ class AppStrings {
       'tapToStart': 'START',
       'welcomeMessage': 'Get ready for clicking challenge',
       'rateApp': 'Rate App',
-      'enjoyingTheGame': 'Enjoying the game? Let us know what you think!',
+      'enjoyingTheGame': 'Share your experience to help us improve',
       'rateNow': 'Rate Now',
     },
     'tr': {
@@ -91,7 +91,7 @@ class AppStrings {
       'tapToStart': 'BAŞLA',
       'welcomeMessage': 'Tıklama mücadelesine hazır ol',
       'rateApp': 'Uygulamayı Değerlendir',
-      'enjoyingTheGame': 'Oyunu beğendiniz mi? Düşüncelerinizi bizimle paylaşın!',
+      'enjoyingTheGame': 'Deneyiminizi paylaşarak gelişimimize katkı sağlayın',
       'rateNow': 'Şimdi Değerlendir',
     },
     'zh': {
@@ -138,7 +138,7 @@ class AppStrings {
       'tapToStart': '点击开始',
       'welcomeMessage': '准备好迎接终极点击挑战！',
       'rateApp': 'Rate App',
-      'enjoyingTheGame': '喜欢这个游戏吗？告诉我们您的想法！',
+      'enjoyingTheGame': '分享您的体验，帮助我们改进',
       'rateNow': 'Rate Now',
     },
     'de': {
@@ -185,7 +185,7 @@ class AppStrings {
       'tapToStart': 'STARTEN',
       'welcomeMessage': 'Bereit für die Klick-Herausforderung',
       'rateApp': 'Rate App',
-      'enjoyingTheGame': 'Gefällt dir das Spiel? Lass uns wissen, was du denkst!',
+      'enjoyingTheGame': 'Teilen Sie Ihre Erfahrung, um uns zu helfen, besser zu werden',
       'rateNow': 'Rate Now',
     },
     'es': {
@@ -232,7 +232,7 @@ class AppStrings {
       'tapToStart': 'EMPEZAR',
       'welcomeMessage': 'Prepárate para el desafío de clics',
       'rateApp': 'Rate App',
-      'enjoyingTheGame': '¿Disfrutando del juego? ¡Déjanos saber lo que piensas!',
+      'enjoyingTheGame': 'Comparta su experiencia para ayudarnos a mejorar',
       'rateNow': 'Rate Now',
     },
   };
