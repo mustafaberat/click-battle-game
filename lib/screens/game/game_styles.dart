@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clickbattle/styles/app_styles.dart';
+import 'package:clickbattle/constants/app_colors.dart';
 
 class GameStyles {
   static TextStyle difficultyText(BuildContext context) => AppTextStyles.heading(context);

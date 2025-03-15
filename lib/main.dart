@@ -11,6 +11,7 @@ import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/audio_service.dart';
 import 'package:clickbattle/services/localization_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:clickbattle/constants/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

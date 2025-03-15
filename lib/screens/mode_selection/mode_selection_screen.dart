@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/localization_service.dart';
+import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/components/custom_scrollbar.dart';
 
 class ModeSelectionScreen extends StatefulWidget {
   const ModeSelectionScreen({Key? key}) : super(key: key);
@@ -84,12 +86,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
             // Content
             Expanded(
-              child: RawScrollbar(
+              child: CustomScrollbar(
                 controller: _scrollController,
-                thumbColor: Colors.white.withOpacity(0.3),
-                radius: const Radius.circular(20),
-                thickness: 8,
-                thumbVisibility: true,
                 child: ListView(
                   controller: _scrollController,
                   padding: EdgeInsets.symmetric(
