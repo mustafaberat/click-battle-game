@@ -1,20 +1,19 @@
 class AppStrings {
   static const Map<String, Map<String, String>> translations = {
     'en': {
-      // English (default)
       'settings': 'Settings',
       'audioSettings': 'Audio Settings',
       'backgroundMusic': 'Background Music',
       'about': 'About',
-      'developedBy': 'Developed by ARU Soft',
+      'developedBy': 'Developed by',
+      'game': 'Game',
+      'version': 'Version',
       'language': 'Language',
       'clickBattle': 'Click Battle',
-      // Game modes
       'singlePlayer': 'Single Player',
       'twoPlayers': 'Two Players',
       'timeAttack': 'Time Target',
       'survival': 'Score Target',
-      // Game setup
       'gameSetup': 'Game Setup',
       'selectMode': 'Select Mode',
       'selectModeSubtitle': 'Face AI or challenge a friend',
@@ -32,7 +31,6 @@ class AppStrings {
       'startBattle': 'START BATTLE',
       'seconds': 'sec',
       'points': 'tap',
-      // Game over
       'gameOver': 'Game Over!',
       'winner': 'Winner',
       'score': 'Score',
@@ -43,25 +41,26 @@ class AppStrings {
       'player1': 'Player 1',
       'player2': 'Player 2',
       'tie': 'It\'s a Tie!',
-      // Home page
       'tapToStart': 'START',
       'welcomeMessage': 'Get ready for clicking challenge',
+      'rateApp': 'Rate App',
+      'enjoyingTheGame': 'Enjoying Click Battle? Let us know what you think!',
+      'rateNow': 'Rate Now',
     },
     'tr': {
-      // Turkish
       'settings': 'Ayarlar',
       'audioSettings': 'Ses Ayarları',
       'backgroundMusic': 'Arka Plan Müziği',
       'about': 'Hakkında',
-      'developedBy': 'ARU Soft tarafından geliştirildi',
+      'developedBy': 'Developed by',
+      'game': 'Oyun',
+      'version': 'Versiyon',
       'language': 'Dil',
       'clickBattle': 'Tıklama Savaşı',
-      // Game modes
       'singlePlayer': 'Tek Oyuncu',
       'twoPlayers': 'İki Oyuncu',
       'timeAttack': 'Zaman Modu',
       'survival': 'Skor Modu',
-      // Game setup
       'gameSetup': 'Oyun Ayarları',
       'selectMode': 'Mod Seç',
       'selectModeSubtitle': 'Yapay zekaya karşı veya arkadaşınla oyna',
@@ -79,7 +78,6 @@ class AppStrings {
       'startBattle': 'OYUNU BAŞLAT',
       'seconds': 'sn',
       'points': 'tık',
-      // Game over
       'gameOver': 'Oyun Bitti!',
       'winner': 'Kazanan',
       'score': 'Skor',
@@ -90,25 +88,26 @@ class AppStrings {
       'player1': 'Oyuncu 1',
       'player2': 'Oyuncu 2',
       'tie': 'Berabere!',
-      // Home page
       'tapToStart': 'BAŞLA',
       'welcomeMessage': 'Tıklama mücadelesine hazır ol',
+      'rateApp': 'Uygulamayı Değerlendir',
+      'enjoyingTheGame': 'Click Battle\'ı beğendiniz mi? Düşüncelerinizi bizimle paylaşın!',
+      'rateNow': 'Şimdi Değerlendir',
     },
     'zh': {
-      // Chinese
       'settings': '设置',
       'audioSettings': '音频设置',
       'backgroundMusic': '背景音乐',
       'about': '关于',
-      'developedBy': '由 ARU Soft 开发',
+      'developedBy': 'Developed by',
+      'game': '游戏',
+      'version': '版本',
       'language': '语言',
       'clickBattle': '点击对战',
-      // Game modes
       'singlePlayer': '单人模式',
       'twoPlayers': '双人模式',
       'timeAttack': '限时挑战',
       'survival': '生存模式',
-      // Game setup
       'gameSetup': '游戏设置',
       'selectMode': '选择模式',
       'selectModeSubtitle': '对战AI或挑战朋友',
@@ -126,7 +125,6 @@ class AppStrings {
       'startBattle': '开始对战',
       'seconds': '秒',
       'points': '分',
-      // Game over
       'gameOver': '游戏结束！',
       'winner': '获胜者',
       'score': '得分',
@@ -137,25 +135,26 @@ class AppStrings {
       'player1': '玩家1',
       'player2': '玩家2',
       'tie': '平局！',
-      // Home page
       'tapToStart': '点击开始',
       'welcomeMessage': '准备好迎接终极点击挑战！',
+      'rateApp': 'Rate App',
+      'enjoyingTheGame': 'Enjoying Click Battle? Let us know what you think!',
+      'rateNow': 'Rate Now',
     },
     'de': {
-      // German
       'settings': 'Einstellungen',
       'audioSettings': 'Audioeinstellungen',
       'backgroundMusic': 'Hintergrundmusik',
       'about': 'Über',
-      'developedBy': 'Entwickelt von ARU Soft',
+      'developedBy': 'Developed by',
+      'game': 'Spiel',
+      'version': 'Version',
       'language': 'Sprache',
       'clickBattle': 'Klick-Schlacht',
-      // Game modes
       'singlePlayer': 'Einzelspieler',
       'twoPlayers': 'Zwei Spieler',
       'timeAttack': 'Zeitangriff',
       'survival': 'Überlebensmodus',
-      // Game setup
       'gameSetup': 'Spiel Setup',
       'selectMode': 'Modus wählen',
       'selectModeSubtitle': 'Spiele gegen AI oder fordere einen Freund heraus',
@@ -173,7 +172,6 @@ class AppStrings {
       'startBattle': 'KAMPF STARTEN',
       'seconds': 'Sekunden',
       'points': 'Punkte',
-      // Game over
       'gameOver': 'Spiel Beendet!',
       'winner': 'Gewinner',
       'score': 'Punktzahl',
@@ -184,25 +182,26 @@ class AppStrings {
       'player1': 'Spieler 1',
       'player2': 'Spieler 2',
       'tie': 'Unentschieden!',
-      // Home page
       'tapToStart': 'STARTEN',
       'welcomeMessage': 'Bereit für die Klick-Herausforderung',
+      'rateApp': 'Rate App',
+      'enjoyingTheGame': 'Enjoying Click Battle? Let us know what you think!',
+      'rateNow': 'Rate Now',
     },
     'es': {
-      // Spanish
       'settings': 'Configuraciones',
       'audioSettings': 'Configuraciones de Audio',
       'backgroundMusic': 'Música de Fondo',
       'about': 'Acerca de',
-      'developedBy': 'Desarrollado por ARU Soft',
+      'developedBy': 'Developed by',
+      'game': 'Juego',
+      'version': 'Versión',
       'language': 'Idioma',
       'clickBattle': 'Batalla de Clics',
-      // Game modes
       'singlePlayer': 'Un Jugador',
       'twoPlayers': 'Dos Jugadores',
       'timeAttack': 'Ataque de Tiempo',
       'survival': 'Modo de Supervivencia',
-      // Game setup
       'gameSetup': 'Configuración del Juego',
       'selectMode': 'Seleccionar Modo',
       'selectModeSubtitle': 'Juega contra la IA o desafía a un amigo',
@@ -220,7 +219,6 @@ class AppStrings {
       'startBattle': 'INICIAR BATALLA',
       'seconds': 'seg',
       'points': 'puntos',
-      // Game over
       'gameOver': '¡Juego Terminado!',
       'winner': 'Ganador',
       'score': 'Puntuación',
@@ -231,9 +229,11 @@ class AppStrings {
       'player1': 'Jugador 1',
       'player2': 'Jugador 2',
       'tie': '¡Es un Empate!',
-      // Home page
       'tapToStart': 'EMPEZAR',
       'welcomeMessage': 'Prepárate para el desafío de clics',
+      'rateApp': 'Rate App',
+      'enjoyingTheGame': 'Enjoying Click Battle? Let us know what you think!',
+      'rateNow': 'Rate Now',
     },
   };
 }
