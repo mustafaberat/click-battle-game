@@ -11,7 +11,7 @@ class ModeSelectionScreen extends StatefulWidget {
 }
 
 class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
-  bool isSinglePlayer = false;
+  bool isSinglePlayer = true; // default choice when app is opened
   bool isTimeMode = true;
   int timeLimit = 10;
   int scoreLimit = 10;
@@ -49,7 +49,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final localizationService = Provider.of<LocalizationService>(context);
-    
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -61,7 +61,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white),
+                    icon:
+                        Icon(Icons.arrow_back_ios_new, color: AppColors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -91,20 +92,14 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                 thumbVisibility: true,
                 child: ListView(
                   controller: _scrollController,
-                  padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppDimensions.paddingMedium),
                   children: [
                     _buildSection(
                       title: localizationService.getText('selectMode'),
-                      subtitle: localizationService.getText('selectModeSubtitle'),
+                      subtitle:
+                          localizationService.getText('selectModeSubtitle'),
                       child: _buildOptionRow([
-                        _buildOption(
-                          text: localizationService.getText('twoPlayers'),
-                          icon: Icons.person_outline_rounded,
-                          secondaryIcon: Icons.person_outline_rounded,
-                          isSelected: !isSinglePlayer,
-                          onTap: () => setState(() => isSinglePlayer = false),
-                          color: AppColors.player2,
-                        ),
                         _buildOption(
                           text: localizationService.getText('singlePlayer'),
                           icon: Icons.smart_toy_outlined,
@@ -113,11 +108,20 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                           onTap: () => setState(() => isSinglePlayer = true),
                           color: AppColors.player1,
                         ),
+                        _buildOption(
+                          text: localizationService.getText('twoPlayers'),
+                          icon: Icons.person_outline_rounded,
+                          secondaryIcon: Icons.person_outline_rounded,
+                          isSelected: !isSinglePlayer,
+                          onTap: () => setState(() => isSinglePlayer = false),
+                          color: AppColors.player2,
+                        ),
                       ]),
                     ),
                     _buildSection(
                       title: localizationService.getText('chooseMode'),
-                      subtitle: localizationService.getText('chooseModeSubtitle'),
+                      subtitle:
+                          localizationService.getText('chooseModeSubtitle'),
                       child: _buildOptionRow([
                         _buildOption(
                           text: localizationService.getText('timeAttack'),
@@ -136,7 +140,9 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                       ]),
                     ),
                     _buildSection(
-                      title: isTimeMode ? localizationService.getText('timeLimit') : localizationService.getText('targetScore'),
+                      title: isTimeMode
+                          ? localizationService.getText('timeLimit')
+                          : localizationService.getText('targetScore'),
                       subtitle: isTimeMode
                           ? localizationService.getText('timeLimitSubtitle')
                           : localizationService.getText('targetScoreSubtitle'),
@@ -144,9 +150,9 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         (isTimeMode ? timeLimits : scoreLimits)
                             .map(
                               (value) => _buildSmallOption(
-                                text: isTimeMode 
-                                  ? '$value ${localizationService.getText('seconds')}' 
-                                  : '$value ${localizationService.getText('points')}',
+                                text: isTimeMode
+                                    ? '$value ${localizationService.getText('seconds')}'
+                                    : '$value ${localizationService.getText('points')}',
                                 isSelected: isTimeMode
                                     ? timeLimit == value
                                     : scoreLimit == value,
@@ -168,14 +174,17 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     if (isSinglePlayer)
                       _buildSection(
                         title: localizationService.getText('difficulty'),
-                        subtitle: localizationService.getText('difficultySubtitle'),
+                        subtitle:
+                            localizationService.getText('difficultySubtitle'),
                         child: _buildOptionRow(
                           difficulties
                               .map(
                                 (diff) => _buildSmallOption(
-                                  text: localizationService.getText(diff['name'].toLowerCase()),
+                                  text: localizationService
+                                      .getText(diff['name'].toLowerCase()),
                                   isSelected: difficulty == diff['value'],
-                                  onTap: () => setState(() => difficulty = diff['value']),
+                                  onTap: () => setState(
+                                      () => difficulty = diff['value']),
                                   color: _getDifficultyColor(diff['value']),
                                   stars: diff['stars'],
                                 ),
@@ -205,7 +214,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     required Widget child,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: AppDimensions.paddingMedium),
+      margin: EdgeInsets.only(bottom: AppDimensions.paddingMedium / 1.5),
       padding: EdgeInsets.all(AppDimensions.paddingMedium),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
@@ -215,9 +224,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: AppTextStyles.title(context)),
-          SizedBox(height: 4),
           Text(subtitle, style: AppTextStyles.caption(context)),
-          SizedBox(height: AppDimensions.paddingMedium),
+          SizedBox(height: AppDimensions.paddingMedium / 2),
           child,
         ],
       ),
@@ -227,12 +235,14 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   Widget _buildOptionRow(List<Widget> children) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: children.map((child) => Flexible(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 2),
-          child: child,
-        ),
-      )).toList(),
+      children: children
+          .map((child) => Flexible(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 2),
+                  child: child,
+                ),
+              ))
+          .toList(),
     );
   }
 
@@ -251,19 +261,22 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
         height: 80,
         margin: EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
+          color:
+              isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
           border: Border.all(
             color: isSelected ? color : Colors.white24,
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.2),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
@@ -276,31 +289,34 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        icon, 
-                        color: isSelected ? color : Colors.white70, 
-                        size: MediaQuery.of(context).size.width < 300 ? 20 : 24
-                      ),
+                      Icon(icon,
+                          color: isSelected ? color : Colors.white70,
+                          size: MediaQuery.of(context).size.width < 300
+                              ? 20
+                              : 24),
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width < 300 ? 4 : 6),
+                        margin: EdgeInsets.symmetric(
+                            horizontal: MediaQuery.of(context).size.width < 300
+                                ? 4
+                                : 6),
                         height: 16,
                         width: 1,
-                        color: isSelected ? color.withOpacity(0.3) : Colors.white24,
+                        color: isSelected
+                            ? color.withOpacity(0.3)
+                            : Colors.white24,
                       ),
-                      Icon(
-                        secondaryIcon, 
-                        color: isSelected ? color : Colors.white70, 
-                        size: MediaQuery.of(context).size.width < 300 ? 20 : 24
-                      ),
+                      Icon(secondaryIcon,
+                          color: isSelected ? color : Colors.white70,
+                          size: MediaQuery.of(context).size.width < 300
+                              ? 20
+                              : 24),
                     ],
                   ),
                 )
               else
-                Icon(
-                  icon, 
-                  color: isSelected ? color : Colors.white70, 
-                  size: MediaQuery.of(context).size.width < 300 ? 24 : 28
-                ),
+                Icon(icon,
+                    color: isSelected ? color : Colors.white70,
+                    size: MediaQuery.of(context).size.width < 300 ? 24 : 28),
               SizedBox(height: MediaQuery.of(context).size.width < 300 ? 6 : 8),
               FittedBox(
                 child: Text(
@@ -309,7 +325,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.white70,
                     fontSize: MediaQuery.of(context).size.width < 300 ? 12 : 14,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     height: 1.1,
                   ),
                 ),
@@ -335,19 +352,22 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
         height: 64,
         margin: EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
+          color:
+              isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
           border: Border.all(
             color: isSelected ? color : Colors.white24,
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.2),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
@@ -361,7 +381,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.white70,
                     fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     height: 1.1,
                   ),
                 ),
@@ -377,7 +398,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         child: Icon(
                           Icons.star_rounded,
                           color: isSelected ? color : Colors.white38,
-                          size: MediaQuery.of(context).size.width < 300 ? 12 : 14,
+                          size:
+                              MediaQuery.of(context).size.width < 300 ? 12 : 14,
                         ),
                       ),
                     ),
@@ -393,7 +415,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                       style: TextStyle(
                         color: isSelected ? Colors.white : Colors.white70,
                         fontSize: 15,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                         height: 1.1,
                       ),
                     ),
