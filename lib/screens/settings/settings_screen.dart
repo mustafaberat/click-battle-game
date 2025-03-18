@@ -461,7 +461,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   child: ElevatedButton(
                                     onPressed: () async {
                                       if (await _inAppReview.isAvailable()) {
-                                        _inAppReview.openStoreListing();
+                                        _inAppReview.requestReview();
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -597,7 +597,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                   ),
                                   trailing: Text(
-                                    '2.0.5',
+                                    '2.0.6',
                                     style: TextStyle(
                                       color: AppColors.white,
                                       fontSize: 16,
