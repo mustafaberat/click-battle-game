@@ -6,6 +6,16 @@ version: 2.0.6+28  # Updated version code and build number
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
+# Specify supported platforms
+flutter:
+  platforms:
+    android: true
+    ios: false
+    web: false
+    windows: false
+    macos: false
+    linux: false
+
 dependencies:
   flutter:
     sdk: flutter
@@ -14,6 +24,7 @@ dependencies:
   shared_preferences: ^2.2.2
   provider: ^6.1.1
   in_app_review: ^2.0.8
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:

@@ -151,22 +151,31 @@ flutter analyze
 echo -e "\n${YELLOW}🔍 Running Flutter doctor...${NC}"
 flutter doctor -v
 
-echo -e "\n${YELLOW}🏗️  Building release versions...${NC}"
+echo -e "\n${YELLOW}🏗️  Building Android release versions...${NC}"
 
 # Create logs directory if it doesn't exist
 mkdir -p ../build/logs
 
-# Build Android release versions with optimizations
-echo -e "\n${YELLOW}🏗️  Building Android release versions...${NC}"
-
 # Build APK with optimizations
 echo -e "\n${YELLOW}📱 Building APK...${NC}"
-flutter build apk --release --target-platform android-arm64 > ../build/logs/apk_build.log 2>&1 & 
+flutter build apk --release \
+    --target-platform android-arm64 \
+    --obfuscate \
+    --split-debug-info=build/debug-info \
+    --tree-shake-icons \
+    --minify \
+    > ../build/logs/apk_build.log 2>&1 & 
 APK_PID=$!
 
 # Build App Bundle with optimizations
 echo -e "\n${YELLOW}📦 Building App Bundle...${NC}"
-flutter build appbundle --release --target-platform android-arm64 > ../build/logs/bundle_build.log 2>&1 &
+flutter build appbundle --release \
+    --target-platform android-arm64 \
+    --obfuscate \
+    --split-debug-info=build/debug-info \
+    --tree-shake-icons \
+    --minify \
+    > ../build/logs/bundle_build.log 2>&1 &
 BUNDLE_PID=$!
 
 # Show spinners while building
@@ -177,6 +186,14 @@ wait $APK_PID || APK_STATUS=$?
 echo -n "📦 Bundle Build Status: "
 spinner $BUNDLE_PID
 wait $BUNDLE_PID || BUNDLE_STATUS=$?
+
+# Clean up unnecessary platform folders
+echo -e "\n${YELLOW}🧹 Cleaning up unnecessary platform folders...${NC}"
+rm -rf ../build/macos
+rm -rf ../build/linux
+rm -rf ../build/windows
+rm -rf ../build/ios
+rm -rf ../build/web
 
 echo -e "\n${YELLOW}Build Complete!${NC} 🎉\n"
 

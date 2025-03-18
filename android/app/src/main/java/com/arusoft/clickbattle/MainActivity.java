@@ -12,15 +12,12 @@ public class MainActivity extends FlutterActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Edge-to-edge ekran desteğini Android 10+ için etkinleştir
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-            // Karanlık mod desteği: Status bar ikonlarını tema uyumlu hale getir
-            WindowInsetsControllerCompat insetsController = 
-                new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-            insetsController.setAppearanceLightStatusBars(true);
-        }
+        // Modern edge-to-edge display support
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat insetsController = 
+            new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        insetsController.setAppearanceLightStatusBars(true);
+        insetsController.setAppearanceLightNavigationBars(true);
     }
 
     @Override
