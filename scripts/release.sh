@@ -156,13 +156,17 @@ echo -e "\n${YELLOW}🏗️  Building release versions...${NC}"
 # Create logs directory if it doesn't exist
 mkdir -p ../build/logs
 
-# Build both formats
+# Build Android release versions with optimizations
+echo -e "\n${YELLOW}🏗️  Building Android release versions...${NC}"
+
+# Build APK with optimizations
 echo -e "\n${YELLOW}📱 Building APK...${NC}"
-flutter build apk --release > ../build/logs/apk_build.log 2>&1 & 
+flutter build apk --release --target-platform android-arm64 > ../build/logs/apk_build.log 2>&1 & 
 APK_PID=$!
 
+# Build App Bundle with optimizations
 echo -e "\n${YELLOW}📦 Building App Bundle...${NC}"
-flutter build appbundle --release > ../build/logs/bundle_build.log 2>&1 &
+flutter build appbundle --release --target-platform android-arm64 > ../build/logs/bundle_build.log 2>&1 &
 BUNDLE_PID=$!
 
 # Show spinners while building
