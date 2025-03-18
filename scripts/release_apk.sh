@@ -11,7 +11,7 @@ flutter build apk --release -v --dart-define=Dart.vm.product=true --no-tree-shak
 
 GREEN='\033[0;32m'
 echo -e "${GREEN}✨ Build completed!"
-echo -e "${GREEN} Your APK can be found at: build/app/outputs/flutter-apk/app-release.apk"
+echo -e "${GREEN} Your APK can be found at: build/app/outputs/app/outputs/apk/release/app-release.apk"
 
 # Open Finder at the APK location
-open "/Users/mustafaberataru/Projects/personal/mobile-apps/clickbattle/build/app/outputs/flutter-apk"
+open "/Users/mustafaberataru/Projects/personal/mobile-apps/clickbattle/build/app/outputs/apk/release"

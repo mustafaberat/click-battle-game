@@ -163,7 +163,6 @@ flutter build apk --release \
     --obfuscate \
     --split-debug-info=build/debug-info \
     --tree-shake-icons \
-    --minify \
     > ../build/logs/apk_build.log 2>&1 & 
 APK_PID=$!
 
@@ -174,7 +173,6 @@ flutter build appbundle --release \
     --obfuscate \
     --split-debug-info=build/debug-info \
     --tree-shake-icons \
-    --minify \
     > ../build/logs/bundle_build.log 2>&1 &
 BUNDLE_PID=$!
 
@@ -232,6 +230,9 @@ echo "• Build logs are saved in build/logs/"
 echo "• APK build log: build/logs/apk_build.log"
 echo "• Bundle build log: build/logs/bundle_build.log"
 echo "• If builds failed, check the logs for detailed error messages"
+
+# Open Finder at the APK location
+open "/Users/mustafaberataru/Projects/personal/mobile-apps/clickbattle/build/app/outputs/bundle/release"
 
 # Final Flutter version check
 check_flutter_version
