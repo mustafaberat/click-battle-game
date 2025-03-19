@@ -10,11 +10,19 @@ import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/audio_service.dart';
 import 'package:clickbattle/services/localization_service.dart';
+import 'package:clickbattle/services/ad_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize AdMob
+  final adService = AdService();
+  adService.initialize();
+  
+  // Initialize shared preferences
+  final prefs = await SharedPreferences.getInstance();
   
   // Modern system UI handling for edge-to-edge display
   SystemChrome.setSystemUIOverlayStyle(
@@ -31,8 +39,6 @@ void main() async {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
 
-  final prefs = await SharedPreferences.getInstance();
-  
   runApp(
     MultiProvider(
       providers: [

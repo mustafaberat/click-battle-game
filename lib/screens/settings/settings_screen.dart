@@ -595,7 +595,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                   ),
                                   trailing: Text(
-                                    '2.0.6',
+                                    '2.0.7',
                                     style: TextStyle(
                                       color: AppColors.white,
                                       fontSize: 16,

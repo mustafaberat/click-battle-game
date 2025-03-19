@@ -15,4 +15,9 @@ class ClickBattleConfig {
   static double appNameFontSize = 24;
   static double timerFontSize = 24;
   static double timerIconSize = 30;
+
+  // AD CONFIGS
+  static const String adMobAppId = 'ca-app-pub-1508520223269936~7354217156';
+  // static const String bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111'; // Test banner ad unit ID
+  static const String bannerAdUnitId = 'ca-app-pub-1508520223269936/8664263543'; // My banner ad unit ID
 }

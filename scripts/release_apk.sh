@@ -16,11 +16,11 @@ show_spinner() {
     local spin='|/-\'
     while ps -p $pid > /dev/null; do
         for i in $(seq 0 3); do
-            echo -ne "\r⏳ Building APK... ${spin:$i:1}"
+            echo -ne "\r${spin:$i:1}"
             sleep $delay
         done
     done
-    echo -ne "\r✅ Build completed!       \n"
+    echo -ne "\r"
 }
 
 # Change to project root directory
@@ -33,32 +33,31 @@ flutter clean > "$LOG_FILE" 2>&1
 echo "⚡ Getting dependencies..."
 flutter pub get >> "$LOG_FILE" 2>&1
 
-echo "🏗️ Building release APK..."
+echo -n "🏗️ Building release APK... "
 flutter build apk --release --dart-define=Dart.vm.product=true --no-tree-shake-icons >> "$LOG_FILE" 2>&1 &
-
 BUILD_PID=$!
 show_spinner $BUILD_PID
 
 APK_PATH="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-release.apk"
 
 if [ -f "$APK_PATH" ]; then
-    GREEN='\033[0;32m'
-    echo -e "${GREEN}✨ Build completed!"
-    echo -e "${GREEN} Your APK can be found at: $APK_PATH"
+    echo "✨ Your APK can be found at: build/app/outputs/flutter-apk/app-release.apk"
     
-    echo "📲 Installing APK on connected device..."
+    echo -n "📲 Installing APK on connected device... "
     adb install -r "$APK_PATH" >> "$LOG_FILE" 2>&1 &
-
     INSTALL_PID=$!
     show_spinner $INSTALL_PID
+    echo "✅"
 
     echo "🚀 Launching the app..."
     PACKAGE_NAME="com.arusoft.clickbattle"
     adb shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 >> "$LOG_FILE" 2>&1
+
+    echo "📝 App logs are being saved to: $LOG_FILE"
+    flutter logs --verbose >> "$LOG_FILE" 2>&1
 else
     RED='\033[0;31m'
-    echo -e "${RED}❌ Build failed! APK not found."
-    echo -e "${RED} Check build logs at: $LOG_FILE"
+    echo -e "${RED}❌ Build failed! Check logs at: $LOG_FILE"
     echo "Last 20 lines of build log:"
     tail -n 20 "$LOG_FILE"
 fi
