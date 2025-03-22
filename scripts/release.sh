@@ -25,15 +25,15 @@ command_exists() {
 spinner() {
     local pid=$1
     local delay=0.1
-    local spinstr='|/-\'
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
         local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
+        printf "\r[%c] " "$spinstr"
         local spinstr=$temp${spinstr%"$temp"}
         sleep $delay
-        printf "\b\b\b\b\b\b"
+        printf "\r\033[K"
     done
-    printf "    \b\b\b\b"
+    printf "\r"
 }
 
 # Function to check if Flutter needs update
@@ -87,7 +87,7 @@ update_flutter() {
 # Function to check Flutter version
 check_flutter_version() {
     local current_version=$(flutter --version | head -n 1 | awk '{print $2}')
-    echo -e "\n${BLUE}ℹ️  Current Flutter version: ${current_version}${NC}"
+    echo -e "${BLUE}ℹ️  Flutter Version: ${current_version}${NC}"
 }
 
 # Parse command line arguments
@@ -110,6 +110,9 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "  --help, -h  Show this help message"
     exit 0
 fi
+
+# Print header
+echo -e "\n${BLUE}🚀 Click Battle Release Script${NC}\n"
 
 # Check prerequisites
 echo -e "${YELLOW}🔍 Checking prerequisites...${NC}"
@@ -193,13 +196,25 @@ rm -rf ../build/windows
 rm -rf ../build/ios
 rm -rf ../build/web
 
-echo -e "\n${YELLOW}Build Complete!${NC} 🎉\n"
+# Final Flutter version check
+check_flutter_version
+
+# Provide additional information about the builds
+echo -e "\n${BLUE}ℹ️  Build Information${NC}"
+echo -e "• Build logs: build/logs/"
+echo -e "• APK log: build/logs/apk_build.log"
+echo -e "• Bundle log: build/logs/bundle_build.log"
+
+
+# Print build results
+echo -e "\n${GREEN}🎉 Build Complete!${NC}\n"
 
 # Check and display results
 if [ -f "../build/app/outputs/flutter-apk/app-release.apk" ]; then
     APK_SIZE=$(ls -lh ../build/app/outputs/flutter-apk/app-release.apk | awk '{print $5}')
-    echo -e "${GREEN}✅ APK created at: build/app/outputs/flutter-apk/app-release.apk${NC}"
-    echo "   Size: $APK_SIZE"
+    echo -e "${GREEN}✅ APK Build Success${NC}"
+    echo -e "   Location: build/app/outputs/flutter-apk/app-release.apk"
+    echo -e "   Size: $APK_SIZE"
     
     # Warning if APK size is too large
     if [ $(echo $APK_SIZE | sed 's/M//') -gt 100 ]; then
@@ -207,32 +222,23 @@ if [ -f "../build/app/outputs/flutter-apk/app-release.apk" ]; then
     fi
 else
     echo -e "${RED}❌ APK build failed${NC}"
-    echo "   Check build/logs/apk_build.log for details"
+    echo -e "   Check build/logs/apk_build.log for details"
 fi
 
 if [ -f "../build/app/outputs/bundle/release/app-release.aab" ]; then
     BUNDLE_SIZE=$(ls -lh ../build/app/outputs/bundle/release/app-release.aab | awk '{print $5}')
-    echo -e "${GREEN}✅ App Bundle created at: build/app/outputs/bundle/release/app-release.aab${NC}"
-    echo "   Size: $BUNDLE_SIZE"
+    echo -e "\n${GREEN}✅ App Bundle Build Success${NC}"
+    echo -e "   Location: build/app/outputs/bundle/release/app-release.aab"
+    echo -e "   Size: $BUNDLE_SIZE"
     
     # Warning if Bundle size is too large
     if [ $(echo $BUNDLE_SIZE | sed 's/M//') -gt 150 ]; then
         echo -e "${YELLOW}⚠️  Warning: App Bundle size is larger than 150MB${NC}"
     fi
 else
-    echo -e "${RED}❌ App Bundle build failed${NC}"
-    echo "   Check build/logs/bundle_build.log for details"
+    echo -e "\n${RED}❌ App Bundle build failed${NC}"
+    echo -e "   Check build/logs/bundle_build.log for details"
 fi
-
-# Provide additional information about the builds
-echo -e "\n${BLUE}ℹ️  Additional Information:${NC}"
-echo "• Build logs are saved in build/logs/"
-echo "• APK build log: build/logs/apk_build.log"
-echo "• Bundle build log: build/logs/bundle_build.log"
-echo "• If builds failed, check the logs for detailed error messages"
 
 # Open Finder at the APK location
 open "/Users/mustafaberataru/Projects/personal/mobile-apps/clickbattle/build/app/outputs/bundle/release"
-
-# Final Flutter version check
-check_flutter_version
