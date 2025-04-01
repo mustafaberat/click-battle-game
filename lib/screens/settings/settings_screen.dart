@@ -460,7 +460,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   height: 46,
                                   child: ElevatedButton(
                                     onPressed: () async {
-                                      _inAppReview.openStoreListing();
+                                      _inAppReview.openStoreListing(); // Store review
+                                      // _inAppReview.requestReview(); // Pop-up review
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.accentAmber,
