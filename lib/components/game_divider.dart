@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:clickbattle/services/app_manager.dart';
 
 class GameDivider extends StatelessWidget {
   final double ratio; // Value between 0-1, represents player1's ratio (blue)
@@ -16,6 +18,8 @@ class GameDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appManager = Provider.of<AppManager>(context);
+    
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -60,9 +64,9 @@ class GameDivider extends StatelessWidget {
               pulseAnimation != null
                   ? ScaleTransition(
                       scale: pulseAnimation!,
-                      child: _buildDividerIndicator(),
+                      child: _buildDividerIndicator(appManager),
                     )
-                  : _buildDividerIndicator(),
+                  : _buildDividerIndicator(appManager),
               // Red player's territory progress (reversed direction)
               Expanded(
                 flex: ((1 - ratio) * 100).round(),
@@ -92,7 +96,7 @@ class GameDivider extends StatelessWidget {
                 width: 2,
                 height: index == 2 ? 12 : 6, // Middle mark is taller
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(index == 2 ? 0.8 : 0.4),
+                  color: appManager.white.withOpacity(index == 2 ? 0.8 : 0.4),
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -103,15 +107,15 @@ class GameDivider extends StatelessWidget {
     );
   }
 
-  Widget _buildDividerIndicator() {
+  Widget _buildDividerIndicator(AppManager appManager) {
     return Container(
       width: 4,
       height: 16,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: appManager.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withOpacity(0.8),
+            color: appManager.white.withOpacity(0.8),
             blurRadius: 6,
             spreadRadius: 2,
           ),

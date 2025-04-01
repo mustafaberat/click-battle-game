@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:clickbattle/constants/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
 class ScreenHead extends StatelessWidget {
@@ -14,6 +15,8 @@ class ScreenHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appManager = Provider.of<AppManager>(context);
+    
     return Padding(
       padding: EdgeInsets.all(AppDimensions.paddingMedium),
       child: Stack(
@@ -35,7 +38,7 @@ class ScreenHead extends StatelessWidget {
           Positioned(
             left: 0,
             child: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white),
+              icon: Icon(Icons.arrow_back_ios_new, color: appManager.white),
               onPressed: onBackPressed,
             ),
           ),

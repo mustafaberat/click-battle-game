@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/services/localization_service.dart';
-import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/custom_scrollbar.dart';
 import 'package:clickbattle/components/screen_head.dart';
+import 'package:clickbattle/components/mode_option.dart';
 
 class ModeSelectionScreen extends StatefulWidget {
   const ModeSelectionScreen({Key? key}) : super(key: key);
@@ -21,6 +21,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   int difficulty = 1;
   bool _isStartHovered = false;
   final ScrollController _scrollController = ScrollController();
+  late AppManager _appManager;
 
   final List<int> timeLimits = [10, 30, 60];
   final List<int> scoreLimits = [10, 50, 100];
@@ -30,16 +31,22 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     {'name': 'Hard', 'value': 12, 'stars': 3},
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _appManager = Provider.of<AppManager>(context, listen: false);
+  }
+
   Color _getDifficultyColor(int value) {
     switch (value) {
       case 1:
-        return AppColors.accentGreen;
+        return _appManager.scoreModeColor;
       case 6:
-        return AppColors.timeMode;
+        return _appManager.timeModeColor;
       case 12:
-        return AppColors.hardMode;
+        return _appManager.hardModeColor;
       default:
-        return AppColors.accent;
+        return _appManager.primaryBlue;
     }
   }
 
@@ -51,16 +58,16 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final localizationService = Provider.of<LocalizationService>(context);
+    _appManager = Provider.of<AppManager>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _appManager.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // Header
             ScreenHead(
-              title: localizationService.getText('gameSetup'),
+              title: _appManager.getText('gameSetup'),
               onBackPressed: () => Navigator.pop(context),
             ),
 
@@ -74,63 +81,62 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                       horizontal: AppDimensions.paddingMedium),
                   children: [
                     _buildSection(
-                      title: localizationService.getText('selectMode'),
-                      subtitle:
-                          localizationService.getText('selectModeSubtitle'),
+                      title: _appManager.getText('selectMode'),
+                      subtitle: _appManager.getText('selectModeSubtitle'),
                       child: _buildOptionRow([
-                        _buildOption(
-                          text: localizationService.getText('singlePlayer'),
+                        ModeOption(
+                          text: _appManager.getText('singlePlayer'),
                           icon: Icons.smart_toy_outlined,
                           secondaryIcon: Icons.person_outline_rounded,
                           isSelected: isSinglePlayer,
                           onTap: () => setState(() => isSinglePlayer = true),
-                          color: AppColors.player1,
+                          color: _appManager.player1Color,
                         ),
-                        _buildOption(
-                          text: localizationService.getText('twoPlayers'),
+                        ModeOption(
+                          text: _appManager.getText('twoPlayers'),
                           icon: Icons.person_outline_rounded,
                           secondaryIcon: Icons.person_outline_rounded,
                           isSelected: !isSinglePlayer,
                           onTap: () => setState(() => isSinglePlayer = false),
-                          color: AppColors.player2,
+                          color: _appManager.player2Color,
                         ),
                       ]),
                     ),
                     _buildSection(
-                      title: localizationService.getText('chooseMode'),
-                      subtitle:
-                          localizationService.getText('chooseModeSubtitle'),
+                      title: _appManager.getText('chooseMode'),
+                      subtitle: _appManager.getText('chooseModeSubtitle'),
                       child: _buildOptionRow([
-                        _buildOption(
-                          text: localizationService.getText('timeAttack'),
+                        ModeOption(
+                          text: _appManager.getText('timeAttack'),
                           icon: Icons.timer_outlined,
                           isSelected: isTimeMode,
                           onTap: () => setState(() => isTimeMode = true),
-                          color: AppColors.timeMode,
+                          color: _appManager.timeModeColor,
                         ),
-                        _buildOption(
-                          text: localizationService.getText('survival'),
+                        ModeOption(
+                          text: _appManager.getText('survival'),
                           icon: Icons.flag_outlined,
                           isSelected: !isTimeMode,
                           onTap: () => setState(() => isTimeMode = false),
-                          color: AppColors.scoreMode,
+                          color: _appManager.scoreModeColor,
                         ),
                       ]),
                     ),
                     _buildSection(
                       title: isTimeMode
-                          ? localizationService.getText('timeLimit')
-                          : localizationService.getText('targetScore'),
+                          ? _appManager.getText('timeLimit')
+                          : _appManager.getText('targetScore'),
                       subtitle: isTimeMode
-                          ? localizationService.getText('timeLimitSubtitle')
-                          : localizationService.getText('targetScoreSubtitle'),
+                          ? _appManager.getText('timeLimitSubtitle')
+                          : _appManager.getText('targetScoreSubtitle'),
                       child: _buildOptionRow(
                         (isTimeMode ? timeLimits : scoreLimits)
                             .map(
-                              (value) => _buildSmallOption(
+                              (value) => ModeOption(
                                 text: isTimeMode
-                                    ? '$value ${localizationService.getText('seconds')}'
-                                    : '$value ${localizationService.getText('points')}',
+                                    ? _appManager.getText('seconds')
+                                    : _appManager.getText('points'),
+                                topText: value.toString(),
                                 isSelected: isTimeMode
                                     ? timeLimit == value
                                     : scoreLimit == value,
@@ -142,8 +148,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                                   }
                                 }),
                                 color: isTimeMode
-                                    ? AppColors.timeMode
-                                    : AppColors.scoreMode,
+                                    ? _appManager.timeModeColor
+                                    : _appManager.scoreModeColor,
                               ),
                             )
                             .toList(),
@@ -151,14 +157,13 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                     ),
                     if (isSinglePlayer)
                       _buildSection(
-                        title: localizationService.getText('difficulty'),
-                        subtitle:
-                            localizationService.getText('difficultySubtitle'),
+                        title: _appManager.getText('difficulty'),
+                        subtitle: _appManager.getText('difficultySubtitle'),
                         child: _buildOptionRow(
                           difficulties
                               .map(
-                                (diff) => _buildSmallOption(
-                                  text: localizationService
+                                (diff) => ModeOption(
+                                  text: _appManager
                                       .getText(diff['name'].toLowerCase()),
                                   isSelected: difficulty == diff['value'],
                                   onTap: () => setState(
@@ -178,7 +183,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             // Start Button
             Padding(
               padding: EdgeInsets.all(AppDimensions.paddingMedium),
-              child: _buildStartButton(localizationService),
+              child: _buildStartButton(),
             ),
           ],
         ),
@@ -195,276 +200,113 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
       margin: EdgeInsets.only(bottom: AppDimensions.paddingMedium / 1.5),
       padding: EdgeInsets.all(AppDimensions.paddingMedium),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: _appManager.cardBackgroundColor,
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTextStyles.title(context)),
-          Text(subtitle, style: AppTextStyles.caption(context)),
-          SizedBox(height: AppDimensions.paddingMedium / 2),
+          Text(
+            title,
+            style: TextStyle(
+              color: _appManager.white,
+              fontSize: AppDimensions.fontSizeMedium * 1.05,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: _appManager.white70,
+              fontSize: AppDimensions.fontSizeSmall,
+            ),
+          ),
+          SizedBox(height: AppDimensions.spacing(context) * 0.8),
           child,
         ],
       ),
     );
   }
 
-  Widget _buildOptionRow(List<Widget> children) {
+  Widget _buildOptionRow(List<Widget> options) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: children
-          .map((child) => Flexible(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 2),
-                  child: child,
-                ),
-              ))
-          .toList(),
+      children: List.generate(options.length * 2 - 1, (index) {
+        if (index.isOdd) {
+          return SizedBox(width: AppDimensions.spacing(context) * 0.5);
+        }
+        return Expanded(child: options[index ~/ 2]);
+      }),
     );
   }
 
-  Widget _buildOption({
-    required String text,
-    required IconData icon,
-    IconData? secondaryIcon,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: 80,
-        margin: EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-          border: Border.all(
-            color: isSelected ? color : Colors.white24,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.2),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (secondaryIcon != null)
-                FittedBox(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon,
-                          color: isSelected ? color : Colors.white70,
-                          size: MediaQuery.of(context).size.width < 300
-                              ? 20
-                              : 24),
-                      Container(
-                        margin: EdgeInsets.symmetric(
-                            horizontal: MediaQuery.of(context).size.width < 300
-                                ? 4
-                                : 6),
-                        height: 16,
-                        width: 1,
-                        color: isSelected
-                            ? color.withOpacity(0.3)
-                            : Colors.white24,
-                      ),
-                      Icon(secondaryIcon,
-                          color: isSelected ? color : Colors.white70,
-                          size: MediaQuery.of(context).size.width < 300
-                              ? 20
-                              : 24),
-                    ],
-                  ),
-                )
-              else
-                Icon(icon,
-                    color: isSelected ? color : Colors.white70,
-                    size: MediaQuery.of(context).size.width < 300 ? 24 : 28),
-              SizedBox(height: MediaQuery.of(context).size.width < 300 ? 6 : 8),
-              FittedBox(
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontSize: MediaQuery.of(context).size.width < 300 ? 12 : 14,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    height: 1.1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildStartButton() {
+    Color buttonColor = _appManager.primaryBlue;
 
-  Widget _buildSmallOption({
-    required String text,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required Color color,
-    int? stars,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        height: 64,
-        margin: EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? color.withOpacity(0.15) : AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-          border: Border.all(
-            color: isSelected ? color : Colors.white24,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.2),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (stars != null) ...[
-                Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontSize: 13,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    height: 1.1,
-                  ),
-                ),
-                SizedBox(height: 4),
-                FittedBox(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(
-                      stars,
-                      (index) => Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 0.5),
-                        child: Icon(
-                          Icons.star_rounded,
-                          color: isSelected ? color : Colors.white38,
-                          size:
-                              MediaQuery.of(context).size.width < 300 ? 12 : 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ] else ...[
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      text.split(' ')[0],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
-                        fontSize: 15,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                        height: 1.1,
-                      ),
-                    ),
-                    Text(
-                      text.split(' ')[1],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white70 : Colors.white38,
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        height: 1.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStartButton(LocalizationService localizationService) {
     return GestureDetector(
       onTap: () {
+        final gameArgs = {
+          'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
+          'playerMode': isSinglePlayer
+              ? 'PlayerMode.singlePlayer'
+              : 'PlayerMode.twoPlayer',
+          'timeLimit': timeLimit,
+          'scoreLimit': scoreLimit,
+          'difficulty': difficulty,
+        };
+
         Navigator.pushNamed(
           context,
           '/game',
-          arguments: {
-            'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
-            'playerMode': isSinglePlayer
-                ? 'PlayerMode.singlePlayer'
-                : 'PlayerMode.twoPlayer',
-            'timeLimit': timeLimit,
-            'scoreLimit': scoreLimit,
-            'difficulty': difficulty,
-          },
+          arguments: gameArgs,
         );
       },
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isStartHovered = true),
-        onExit: (_) => setState(() => _isStartHovered = false),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color:
-                _isStartHovered ? AppColors.hoveredBlue : AppColors.primaryBlue,
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadiusLarge),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryBlue.withOpacity(0.3),
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              ),
+      onTapDown: (_) => setState(() => _isStartHovered = true),
+      onTapUp: (_) => setState(() => _isStartHovered = false),
+      onTapCancel: () => setState(() => _isStartHovered = false),
+      child: Container(
+        width: double.infinity,
+        height: AppDimensions.buttonHeightLarge,
+        decoration: BoxDecoration(
+          color: buttonColor,
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+          boxShadow: _isStartHovered
+              ? []
+              : [
+                  BoxShadow(
+                    color: buttonColor.withOpacity(0.4),
+                    blurRadius: 15,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+          gradient: LinearGradient(
+            colors: [
+              buttonColor,
+              buttonColor.withOpacity(0.8),
             ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
+        ),
+        child: AnimatedScale(
+          scale: _isStartHovered ? 0.98 : 1.0,
+          duration: Duration(milliseconds: 150),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.play_arrow_rounded, color: AppColors.white, size: 26),
-              SizedBox(width: 8),
+              Icon(
+                Icons.play_arrow_rounded,
+                color: _appManager.white,
+                size: AppDimensions.iconSizeLarge,
+              ),
+              SizedBox(width: AppDimensions.spacing(context) * 0.5),
               Text(
-                localizationService.getText('startBattle'),
+                _appManager.getText('startBattle').toUpperCase(),
                 style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 16,
+                  color: _appManager.white,
+                  fontSize: AppDimensions.fontSizeSmall,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
+                  letterSpacing: 2,
                 ),
               ),
             ],

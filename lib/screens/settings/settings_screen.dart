@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/services/settings_service.dart';
-import 'package:clickbattle/services/audio_service.dart';
-import 'package:clickbattle/services/localization_service.dart';
-import 'package:clickbattle/constants/app_strings.dart';
+import 'package:clickbattle/services/app_manager.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 import 'package:clickbattle/components/custom_scrollbar.dart';
 import 'package:clickbattle/components/screen_head.dart';
+import 'package:clickbattle/services/localization_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -18,40 +16,54 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final AudioService _audioService = AudioService();
   final InAppReview _inAppReview = InAppReview.instance;
   final ScrollController _scrollController = ScrollController();
   late bool _isMusicEnabled;
   late double _volume;
+  late AppManager _appManager;
 
   @override
   void initState() {
     super.initState();
-    _isMusicEnabled = _audioService.isMusicEnabled;
-    _volume = _audioService.volume;
+    _appManager = Provider.of<AppManager>(context, listen: false);
+    _isMusicEnabled = _appManager.isMusicEnabled;
+    _volume = _appManager.volume;
+    
+    // Listen to changes in the localization service to force a rebuild
+    Provider.of<LocalizationService>(context, listen: false).addListener(_onLanguageChanged);
   }
 
   @override
   void dispose() {
+    Provider.of<LocalizationService>(context, listen: false).removeListener(_onLanguageChanged);
     _scrollController.dispose();
     super.dispose();
+  }
+  
+  void _onLanguageChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Widget _buildLanguageOption(BuildContext context, String languageCode,
       String languageName, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      splashColor: _appManager.primaryBlue.withOpacity(0.1),
+      highlightColor: _appManager.primaryBlue.withOpacity(0.2),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: MediaQuery.of(context).size.width * 0.25,
+        width: MediaQuery.of(context).size.width * 0.26,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accent.withOpacity(0.2)
+              ? _appManager.primaryBlue.withOpacity(0.2)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.accent : AppColors.white24,
+            color: isSelected ? _appManager.primaryBlue : _appManager.white24,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -60,14 +72,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Text(
               _getFlagEmoji(languageCode),
-              style: const TextStyle(fontSize: 40),
+              style: const TextStyle(fontSize: 36),
             ),
             const SizedBox(height: 8),
             Text(
               languageName,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? AppColors.white : AppColors.white70,
+                color: isSelected ? _appManager.white : _appManager.white70,
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -80,17 +92,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final localizationService = Provider.of<LocalizationService>(context);
+    _appManager = Provider.of<AppManager>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _appManager.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // Header with back button
             ScreenHead(
-              title: localizationService.getText('settings'),
-              onBackPressed: () => Navigator.pop(context),
+              title: _appManager.getText('settings'),
+              onBackPressed: () {
+                // Reload banner ad before navigating to avoid 'already in widget tree' error
+                _appManager.reloadBannerAd();
+                Navigator.pushReplacementNamed(context, '/');
+              },
             ),
 
             // Scrollable content
@@ -107,15 +123,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       width: double.infinity,
                       padding: EdgeInsets.all(AppDimensions.padding(context)),
                       decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
+                        color: _appManager.cardBackgroundColor,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: AppColors.white10,
+                          color: _appManager.white10,
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.shadowDark,
+                            color: _appManager.shadowDark,
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
@@ -129,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppColors.white10,
+                                  color: _appManager.white10,
                                   width: 1,
                                 ),
                               ),
@@ -138,12 +154,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Icon(
                                   Icons.language,
-                                  color: AppColors.accent,
+                                  color: _appManager.primaryBlue,
                                   size: 24,
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  localizationService.getText('language'),
+                                  _appManager.getText('language'),
                                   style:
                                       AppTextStyles.heading(context).copyWith(
                                     fontSize:
@@ -162,27 +178,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.white05,
+                              color: _appManager.white05,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.white10,
+                                color: _appManager.white10,
                                 width: 1,
                               ),
                             ),
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton<String>(
-                                value: localizationService.currentLanguage,
+                                value: _appManager.currentLanguage,
                                 icon: Icon(Icons.keyboard_arrow_down,
-                                    color: AppColors.accent),
+                                    color: _appManager.primaryBlue),
                                 isExpanded: true,
-                                dropdownColor: AppColors.cardBackground,
+                                dropdownColor: _appManager.cardBackgroundColor,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                items: LocalizationService
-                                    .supportedLanguages.entries
+                                items: _appManager.supportedLanguages.entries
                                     .map((language) {
                                   return DropdownMenuItem<String>(
                                     value: language.key,
@@ -204,9 +219,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                   );
                                 }).toList(),
-                                onChanged: (String? newValue) {
+                                onChanged: (String? newValue) async {
                                   if (newValue != null) {
-                                    localizationService.setLanguage(newValue);
+                                    await _appManager.setLanguage(newValue);
+                                    setState(() {});
                                   }
                                 },
                               ),
@@ -222,15 +238,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: EdgeInsets.all(AppDimensions.padding(context)),
                       decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
+                        color: _appManager.cardBackgroundColor,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: AppColors.white10,
+                          color: _appManager.white10,
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.shadowDark,
+                            color: _appManager.shadowDark,
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
@@ -244,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppColors.white10,
+                                  color: _appManager.white10,
                                   width: 1,
                                 ),
                               ),
@@ -253,12 +269,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Icon(
                                   Icons.music_note_rounded,
-                                  color: AppColors.accent,
+                                  color: _appManager.primaryBlue,
                                   size: 24,
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  localizationService.getText('audioSettings'),
+                                  _appManager.getText('audioSettings'),
                                   style:
                                       AppTextStyles.heading(context).copyWith(
                                     fontSize:
@@ -275,10 +291,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Container(
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.white05,
+                              color: _appManager.white05,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.white10,
+                                color: _appManager.white10,
                                 width: 1,
                               ),
                             ),
@@ -291,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     Row(
                                       children: [
                                         Text(
-                                          localizationService
+                                          _appManager
                                               .getText('backgroundMusic'),
                                           style: AppTextStyles.body(context)
                                               .copyWith(
@@ -308,11 +324,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         setState(() {
                                           _isMusicEnabled = value;
                                         });
-                                        _audioService.toggleMusic(value);
+                                        _appManager.toggleMusic(value);
                                       },
-                                      activeColor: AppColors.primaryBlue,
-                                      inactiveTrackColor: AppColors.white10,
-                                      inactiveThumbColor: AppColors.white38,
+                                      activeColor: _appManager.primaryBlue,
+                                      inactiveTrackColor: _appManager.white10,
+                                      inactiveThumbColor: _appManager.white38,
                                     ),
                                   ],
                                 ),
@@ -338,11 +354,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                               overlayRadius: 16,
                                             ),
                                             activeTrackColor:
-                                                AppColors.primaryBlue,
+                                                _appManager.primaryBlue,
                                             inactiveTrackColor:
-                                                AppColors.white10,
-                                            thumbColor: AppColors.primaryBlue,
-                                            overlayColor: AppColors.primaryBlue
+                                                _appManager.white10,
+                                            thumbColor: _appManager.primaryBlue,
+                                            overlayColor: _appManager.primaryBlue
                                                 .withOpacity(0.2),
                                           ),
                                           child: Slider(
@@ -351,7 +367,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                               setState(() {
                                                 _volume = value;
                                               });
-                                              _audioService.setVolume(value);
+                                              _appManager.setVolume(value);
                                             },
                                           ),
                                         ),
@@ -377,15 +393,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: EdgeInsets.all(AppDimensions.padding(context)),
                       decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
+                        color: _appManager.cardBackgroundColor,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: AppColors.white10,
+                          color: _appManager.white10,
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.shadowDark,
+                            color: _appManager.shadowDark,
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
@@ -399,7 +415,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppColors.white10,
+                                  color: _appManager.white10,
                                   width: 1,
                                 ),
                               ),
@@ -413,7 +429,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  localizationService.getText('rateApp'),
+                                  _appManager.getText('rateApp'),
                                   style:
                                       AppTextStyles.heading(context).copyWith(
                                     fontSize:
@@ -430,10 +446,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: EdgeInsets.symmetric(
                                 vertical: 16, horizontal: 16),
                             decoration: BoxDecoration(
-                              color: AppColors.white05,
+                              color: _appManager.white05,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.white10,
+                                color: _appManager.white10,
                                 width: 1,
                               ),
                             ),
@@ -443,7 +459,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        localizationService
+                                        _appManager
                                             .getText('enjoyingTheGame'),
                                         style: TextStyle(
                                           color: Colors.white,
@@ -481,7 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         Icon(Icons.star_rate_rounded, size: 20),
                                         SizedBox(width: 8),
                                         Text(
-                                          localizationService
+                                          _appManager
                                               .getText('rateNow'),
                                           style: TextStyle(
                                             fontSize: 15,
@@ -505,15 +521,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: EdgeInsets.all(AppDimensions.padding(context)),
                       decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
+                        color: _appManager.cardBackgroundColor,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: AppColors.white10,
+                          color: _appManager.white10,
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.shadowDark,
+                            color: _appManager.shadowDark,
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
@@ -527,7 +543,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                  color: AppColors.white10,
+                                  color: _appManager.white10,
                                   width: 1,
                                 ),
                               ),
@@ -541,7 +557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  localizationService.getText('about'),
+                                  _appManager.getText('about'),
                                   style:
                                       AppTextStyles.heading(context).copyWith(
                                     fontSize:
@@ -558,10 +574,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.white05,
+                              color: _appManager.white05,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: AppColors.white10,
+                                color: _appManager.white10,
                                 width: 1,
                               ),
                             ),
@@ -570,54 +586,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
-                                    localizationService.getText('game'),
+                                    _appManager.getText('game'),
                                     style: TextStyle(
-                                      color: AppColors.white70,
+                                      color: _appManager.white70,
                                       fontSize: 16,
                                     ),
                                   ),
                                   trailing: Text(
-                                    localizationService.getText('clickBattle'),
+                                    _appManager.getText('clickBattle'),
                                     style: TextStyle(
-                                      color: AppColors.white,
+                                      color: _appManager.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
-                                Divider(color: AppColors.white10),
+                                Divider(color: _appManager.white10),
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
-                                    localizationService.getText('version'),
+                                    _appManager.getText('version'),
                                     style: TextStyle(
-                                      color: AppColors.white70,
+                                      color: _appManager.white70,
                                       fontSize: 16,
                                     ),
                                   ),
                                   trailing: Text(
-                                    '2.0.7',
+                                    '3.0.1',
                                     style: TextStyle(
-                                      color: AppColors.white,
+                                      color: _appManager.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
-                                Divider(color: AppColors.white10),
+                                Divider(color: _appManager.white10),
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(
-                                    localizationService.getText('developedBy'),
+                                    _appManager.getText('developedBy'),
                                     style: TextStyle(
-                                      color: AppColors.white70,
+                                      color: _appManager.white70,
                                       fontSize: 16,
                                     ),
                                   ),
                                   trailing: Text(
                                     'ARU SOFT',
                                     style: TextStyle(
-                                      color: AppColors.white,
+                                      color: _appManager.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),

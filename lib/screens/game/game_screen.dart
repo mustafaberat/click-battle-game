@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'package:clickbattle/components/game_divider.dart';
+import 'package:clickbattle/services/app_manager.dart';
 import 'dart:async';
 import 'dart:math' show pi, Random, cos, sin, max;
 
@@ -22,6 +24,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   bool gameEnded = false;
   bool isGameStarted = false;
   int countdownSeconds = 3;
+  late AppManager _appManager;
   
   // Game mode variables
   late final bool isTimeMode;
@@ -55,6 +58,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    
+    _appManager = Provider.of<AppManager>(context, listen: false);
     
     // Initialize game mode
     isTimeMode = widget.gameArgs['mode'] == 'GameMode.timeLimit';
@@ -200,8 +205,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     
     // Player-specific colors
     final mainColor = isPlayer1 
-        ? Colors.blue[400]!  // Player 1: Blue
-        : Colors.red[400]!;  // Player 2: Red
+        ? _appManager.player1Color  // Player 1: Blue
+        : _appManager.player2Color;  // Player 2: Red
     
     // Create circular ring particles
     for (int i = 0; i < 12; i++) {
@@ -211,7 +216,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         position: position,
         angle: angle,
         velocity: 2.0,
-        color: i % 2 == 0 ? Colors.white : mainColor,  // Alternating colors
+        color: i % 2 == 0 ? _appManager.white : mainColor,  // Alternating colors
         type: ParticleType.circle,
         size: 3.0,
       ));
@@ -305,6 +310,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    _appManager = Provider.of<AppManager>(context);
     final screenSize = MediaQuery.of(context).size;
     final iconSize = screenSize.width * 0.08;
 
@@ -319,15 +325,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 children: [
                   Expanded(
                     flex: ((1 - _colorAnimation.value) * 100).round(),
-                    child: Container(color: Colors.red[700]),
+                    child: Container(color: _appManager.player2Color),
                   ),
                   Container(
                     height: 1,
-                    color: Colors.white,
+                    color: _appManager.white,
                   ),
                   Expanded(
                     flex: (_colorAnimation.value * 100).round(),
-                    child: Container(color: Colors.blue[700]),
+                    child: Container(color: _appManager.player1Color),
                   ),
                 ],
               );
@@ -359,7 +365,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ? _formatTime(remainingSeconds)
                     : countdownSeconds.toString())
                 : '${scoreLimit - max(player1Score, player2Score)}',
-              color: Colors.blue[400]!,
+              color: _appManager.player1Color,
               isAnimating: isGameStarted,
             ),
           ),
@@ -377,7 +383,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       ? _formatTime(remainingSeconds)
                       : countdownSeconds.toString())
                   : '${scoreLimit - max(player1Score, player2Score)}',
-                color: Colors.red[400]!,
+                color: _appManager.player2Color,
                 isAnimating: isGameStarted,
               ),
             ),
@@ -388,7 +394,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             top: screenSize.height * 0.5 + 10,
             child: ScoreDisplay(
               score: player1Score,
-              color: Colors.blue[400]!,
+              color: _appManager.player1Color,
               isAnimating: true,
             ),
           ),
@@ -401,7 +407,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               transform: Matrix4.rotationZ(pi),
               child: ScoreDisplay(
                 score: player2Score,
-                color: Colors.red[400]!,
+                color: _appManager.player2Color,
                 isAnimating: true,
               ),
             ),
@@ -439,7 +445,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 isTopPlayer: true,
                                 iconSize: iconSize,
                                 scaleAnimation: _player2ClickScale,
-                                color: Colors.red[400]!,
+                                color: _appManager.player2Color,
                               ),
                             );
                           },
@@ -455,8 +461,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     return GameDivider(
                       ratio: _colorAnimation.value,
                       pulseAnimation: _dividerPulseAnimation,
-                      player1Color: Colors.blue[400]!,
-                      player2Color: Colors.red[400]!,
+                      player1Color: _appManager.player1Color,
+                      player2Color: _appManager.player2Color,
                     );
                   },
                 ),
@@ -488,7 +494,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 isTopPlayer: false,
                                 iconSize: iconSize,
                                 scaleAnimation: _player1ClickScale,
-                                color: Colors.blue[400]!,
+                                color: _appManager.player1Color,
                               ),
                             );
                           },
@@ -649,6 +655,8 @@ class PlayerIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appManager = Provider.of<AppManager>(context);
+    
     return ScaleTransition(
       scale: scaleAnimation,
       child: Container(
@@ -688,9 +696,9 @@ class PlayerIcon extends StatelessWidget {
                 child: Icon(
                   isRobot 
                     ? Icons.smart_toy_rounded 
-                    : Icons.touch_app_rounded,
+                    : appManager.fingerIcon,
                   size: iconSize,
-                  color: Colors.white.withOpacity(0.9),
+                  color: appManager.white.withOpacity(0.9),
                 ),
               ),
             ],
@@ -761,6 +769,8 @@ class _GameInfoDisplayState extends State<GameInfoDisplay> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final appManager = Provider.of<AppManager>(context);
+    
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppDimensions.padding(context) * 0.6,
@@ -789,7 +799,7 @@ class _GameInfoDisplayState extends State<GameInfoDisplay> with SingleTickerProv
             scale: _pulseAnimation,
             child: Icon(
               widget.icon,
-              color: Colors.white.withOpacity(0.95),
+              color: appManager.white.withOpacity(0.95),
               size: 22,
             ),
           ),
@@ -797,9 +807,9 @@ class _GameInfoDisplayState extends State<GameInfoDisplay> with SingleTickerProv
           Text(
             widget.value,
             style: GameStyles.timerText(context).copyWith(
-              color: Colors.white.withOpacity(0.95),
+              color: appManager.white.withOpacity(0.95),
               fontWeight: FontWeight.w600,
-              fontSize: AppDimensions.headingFontSize(context) * 0.7,
+              fontSize: appManager.timerFontSize,
             ),
           ),
         ],
@@ -868,6 +878,8 @@ class _ScoreDisplayState extends State<ScoreDisplay> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final appManager = Provider.of<AppManager>(context);
+    
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppDimensions.padding(context) * 0.8,
@@ -893,8 +905,8 @@ class _ScoreDisplayState extends State<ScoreDisplay> with SingleTickerProviderSt
         child: Text(
           widget.score.toString(),
           style: GameStyles.scoreText(context).copyWith(
-            color: Colors.white.withOpacity(0.95),
-            fontSize: AppDimensions.headingFontSize(context) * 1.4,
+            color: appManager.white.withOpacity(0.95),
+            fontSize: appManager.scoreDisplayFontSize,
             fontWeight: FontWeight.w700,
           ),
         ),

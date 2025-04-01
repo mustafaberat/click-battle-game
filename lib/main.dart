@@ -1,28 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:clickbattle/screens/home/home_screen.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/screens/settings/settings_screen.dart';
 import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/services/audio_service.dart';
 import 'package:clickbattle/services/localization_service.dart';
-import 'package:clickbattle/services/ad_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/services/app_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize AdMob
-  final adService = AdService();
-  adService.initialize();
-  
-  // Initialize shared preferences
-  final prefs = await SharedPreferences.getInstance();
+  // Initialize AppManager
+  final appManager = AppManager();
+  await appManager.initialize();
   
   // Modern system UI handling for edge-to-edge display
   SystemChrome.setSystemUIOverlayStyle(
@@ -43,10 +38,13 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => SettingsService(prefs),
+          create: (_) => appManager.settingsService,
         ),
         ChangeNotifierProvider(
-          create: (_) => LocalizationService(),
+          create: (_) => appManager.localizationService,
+        ),
+        Provider.value(
+          value: appManager,
         ),
       ],
       child: const ClickBattleApp(),
@@ -65,18 +63,15 @@ class _ClickBattleAppState extends State<ClickBattleApp> {
   @override
   void initState() {
     super.initState();
-    _initializeAudio();
-  }
-
-  Future<void> _initializeAudio() async {
-    final audioService = AudioService();
-    await audioService.initialize();
+    // AppManager already initialized the audio service in main()
   }
 
   @override
   Widget build(BuildContext context) {
+    final appManager = Provider.of<AppManager>(context, listen: false);
+    
     return MaterialApp(
-      title: 'Click Battle',
+      title: appManager.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.primary,

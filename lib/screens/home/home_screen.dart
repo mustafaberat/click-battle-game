@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/services/localization_service.dart';
-import 'package:clickbattle/services/ad_service.dart';
+import 'package:clickbattle/services/app_manager.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,17 +14,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
+  late AppManager _appManager;
 
   @override
   void initState() {
     super.initState();
+    _appManager = Provider.of<AppManager>(context, listen: false);
     _loadBannerAd();
   }
 
   void _loadBannerAd() {
-    final adService = AdService();
-    adService.initialize();
-    _bannerAd = adService.bannerAd;
+    _bannerAd = _appManager.bannerAd;
     if (_bannerAd != null) {
       setState(() => _isAdLoaded = true);
     }
@@ -39,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final localizationService = Provider.of<LocalizationService>(context);
+    _appManager = Provider.of<AppManager>(context);
     final size = MediaQuery.of(context).size;
     
     return Scaffold(
@@ -75,14 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: AppDimensions.spacing(context)),
                   // App Title
                   Text(
-                    localizationService.getText('clickBattle'),
+                    _appManager.getText('clickBattle'),
                     textAlign: TextAlign.center,
                     style: AppTextStyles.heading(context).copyWith(
-                      fontSize: AppDimensions.fontSizeLarge * 1.5,
+                      fontSize: _appManager.appNameFontSize * 1.5,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.2,
                       height: 1,
-                      color: Colors.white,
+                      color: _appManager.white,
                     ),
                   ),
                   SizedBox(height: AppDimensions.spacing(context) * 0.5),
@@ -92,10 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       vertical: AppDimensions.paddingSmall * 0.5,
                     ),
                     child: Text(
-                      localizationService.getText('welcomeMessage'),
+                      _appManager.getText('welcomeMessage'),
                       textAlign: TextAlign.center,
                       style: AppTextStyles.subtitle(context).copyWith(
-                        color: Colors.white.withOpacity(0.7),
+                        color: _appManager.white70,
                         fontSize: AppDimensions.fontSizeSmall,
                       ),
                     ),
@@ -112,11 +111,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: AppDimensions.buttonHeightLarge,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.blue[600],
+                      color: _appManager.primaryBlue,
                       borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: _appManager.shadowDark,
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -134,17 +133,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Icon(
                                 Icons.sports_esports_rounded,
-                                color: Colors.white,
+                                color: _appManager.white,
                                 size: AppDimensions.iconSizeLarge,
                               ),
                               SizedBox(width: AppDimensions.spacing(context)),
                               Text(
-                                localizationService.getText('tapToStart').toUpperCase(),
+                                _appManager.getText('tapToStart').toUpperCase(),
                                 style: AppTextStyles.button(context).copyWith(
                                   fontSize: AppDimensions.fontSizeMedium,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 2,
-                                  color: Colors.white,
+                                  color: _appManager.white,
                                 ),
                               ),
                             ],
@@ -159,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: AppDimensions.buttonHeightMedium,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: _appManager.white.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
                     ),
                     child: Material(
@@ -173,14 +172,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Icon(
                                 Icons.settings_rounded,
-                                color: Colors.white.withOpacity(0.7),
+                                color: _appManager.white70,
                                 size: AppDimensions.iconSizeMedium,
                               ),
                               SizedBox(width: AppDimensions.spacing(context)),
                               Text(
-                                localizationService.getText('settings').toUpperCase(),
+                                _appManager.getText('settings').toUpperCase(),
                                 style: AppTextStyles.button(context).copyWith(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: _appManager.white70,
                                   letterSpacing: 2,
                                   fontSize: AppDimensions.fontSizeSmall,
                                   fontWeight: FontWeight.w600,
@@ -198,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // Banner Ad
               if (_isAdLoaded && _bannerAd != null)
                 Container(
+                  alignment: Alignment.center,
                   width: _bannerAd!.size.width.toDouble(),
                   height: _bannerAd!.size.height.toDouble(),
                   child: AdWidget(ad: _bannerAd!),

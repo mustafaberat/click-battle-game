@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
-import 'package:clickbattle/services/localization_service.dart';
-import 'package:clickbattle/services/ad_service.dart';
+import 'package:clickbattle/services/app_manager.dart';
 import 'dart:async';
 
 class GameOverPopup extends StatefulWidget {
@@ -37,15 +36,17 @@ class _GameOverPopupState extends State<GameOverPopup>
   bool _showButtons = false;
   bool _isNavigating = false;
   
-  // Reference to AdService
-  final AdService _adService = AdService();
+  // Reference to AppManager
+  late AppManager _appManager;
 
   @override
   void initState() {
     super.initState();
     
+    _appManager = Provider.of<AppManager>(context, listen: false);
+    
     // Start preloading the full screen ad
-    _adService.loadGameoverHomeButtonFullScreenAd();
+    _appManager.loadGameoverAd();
 
     // Game Over text animation
     _gameOverController = AnimationController(
@@ -124,8 +125,7 @@ class _GameOverPopupState extends State<GameOverPopup>
     });
     
     // Show the ad and wait for it to close (with a timeout)
-    // The AdMob SDK automatically provides the close button, we don't need to implement it
-    await _adService.showGameoverHomeButtonFullScreenAd(timeoutSeconds: 8);
+    await _appManager.showGameoverAd(timeoutSeconds: 8);
     
     // Return to home screen after ad is dismissed or times out
     if (mounted) {
@@ -143,7 +143,7 @@ class _GameOverPopupState extends State<GameOverPopup>
 
   @override
   Widget build(BuildContext context) {
-    final localizationService = Provider.of<LocalizationService>(context);
+    _appManager = Provider.of<AppManager>(context);
 
     final bool isTie = widget.player1Score == widget.player2Score;
     final bool isPlayer1Winner = widget.player1Score > widget.player2Score;
@@ -153,8 +153,8 @@ class _GameOverPopupState extends State<GameOverPopup>
         : (isPlayer1Winner ? Colors.blue[400]! : Colors.red[400]!);
 
     final String winnerText = isTie
-        ? localizationService.getText('tie')
-        : '${localizationService.getText('winner')}: ${widget.isSinglePlayer ? localizationService.getText(isPlayer1Winner ? 'player1' : 'robot') : localizationService.getText(isPlayer1Winner ? 'player1' : 'player2')}';
+        ? _appManager.getText('tie')
+        : '${_appManager.getText('winner')}: ${widget.isSinglePlayer ? _appManager.getText(isPlayer1Winner ? 'player1' : 'robot') : _appManager.getText(isPlayer1Winner ? 'player1' : 'player2')}';
 
     // Calculate safe font sizes for small screens
     final double gameOverFontSize =
@@ -194,7 +194,7 @@ class _GameOverPopupState extends State<GameOverPopup>
                   child: ScaleTransition(
                     scale: _gameOverScale,
                     child: Text(
-                      localizationService.getText('gameOver'),
+                      _appManager.getText('gameOver'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -264,7 +264,7 @@ class _GameOverPopupState extends State<GameOverPopup>
                         Expanded(
                           child: Center(
                             child: _buildScoreColumn(
-                              localizationService.getText('player1'),
+                              _appManager.getText('player1'),
                               widget.player1Score,
                               Colors.blue[400]!,
                               scoreFontSize,
@@ -282,8 +282,8 @@ class _GameOverPopupState extends State<GameOverPopup>
                           child: Center(
                             child: _buildScoreColumn(
                               widget.isSinglePlayer
-                                  ? localizationService.getText('robot')
-                                  : localizationService.getText('player2'),
+                                  ? _appManager.getText('robot')
+                                  : _appManager.getText('player2'),
                               widget.player2Score,
                               Colors.red[400]!,
                               scoreFontSize,
@@ -337,7 +337,7 @@ class _GameOverPopupState extends State<GameOverPopup>
                                         color: Colors.white, size: 26),
                                     SizedBox(width: 8),
                                     Text(
-                                      localizationService.getText('playAgain'),
+                                      _appManager.getText('playAgain'),
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
@@ -383,7 +383,7 @@ class _GameOverPopupState extends State<GameOverPopup>
                                     ),
                                     SizedBox(width: 8),
                                     Text(
-                                      localizationService.getText('backToHome'),
+                                      _appManager.getText('backToHome'),
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
