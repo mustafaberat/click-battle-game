@@ -37,6 +37,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late AnimationController _colorAnimationController;
   late Animation<double> _colorAnimation;
 
+  // Add pulse animation controller for divider
+  late AnimationController _dividerPulseController;
+  late Animation<double> _dividerPulseAnimation;
+
   // Particle groups for multiple simultaneous animations
   final List<ParticleGroup> _particleGroups = [];
   final Random _random = Random();
@@ -73,6 +77,24 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         curve: Curves.easeInOut,
       ),
     );
+
+    // Initialize divider pulse animation
+    _dividerPulseController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _dividerPulseAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.5)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.5, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 50,
+      ),
+    ]).animate(_dividerPulseController);
 
     // Initialize click animations
     _player1ClickController = AnimationController(
@@ -155,6 +177,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     countdownTimer?.cancel();
     _robotTimer?.cancel();
     _colorAnimationController.dispose();
+    _dividerPulseController.dispose();
     // Dispose all particle group controllers
     for (final group in _particleGroups) {
       group.animationController.dispose();
@@ -238,12 +261,23 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _createSparkEffect(isPlayer1, tapPosition);
 
       double totalScore = (player1Score + player2Score).toDouble();
+      double oldRatio = colorRatio;
       double newRatio = totalScore > 0 
-          ? player1Score.toDouble() / totalScore  // Using player1Score instead of player2Score
+          ? player1Score.toDouble() / totalScore
           : 0.5;
       
       double maxChange = 0.1;
       newRatio = colorRatio + (newRatio - colorRatio).clamp(-maxChange, maxChange);
+      
+      // Check if there's a change in who's leading or a significant lead change
+      bool significantChange = (oldRatio < 0.5 && newRatio > 0.5) || 
+                              (oldRatio > 0.5 && newRatio < 0.5) || 
+                              (newRatio - oldRatio).abs() > 0.05;
+      
+      if (significantChange) {
+        // Pulse the divider to emphasize territory change
+        _dividerPulseController.forward(from: 0.0);
+      }
       
       _colorAnimation = Tween<double>(
         begin: colorRatio,
@@ -413,19 +447,108 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                // Center divider
-                Container(
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.3),
-                        blurRadius: 4,
-                        spreadRadius: 1,
+                // Center divider - modern boundary design
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Background divider bar
+                    Container(
+                      height: 8,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    // Progress indicator
+                    AnimatedBuilder(
+                      animation: _colorAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          height: 4,
+                          width: double.infinity,
+                          child: Row(
+                            children: [
+                              // Red player's territory progress
+                              Expanded(
+                                flex: ((1 - _colorAnimation.value) * 100).round(),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.red[700]!,
+                                        Colors.red[400]!,
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Divider indicator with pulse animation
+                              ScaleTransition(
+                                scale: _dividerPulseAnimation,
+                                child: Container(
+                                  width: 4,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withOpacity(0.6),
+                                        blurRadius: 4,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                              // Blue player's territory progress
+                              Expanded(
+                                flex: (_colorAnimation.value * 100).round(),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.blue[400]!,
+                                        Colors.blue[700]!,
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    // Border markings to indicate territory boundaries
+                    Positioned.fill(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(
+                          11,
+                          (index) => Container(
+                            width: 2,
+                            height: index % 5 == 0 ? 12 : 6,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(index % 5 == 0 ? 0.8 : 0.4),
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 // Player 1 (bottom)
                 Expanded(
