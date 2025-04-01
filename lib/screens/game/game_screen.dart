@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
+import 'package:clickbattle/components/game_divider.dart';
 import 'dart:async';
 import 'dart:math' show pi, Random, cos, sin, max;
 
@@ -448,107 +449,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   ),
                 ),
                 // Center divider - modern boundary design
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Background divider bar
-                    Container(
-                      height: 8,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 4,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Progress indicator
-                    AnimatedBuilder(
-                      animation: _colorAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          height: 4,
-                          width: double.infinity,
-                          child: Row(
-                            children: [
-                              // Red player's territory progress
-                              Expanded(
-                                flex: ((1 - _colorAnimation.value) * 100).round(),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.red[700]!,
-                                        Colors.red[400]!,
-                                      ],
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Divider indicator with pulse animation
-                              ScaleTransition(
-                                scale: _dividerPulseAnimation,
-                                child: Container(
-                                  width: 4,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.white.withOpacity(0.6),
-                                        blurRadius: 4,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                              ),
-                              // Blue player's territory progress
-                              Expanded(
-                                flex: (_colorAnimation.value * 100).round(),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.blue[400]!,
-                                        Colors.blue[700]!,
-                                      ],
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    // Border markings to indicate territory boundaries
-                    Positioned.fill(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(
-                          11,
-                          (index) => Container(
-                            width: 2,
-                            height: index % 5 == 0 ? 12 : 6,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(index % 5 == 0 ? 0.8 : 0.4),
-                              borderRadius: BorderRadius.circular(1),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                AnimatedBuilder(
+                  animation: _colorAnimation,
+                  builder: (context, child) {
+                    return GameDivider(
+                      ratio: _colorAnimation.value,
+                      pulseAnimation: _dividerPulseAnimation,
+                      player1Color: Colors.blue[400]!,
+                      player2Color: Colors.red[400]!,
+                    );
+                  },
                 ),
                 // Player 1 (bottom)
                 Expanded(
