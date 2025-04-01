@@ -4,6 +4,7 @@ import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/services/localization_service.dart';
+import 'package:clickbattle/services/ad_service.dart';
 import 'dart:async';
 
 class GameOverPopup extends StatefulWidget {
@@ -34,6 +35,7 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _buttonsOpacity;
   late Animation<double> _buttonsScale;
   bool _showButtons = false;
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -105,6 +107,26 @@ class _GameOverPopupState extends State<GameOverPopup>
 
     // Enable interaction after all animations
     await Future.delayed(const Duration(milliseconds: 800));
+  }
+
+  // Handle showing ad and returning to home
+  Future<void> _showAdAndReturnHome() async {
+    if (_isNavigating) return;
+    
+    setState(() {
+      _isNavigating = true;
+    });
+    
+    // Get the ad service instance and show interstitial ad
+    final adService = AdService();
+    
+    // Show the ad and wait for it to close (with a timeout)
+    await adService.showInterstitialAd(timeoutSeconds: 8);
+    
+    // Return to home screen after ad is dismissed or times out
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -328,7 +350,9 @@ class _GameOverPopupState extends State<GameOverPopup>
                               width: double.infinity,
                               height: 56,
                               child: ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: _isNavigating 
+                                  ? null 
+                                  : _showAdAndReturnHome,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
                                       Colors.white.withOpacity(0.1),
@@ -338,12 +362,21 @@ class _GameOverPopupState extends State<GameOverPopup>
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
+                                  disabledBackgroundColor: 
+                                      Colors.white.withOpacity(0.05),
+                                  disabledForegroundColor: 
+                                      Colors.white.withOpacity(0.3),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.home_rounded,
-                                        color: Colors.white, size: 26),
+                                    Icon(
+                                      _isNavigating
+                                          ? Icons.hourglass_empty
+                                          : Icons.home_rounded,
+                                      color: Colors.white,
+                                      size: 26
+                                    ),
                                     SizedBox(width: 8),
                                     Text(
                                       localizationService.getText('backToHome'),

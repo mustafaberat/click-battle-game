@@ -20,4 +20,5 @@ class ClickBattleConfig {
   static const String adMobAppId = 'ca-app-pub-1508520223269936~7354217156';
   // static const String bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111'; // Test banner ad unit ID
   static const String bannerAdUnitId = 'ca-app-pub-1508520223269936/8664263543'; // My banner ad unit ID
+  static const String interstitialAdUnitId = 'ca-app-pub-1508520223269936/1038850543'; // PlayAgain full screen ad unit ID
 }
