@@ -36,10 +36,16 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _buttonsScale;
   bool _showButtons = false;
   bool _isNavigating = false;
+  
+  // Reference to AdService
+  final AdService _adService = AdService();
 
   @override
   void initState() {
     super.initState();
+    
+    // Start preloading the full screen ad
+    _adService.loadGameoverHomeButtonFullScreenAd();
 
     // Game Over text animation
     _gameOverController = AnimationController(
@@ -117,11 +123,9 @@ class _GameOverPopupState extends State<GameOverPopup>
       _isNavigating = true;
     });
     
-    // Get the ad service instance and show interstitial ad
-    final adService = AdService();
-    
     // Show the ad and wait for it to close (with a timeout)
-    await adService.showInterstitialAd(timeoutSeconds: 8);
+    // The AdMob SDK automatically provides the close button, we don't need to implement it
+    await _adService.showGameoverHomeButtonFullScreenAd(timeoutSeconds: 8);
     
     // Return to home screen after ad is dismissed or times out
     if (mounted) {

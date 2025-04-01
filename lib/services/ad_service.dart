@@ -8,16 +8,16 @@ class AdService {
   AdService._internal();
 
   BannerAd? _bannerAd;
-  InterstitialAd? _interstitialAd;
+  InterstitialAd? _gameoverHomeButtonFullScreenAd;
   bool _isInitialized = false;
-  bool _isInterstitialAdLoading = false;
+  bool _isGameoverHomeButtonFullScreenAdLoading = false;
 
   void initialize() {
     if (_isInitialized) return;
     
     MobileAds.instance.initialize();
     _loadBannerAd();
-    _loadInterstitialAd();
+    // Don't preload interstitial ad, it will be loaded on demand
     _isInitialized = true;
   }
 
@@ -25,7 +25,7 @@ class AdService {
     _bannerAd?.dispose();
     
     _bannerAd = BannerAd(
-      adUnitId: ClickBattleConfig.bannerAdUnitId,
+      adUnitId: ClickBattleConfig.homePageBannerAdUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -35,63 +35,70 @@ class AdService {
     )..load();
   }
 
-  void _loadInterstitialAd() {
-    if (_isInterstitialAdLoading) return;
+  void loadGameoverHomeButtonFullScreenAd() {
+    if (_isGameoverHomeButtonFullScreenAdLoading) return;
     
-    _isInterstitialAdLoading = true;
+    _isGameoverHomeButtonFullScreenAdLoading = true;
     InterstitialAd.load(
-      adUnitId: ClickBattleConfig.interstitialAdUnitId,
+      adUnitId: ClickBattleConfig.gameoverHomeButtonFullScreenAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
-          _interstitialAd = ad;
-          _isInterstitialAdLoading = false;
+          _gameoverHomeButtonFullScreenAd = ad;
+          _isGameoverHomeButtonFullScreenAdLoading = false;
           
           // Set full screen content callback
-          _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+          _gameoverHomeButtonFullScreenAd!.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (InterstitialAd ad) {
               ad.dispose();
-              _loadInterstitialAd(); // Reload for next time
+              // We don't reload automatically after dismissal, since it's on-demand
             },
             onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
               ad.dispose();
-              _loadInterstitialAd(); // Reload for next time
+              // We don't reload automatically after failure, since it's on-demand
             },
           );
         },
         onAdFailedToLoad: (LoadAdError error) {
-          _isInterstitialAdLoading = false;
+          _isGameoverHomeButtonFullScreenAdLoading = false;
         },
       ),
     );
   }
 
   // Returns a Future that completes when ad is dismissed or after timeout
-  Future<void> showInterstitialAd({int timeoutSeconds = 5}) async {
-    if (_interstitialAd == null) {
-      // If no ad is loaded, try to load one
-      _loadInterstitialAd();
-      return;
+  Future<void> showGameoverHomeButtonFullScreenAd({int timeoutSeconds = 5}) async {
+    // If ad is not loaded yet, try loading it first
+    if (_gameoverHomeButtonFullScreenAd == null) {
+      loadGameoverHomeButtonFullScreenAd();
+      // Wait a bit to see if the ad loads quickly
+      await Future.delayed(Duration(milliseconds: 1000));
+      // If still not loaded, just return and don't show an ad
+      if (_gameoverHomeButtonFullScreenAd == null) {
+        return;
+      }
     }
 
     final completer = Completer<void>();
     
     // Set up the callback to resolve the completer when ad is dismissed
-    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+    _gameoverHomeButtonFullScreenAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (InterstitialAd ad) {
         ad.dispose();
-        _loadInterstitialAd(); // Reload for next time
+        _gameoverHomeButtonFullScreenAd = null;
         if (!completer.isCompleted) completer.complete();
       },
       onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
         ad.dispose();
-        _loadInterstitialAd(); // Reload for next time
+        _gameoverHomeButtonFullScreenAd = null;
         if (!completer.isCompleted) completer.complete();
       },
+      // The close button is automatically provided by the AdMob SDK,
+      // we don't need to implement that part
     );
 
     // Show the ad
-    await _interstitialAd!.show();
+    await _gameoverHomeButtonFullScreenAd!.show();
     
     // Set a timeout to ensure we don't wait forever if something goes wrong
     Timer(Duration(seconds: timeoutSeconds), () {
@@ -105,9 +112,9 @@ class AdService {
 
   void dispose() {
     _bannerAd?.dispose();
-    _interstitialAd?.dispose();
+    _gameoverHomeButtonFullScreenAd?.dispose();
     _bannerAd = null;
-    _interstitialAd = null;
+    _gameoverHomeButtonFullScreenAd = null;
     _isInitialized = false;
   }
 } 
