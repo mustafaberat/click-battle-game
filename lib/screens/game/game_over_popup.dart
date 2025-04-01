@@ -33,9 +33,6 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _resultOpacity;
   late Animation<double> _buttonsOpacity;
   late Animation<double> _buttonsScale;
-  bool _isPlayAgainHovered = false;
-  bool _isHomeHovered = false;
-  bool _canInteract = false;
   bool _showButtons = false;
 
   @override
@@ -108,9 +105,6 @@ class _GameOverPopupState extends State<GameOverPopup>
 
     // Enable interaction after all animations
     await Future.delayed(const Duration(milliseconds: 800));
-    setState(() {
-      _canInteract = true;
-    });
   }
 
   @override
