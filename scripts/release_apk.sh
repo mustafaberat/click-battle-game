@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# Click Battle - Release APK Builder
+# ================================
+# This script builds and installs a release APK for Click Battle.
+# It handles the build process, installation, and launching of the app.
+#
+# Usage:
+#   ./release_apk.sh [options]
+#
+# Options:
+#   -c    Clean build (performs a full rebuild with cleaning)
+#         This removes all build artifacts and starts fresh.
+#         Use this when you want to ensure a completely clean build.
+#
+#   -h    Show this help message
+#
+# Examples:
+#   ./release_apk.sh          # Normal build (incremental)
+#   ./release_apk.sh -c       # Clean build
+#
+# Notes:
+#   - Requires Flutter SDK to be installed and in PATH
+#   - Requires Android device to be connected via USB with USB debugging enabled
+#   - Build logs are saved to logs/apk_build.log
+#   - The script will automatically install and launch the app on the connected device
+
 # Get the script's directory and project root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
@@ -23,12 +48,51 @@ show_spinner() {
     echo -ne "\r"
 }
 
+# Parse command line arguments
+CLEAN_BUILD=false
+while getopts "ch" opt; do
+  case $opt in
+    c) CLEAN_BUILD=true ;;
+    h) 
+      echo "Click Battle - Release APK Builder"
+      echo "================================="
+      echo "Usage: $0 [options]"
+      echo
+      echo "Options:"
+      echo "  -c    Clean build (performs a full rebuild with cleaning)"
+      echo "        This removes all build artifacts and starts fresh."
+      echo "        Use this when you want to ensure a completely clean build."
+      echo
+      echo "  -h    Show this help message"
+      echo
+      echo "Examples:"
+      echo "  $0          # Normal build (incremental)"
+      echo "  $0 -c       # Clean build"
+      echo
+      echo "Notes:"
+      echo "  - Requires Flutter SDK to be installed and in PATH"
+      echo "  - Requires Android device to be connected via USB with USB debugging enabled"
+      echo "  - Build logs are saved to logs/apk_build.log"
+      echo "  - The script will automatically install and launch the app on the connected device"
+      exit 0
+      ;;
+    *) echo "Usage: $0 [-c] [-h]" >&2
+       echo "Try '$0 -h' for more information." >&2
+       exit 1 ;;
+  esac
+done
+
 # Change to project root directory
 cd "$PROJECT_ROOT" || exit 1
 
 # Build process
-echo "🧹 Cleaning the project..."
-flutter clean > "$LOG_FILE" 2>&1
+if [ "$CLEAN_BUILD" = true ]; then
+    echo "🧹 Cleaning the project..."
+    flutter clean > "$LOG_FILE" 2>&1
+else
+    echo "🔄 Performing incremental build..."
+    echo "   Only recent changes will be included..." > "$LOG_FILE" 2>&1
+fi
 
 echo "⚡ Getting dependencies..."
 flutter pub get >> "$LOG_FILE" 2>&1
