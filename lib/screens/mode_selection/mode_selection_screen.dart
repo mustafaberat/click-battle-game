@@ -19,7 +19,6 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   int timeLimit = 10;
   int scoreLimit = 10;
   int difficulty = 1;
-  bool _isStartHovered = false;
   final ScrollController _scrollController = ScrollController();
   late AppManager _appManager;
 
@@ -27,8 +26,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   final List<int> scoreLimits = [10, 50, 100];
   final List<Map<String, dynamic>> difficulties = [
     {'name': 'Easy', 'value': 1, 'stars': 1},
-    {'name': 'Normal', 'value': 6, 'stars': 2},
-    {'name': 'Hard', 'value': 12, 'stars': 3},
+    {'name': 'Normal', 'value': 7, 'stars': 2},
+    {'name': 'Hard', 'value': 10, 'stars': 3},
   ];
 
   @override
@@ -80,7 +79,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                   padding: EdgeInsets.symmetric(
                       horizontal: AppDimensions.paddingMedium),
                   children: [
-                    _buildSection(
+                    _bigBox(
                       title: _appManager.getText('selectMode'),
                       subtitle: _appManager.getText('selectModeSubtitle'),
                       child: _buildOptionRow([
@@ -102,7 +101,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         ),
                       ]),
                     ),
-                    _buildSection(
+                    _bigBox(
                       title: _appManager.getText('chooseMode'),
                       subtitle: _appManager.getText('chooseModeSubtitle'),
                       child: _buildOptionRow([
@@ -122,7 +121,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                         ),
                       ]),
                     ),
-                    _buildSection(
+                    _bigBox(
                       title: isTimeMode
                           ? _appManager.getText('timeLimit')
                           : _appManager.getText('targetScore'),
@@ -156,7 +155,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                       ),
                     ),
                     if (isSinglePlayer)
-                      _buildSection(
+                      _bigBox(
                         title: _appManager.getText('difficulty'),
                         subtitle: _appManager.getText('difficultySubtitle'),
                         child: _buildOptionRow(
@@ -191,7 +190,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     );
   }
 
-  Widget _buildSection({
+  Widget _bigBox({
     required String title,
     required String subtitle,
     required Widget child,
@@ -210,16 +209,15 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
             title,
             style: TextStyle(
               color: _appManager.white,
-              fontSize: AppDimensions.fontSizeMedium * 1.05,
+              fontSize: AppDimensions.fontSizeMedium,
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 4),
           Text(
             subtitle,
             style: TextStyle(
               color: _appManager.white70,
-              fontSize: AppDimensions.fontSizeSmall,
+              fontSize: AppDimensions.fontSizeXSmall,
             ),
           ),
           SizedBox(height: AppDimensions.spacing(context) * 0.8),
@@ -261,24 +259,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
           arguments: gameArgs,
         );
       },
-      onTapDown: (_) => setState(() => _isStartHovered = true),
-      onTapUp: (_) => setState(() => _isStartHovered = false),
-      onTapCancel: () => setState(() => _isStartHovered = false),
       child: Container(
         width: double.infinity,
-        height: AppDimensions.buttonHeightLarge,
+        height: AppDimensions.buttonHeightMedium,
         decoration: BoxDecoration(
           color: buttonColor,
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-          boxShadow: _isStartHovered
-              ? []
-              : [
-                  BoxShadow(
-                    color: buttonColor.withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: Offset(0, 8),
-                  ),
-                ],
           gradient: LinearGradient(
             colors: [
               buttonColor,
@@ -289,8 +275,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
           ),
         ),
         child: AnimatedScale(
-          scale: _isStartHovered ? 0.98 : 1.0,
           duration: Duration(milliseconds: 150),
+          scale: 1.0,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -299,12 +285,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                 color: _appManager.white,
                 size: AppDimensions.iconSizeLarge,
               ),
-              SizedBox(width: AppDimensions.spacing(context) * 0.5),
+              SizedBox(width: AppDimensions.spacing(context) * 0.5), // spacing between icon and text
               Text(
                 _appManager.getText('startBattle').toUpperCase(),
                 style: TextStyle(
                   color: _appManager.white,
-                  fontSize: AppDimensions.fontSizeSmall,
+                  fontSize: AppDimensions.fontSizeXSmall,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2,
                 ),
