@@ -13,8 +13,8 @@ class SettingsService extends ChangeNotifier {
   double _volume;
 
   SettingsService(this._prefs)
-      : _backgroundMusicEnabled = _prefs.getBool(_backgroundMusicKey) ?? true,
-        _touchSoundEnabled = _prefs.getBool(_touchSoundKey) ?? true,
+      : _backgroundMusicEnabled = _prefs.getBool(_backgroundMusicKey) ?? false,
+        _touchSoundEnabled = _prefs.getBool(_touchSoundKey) ?? false,
         _volume = _prefs.getDouble(_volumeKey) ?? 0.7;
 
   // Getters
