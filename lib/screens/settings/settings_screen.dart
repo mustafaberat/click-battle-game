@@ -612,7 +612,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                   ),
                                   trailing: Text(
-                                    '3.0.1',
+                                    '4.0.0',
                                     style: TextStyle(
                                       color: _appManager.white,
                                       fontSize: 16,

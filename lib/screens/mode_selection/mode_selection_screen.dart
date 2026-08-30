@@ -36,14 +36,14 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     _appManager = Provider.of<AppManager>(context, listen: false);
   }
 
-  Color _getDifficultyColor(int value) {
-    switch (value) {
-      case 1:
+  Color _getDifficultyColor(String name) {
+    switch (name.toLowerCase()) {
+      case 'easy':
         return _appManager.scoreModeColor;
-      case 6:
-        return _appManager.timeModeColor;
-      case 12:
-        return _appManager.hardModeColor;
+      case 'normal':
+        return _appManager.primaryBlue;
+      case 'hard':
+        return _appManager.primaryRed;
       default:
         return _appManager.primaryBlue;
     }
@@ -167,7 +167,7 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                                   isSelected: difficulty == diff['value'],
                                   onTap: () => setState(
                                       () => difficulty = diff['value']),
-                                  color: _getDifficultyColor(diff['value']),
+                                  color: _getDifficultyColor(diff['name']),
                                   stars: diff['stars'],
                                 ),
                               )
@@ -290,8 +290,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                 _appManager.getText('startBattle').toUpperCase(),
                 style: TextStyle(
                   color: _appManager.white,
-                  fontSize: AppDimensions.fontSizeXSmall,
-                  fontWeight: FontWeight.w700,
+                  fontSize: AppDimensions.fontSizeXXSmall,
+                  fontWeight: FontWeight.w900,
                   letterSpacing: 2,
                 ),
               ),

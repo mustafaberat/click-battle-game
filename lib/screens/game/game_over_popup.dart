@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/styles/variables.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_styles.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
@@ -179,11 +180,7 @@ class _GameOverPopupState extends State<GameOverPopup>
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Color(0xFF2A2D3E),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: winnerColor.withOpacity(0.3),
-                width: 2,
-              ),
+              borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -218,8 +215,8 @@ class _GameOverPopupState extends State<GameOverPopup>
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: winnerColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
+                      color: CommonProperties.cardContentBackgroundColor,
+                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -255,8 +252,8 @@ class _GameOverPopupState extends State<GameOverPopup>
                       vertical: 20,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
+                      color: CommonProperties.cardContentBackgroundColor,
+                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -322,12 +319,12 @@ class _GameOverPopupState extends State<GameOverPopup>
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: winnerColor,
+                                  backgroundColor: CommonProperties.accentColor,
                                   foregroundColor: Colors.white,
                                   elevation: 4,
                                   padding: EdgeInsets.symmetric(horizontal: 24),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
                                   ),
                                 ),
                                 child: Row(
@@ -359,17 +356,17 @@ class _GameOverPopupState extends State<GameOverPopup>
                                   : _showAdAndReturnHome,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Colors.white.withOpacity(0.1),
+                                      CommonProperties.accentColor.withOpacity(0.1),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: EdgeInsets.symmetric(horizontal: 24),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
                                   ),
                                   disabledBackgroundColor: 
-                                      Colors.white.withOpacity(0.05),
+                                      CommonProperties.accentColor.withOpacity(0.05),
                                   disabledForegroundColor: 
-                                      Colors.white.withOpacity(0.3),
+                                      CommonProperties.accentColor.withOpacity(0.3),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,

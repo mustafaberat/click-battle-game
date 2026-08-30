@@ -25,7 +25,8 @@ class CommonProperties {
 
   // Common Layout Properties
   static const double cardPadding = 24.0;
-  static const double cardBorderRadius = 24.0;
+  static const double borderRadiusLarge = 24.0;  // For main containers, cards, and popups
+  static const double borderRadiusSmall = 16.0;  // For inner elements, buttons, and content areas
   static const double cardBorderWidth = 1.0;
   static const double cardShadowBlur = 10.0;
   static const double cardShadowSpread = 2.0;
@@ -35,7 +36,6 @@ class CommonProperties {
   static const double cardIconSpacing = 12.0;
   static const double cardSpacing = 16.0;
   static const double cardContentPadding = 16.0;
-  static const double cardContentBorderRadius = 16.0;
   static const double cardContentBorderWidth = 1.0;
 
   // Common Animation Durations
@@ -263,7 +263,7 @@ class SettingsScreenProperties {
 
   // Card Properties
   static const double cardPadding = CommonProperties.cardPadding;
-  static const double cardBorderRadius = CommonProperties.cardBorderRadius;
+  static const double cardBorderRadius = CommonProperties.borderRadiusLarge;
   static const double cardBorderWidth = CommonProperties.cardBorderWidth;
   static const double cardShadowBlur = CommonProperties.cardShadowBlur;
   static const double cardShadowSpread = CommonProperties.cardShadowSpread;
@@ -273,7 +273,7 @@ class SettingsScreenProperties {
   static const double cardIconSpacing = CommonProperties.cardIconSpacing;
   static const double cardSpacing = CommonProperties.cardSpacing;
   static const double cardContentPadding = CommonProperties.cardContentPadding;
-  static const double cardContentBorderRadius = CommonProperties.cardContentBorderRadius;
+  static const double cardContentBorderRadius = CommonProperties.borderRadiusSmall;
   static const double cardContentBorderWidth = CommonProperties.cardContentBorderWidth;
 
   // Audio Settings Properties

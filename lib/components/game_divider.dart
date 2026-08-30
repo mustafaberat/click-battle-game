@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/services/app_manager.dart';
+import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/styles/app_styles.dart';
 
 class GameDivider extends StatelessWidget {
   final double ratio; // Value between 0-1, represents player1's ratio (blue)
@@ -120,7 +122,7 @@ class GameDivider extends StatelessWidget {
             spreadRadius: 2,
           ),
         ],
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
       ),
     );
   }

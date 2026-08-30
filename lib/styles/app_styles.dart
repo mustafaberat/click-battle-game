@@ -3,9 +3,9 @@ import 'package:clickbattle/constants/app_colors.dart';
 
 class AppDimensions {
   // Border Radius
-  static const double borderRadiusLarge = 20.0;
+  static const double borderRadiusLarge = 24.0;
   static const double borderRadiusMedium = 15.0;
-  static const double borderRadiusSmall = 10.0;
+  static const double borderRadiusSmall = 16.0;
 
   // Padding & Margins
   static const double paddingLarge = 24.0;
@@ -28,6 +28,7 @@ class AppDimensions {
   static const double fontSizeMedium = 20.0;
   static const double fontSizeSmall = 16.0;
   static const double fontSizeXSmall = 14.0;
+  static const double fontSizeXXSmall = 12.0;
 
   // Card Dimensions
   static const double cardElevation = 8.0;
@@ -42,7 +43,7 @@ class AppDimensions {
   static double padding(BuildContext context) => paddingMedium;
   static double spacing(BuildContext context) => paddingMedium;
   static double buttonHeight(BuildContext context) => buttonHeightMedium;
-  static double borderRadius(BuildContext context) => borderRadiusMedium;
+  static double borderRadius(BuildContext context) => borderRadiusLarge;
   static double bodyFontSize(BuildContext context) => fontSizeSmall;
   static double buttonFontSize(BuildContext context) => fontSizeMedium;
   static double titleFontSize(BuildContext context) => fontSizeLarge;

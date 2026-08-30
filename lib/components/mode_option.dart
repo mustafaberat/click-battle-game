@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/app_manager.dart';
+import 'package:clickbattle/styles/variables.dart';
+import 'package:clickbattle/styles/app_styles.dart';
 
 class ModeOption extends StatelessWidget {
   final String text;
@@ -37,7 +38,7 @@ class ModeOption extends StatelessWidget {
           color: isSelected 
               ? color.withOpacity(0.15)
               : appManager.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context) * 0.8),
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
           border: Border.all(
             color: isSelected 
                 ? color

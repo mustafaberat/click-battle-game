@@ -102,7 +102,6 @@ class AppManager {
   Color get player2Color => AppColors.player2;
   Color get timeModeColor => AppColors.timeMode;
   Color get scoreModeColor => AppColors.scoreMode;
-  Color get hardModeColor => AppColors.hardMode;
   
   // Background Colors
   Color get backgroundColor => AppColors.background;
