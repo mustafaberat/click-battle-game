@@ -3,50 +3,38 @@ import 'package:provider/provider.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/custom_scrollbar.dart';
-import 'package:clickbattle/components/screen_head.dart';
-import 'package:clickbattle/components/mode_option.dart';
+import 'package:clickbattle/components/arcade_chrome.dart';
 
 class ModeSelectionScreen extends StatefulWidget {
   const ModeSelectionScreen({Key? key}) : super(key: key);
 
   @override
-  _ModeSelectionScreenState createState() => _ModeSelectionScreenState();
+  State<ModeSelectionScreen> createState() => _ModeSelectionScreenState();
 }
 
 class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
-  bool isSinglePlayer = true; // default choice when app is opened
+  bool isSinglePlayer = true;
   bool isTimeMode = true;
   int timeLimit = 10;
   int scoreLimit = 10;
-  int difficulty = 1;
+  int difficulty = 5;
   final ScrollController _scrollController = ScrollController();
   late AppManager _appManager;
 
   final List<int> timeLimits = [10, 30, 60];
   final List<int> scoreLimits = [10, 50, 100];
-  final List<Map<String, dynamic>> difficulties = [
-    {'name': 'Easy', 'value': 1, 'stars': 1},
-    {'name': 'Normal', 'value': 7, 'stars': 2},
-    {'name': 'Hard', 'value': 10, 'stars': 3},
-  ];
+
+  String get _difficultyLabel {
+    if (difficulty <= 2) return _appManager.getText('easy');
+    if (difficulty <= 5) return _appManager.getText('normal');
+    if (difficulty <= 7) return _appManager.getText('hard');
+    return 'INSANE';
+  }
 
   @override
   void initState() {
     super.initState();
     _appManager = Provider.of<AppManager>(context, listen: false);
-  }
-
-  Color _getDifficultyColor(String name) {
-    switch (name.toLowerCase()) {
-      case 'easy':
-        return _appManager.scoreModeColor;
-      case 'normal':
-        return _appManager.primaryBlue;
-      case 'hard':
-        return _appManager.primaryRed;
-      default:
-        return _appManager.primaryBlue;
-    }
   }
 
   @override
@@ -60,129 +48,155 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     _appManager = Provider.of<AppManager>(context);
 
     return Scaffold(
-      backgroundColor: _appManager.backgroundColor,
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            ScreenHead(
+            ArcadeBackHeader(
               title: _appManager.getText('gameSetup'),
-              onBackPressed: () => Navigator.pop(context),
+              onBack: () => Navigator.pop(context),
             ),
-
-            // Content
             Expanded(
               child: CustomScrollbar(
                 controller: _scrollController,
                 child: ListView(
                   controller: _scrollController,
                   padding: EdgeInsets.symmetric(
-                      horizontal: AppDimensions.paddingMedium),
+                    horizontal: AppDimensions.paddingMedium,
+                  ),
                   children: [
-                    _bigBox(
+                    _section(
                       title: _appManager.getText('selectMode'),
-                      subtitle: _appManager.getText('selectModeSubtitle'),
-                      child: _buildOptionRow([
-                        ModeOption(
-                          text: _appManager.getText('singlePlayer'),
-                          icon: Icons.smart_toy_outlined,
-                          secondaryIcon: Icons.person_outline_rounded,
-                          isSelected: isSinglePlayer,
-                          onTap: () => setState(() => isSinglePlayer = true),
-                          color: _appManager.player1Color,
-                        ),
-                        ModeOption(
-                          text: _appManager.getText('twoPlayers'),
-                          icon: Icons.person_outline_rounded,
-                          secondaryIcon: Icons.person_outline_rounded,
-                          isSelected: !isSinglePlayer,
-                          onTap: () => setState(() => isSinglePlayer = false),
-                          color: _appManager.player2Color,
-                        ),
-                      ]),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _ChunkTile(
+                              selected: isSinglePlayer,
+                              color: ArcadeChrome.blue,
+                              icon: Icons.smart_toy,
+                              label: _appManager.getText('singlePlayer'),
+                              onTap: () =>
+                                  setState(() => isSinglePlayer = true),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _ChunkTile(
+                              selected: !isSinglePlayer,
+                              color: ArcadeChrome.red,
+                              icon: Icons.people_alt,
+                              label: _appManager.getText('twoPlayers'),
+                              onTap: () =>
+                                  setState(() => isSinglePlayer = false),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    _bigBox(
+                    _section(
                       title: _appManager.getText('chooseMode'),
-                      subtitle: _appManager.getText('chooseModeSubtitle'),
-                      child: _buildOptionRow([
-                        ModeOption(
-                          text: _appManager.getText('timeAttack'),
-                          icon: Icons.timer_outlined,
-                          isSelected: isTimeMode,
-                          onTap: () => setState(() => isTimeMode = true),
-                          color: _appManager.timeModeColor,
-                        ),
-                        ModeOption(
-                          text: _appManager.getText('survival'),
-                          icon: Icons.flag_outlined,
-                          isSelected: !isTimeMode,
-                          onTap: () => setState(() => isTimeMode = false),
-                          color: _appManager.scoreModeColor,
-                        ),
-                      ]),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _ChunkTile(
+                              selected: isTimeMode,
+                              color: ArcadeChrome.yellow,
+                              icon: Icons.timer,
+                              label: _appManager.getText('timeAttack'),
+                              darkLabel: true,
+                              onTap: () => setState(() => isTimeMode = true),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _ChunkTile(
+                              selected: !isTimeMode,
+                              color: const Color(0xFF39FF14),
+                              icon: Icons.flag,
+                              label: _appManager.getText('survival'),
+                              onTap: () => setState(() => isTimeMode = false),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    _bigBox(
+                    _section(
                       title: isTimeMode
                           ? _appManager.getText('timeLimit')
                           : _appManager.getText('targetScore'),
-                      subtitle: isTimeMode
-                          ? _appManager.getText('timeLimitSubtitle')
-                          : _appManager.getText('targetScoreSubtitle'),
-                      child: _buildOptionRow(
-                        (isTimeMode ? timeLimits : scoreLimits)
+                      child: Row(
+                        children: (isTimeMode ? timeLimits : scoreLimits)
                             .map(
-                              (value) => ModeOption(
-                                text: isTimeMode
-                                    ? _appManager.getText('seconds')
-                                    : _appManager.getText('points'),
-                                topText: value.toString(),
-                                isSelected: isTimeMode
-                                    ? timeLimit == value
-                                    : scoreLimit == value,
-                                onTap: () => setState(() {
-                                  if (isTimeMode) {
-                                    timeLimit = value;
-                                  } else {
-                                    scoreLimit = value;
-                                  }
-                                }),
-                                color: isTimeMode
-                                    ? _appManager.timeModeColor
-                                    : _appManager.scoreModeColor,
+                              (v) => Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: _ChunkTile(
+                                    selected: isTimeMode
+                                        ? timeLimit == v
+                                        : scoreLimit == v,
+                                    color: isTimeMode
+                                        ? ArcadeChrome.yellow
+                                        : const Color(0xFF39FF14),
+                                    topText: '$v',
+                                    label: isTimeMode
+                                        ? _appManager.getText('seconds')
+                                        : _appManager.getText('points'),
+                                    darkLabel: isTimeMode,
+                                    onTap: () => setState(() {
+                                      if (isTimeMode) {
+                                        timeLimit = v;
+                                      } else {
+                                        scoreLimit = v;
+                                      }
+                                    }),
+                                  ),
+                                ),
                               ),
                             )
                             .toList(),
                       ),
                     ),
                     if (isSinglePlayer)
-                      _bigBox(
+                      _section(
                         title: _appManager.getText('difficulty'),
-                        subtitle: _appManager.getText('difficultySubtitle'),
-                        child: _buildOptionRow(
-                          difficulties
-                              .map(
-                                (diff) => ModeOption(
-                                  text: _appManager
-                                      .getText(diff['name'].toLowerCase()),
-                                  isSelected: difficulty == diff['value'],
-                                  onTap: () => setState(
-                                      () => difficulty = diff['value']),
-                                  color: _getDifficultyColor(diff['name']),
-                                  stars: diff['stars'],
-                                ),
-                              )
-                              .toList(),
+                        child: ArcadeDifficultyRail(
+                          value: difficulty,
+                          label: _difficultyLabel,
+                          onChanged: (v) => setState(() => difficulty = v),
                         ),
                       ),
                   ],
                 ),
               ),
             ),
-
-            // Start Button
             Padding(
-              padding: EdgeInsets.all(AppDimensions.paddingMedium),
-              child: _buildStartButton(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: ElevatedButton.icon(
+                  onPressed: _start,
+                  style: ArcadeChrome.yellowButton().copyWith(
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Colors.black, width: 3),
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.check_circle, size: 26),
+                  label: Text(
+                    _appManager.getText('startBattle').toUpperCase(),
+                    style: ArcadeChrome.ui(
+                      size: 16,
+                      color: Colors.black,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -190,109 +204,105 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
     );
   }
 
-  Widget _bigBox({
-    required String title,
-    required String subtitle,
-    required Widget child,
-  }) {
+  void _start() {
+    Navigator.pushNamed(
+      context,
+      '/game',
+      arguments: {
+        'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
+        'playerMode': isSinglePlayer
+            ? 'PlayerMode.singlePlayer'
+            : 'PlayerMode.twoPlayer',
+        'timeLimit': timeLimit,
+        'scoreLimit': scoreLimit,
+        'difficulty': difficulty,
+      },
+    );
+  }
+
+  Widget _section({required String title, required Widget child}) {
     return Container(
-      margin: EdgeInsets.only(bottom: AppDimensions.paddingMedium / 1.5),
-      padding: EdgeInsets.all(AppDimensions.paddingMedium),
-      decoration: BoxDecoration(
-        color: _appManager.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-      ),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: ArcadeChrome.panelBox(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: _appManager.white,
-              fontSize: AppDimensions.fontSizeMedium,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: _appManager.white70,
-              fontSize: AppDimensions.fontSizeXSmall,
-            ),
-          ),
-          SizedBox(height: AppDimensions.spacing(context) * 0.8),
+          Text(title.toUpperCase(), style: ArcadeChrome.sectionLabel()),
+          const SizedBox(height: 12),
           child,
         ],
       ),
     );
   }
+}
 
-  Widget _buildOptionRow(List<Widget> options) {
-    return Row(
-      children: List.generate(options.length * 2 - 1, (index) {
-        if (index.isOdd) {
-          return SizedBox(width: AppDimensions.spacing(context) * 0.5);
-        }
-        return Expanded(child: options[index ~/ 2]);
-      }),
-    );
-  }
+class _ChunkTile extends StatelessWidget {
+  final bool selected;
+  final Color color;
+  final IconData? icon;
+  final String label;
+  final String? topText;
+  final bool darkLabel;
+  final VoidCallback onTap;
 
-  Widget _buildStartButton() {
-    Color buttonColor = _appManager.primaryBlue;
+  const _ChunkTile({
+    required this.selected,
+    required this.color,
+    this.icon,
+    required this.label,
+    this.topText,
+    this.darkLabel = false,
+    required this.onTap,
+  });
 
-    return GestureDetector(
-      onTap: () {
-        final gameArgs = {
-          'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
-          'playerMode': isSinglePlayer
-              ? 'PlayerMode.singlePlayer'
-              : 'PlayerMode.twoPlayer',
-          'timeLimit': timeLimit,
-          'scoreLimit': scoreLimit,
-          'difficulty': difficulty,
-        };
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected ? color : const Color(0xFF1A1A1A);
+    final fg = selected
+        ? (darkLabel ? Colors.black : Colors.white)
+        : Colors.white70;
 
-        Navigator.pushNamed(
-          context,
-          '/game',
-          arguments: gameArgs,
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        height: AppDimensions.buttonHeightMedium,
-        decoration: BoxDecoration(
-          color: buttonColor,
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-          gradient: LinearGradient(
-            colors: [
-              buttonColor,
-              buttonColor.withOpacity(0.8),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 78),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? Colors.black : Colors.white12,
+              width: selected ? 2.5 : 1.5,
+            ),
           ),
-        ),
-        child: AnimatedScale(
-          duration: Duration(milliseconds: 150),
-          scale: 1.0,
-          child: Row(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.play_arrow_rounded,
-                color: _appManager.white,
-                size: AppDimensions.iconSizeLarge,
-              ),
-              SizedBox(width: AppDimensions.spacing(context) * 0.5), // spacing between icon and text
+              if (topText != null)
+                Text(
+                  topText!,
+                  style: TextStyle(
+                    color: fg,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                  ),
+                )
+              else if (icon != null)
+                Icon(icon, color: fg, size: 26),
+              const SizedBox(height: 6),
               Text(
-                _appManager.getText('startBattle').toUpperCase(),
-                style: TextStyle(
-                  color: _appManager.white,
-                  fontSize: AppDimensions.fontSizeXXSmall,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+                label.toUpperCase(),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: ArcadeChrome.ui(
+                  color: fg,
+                  size: 11,
+                  letterSpacing: 0.6,
                 ),
               ),
             ],

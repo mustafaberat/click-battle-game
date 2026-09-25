@@ -1,56 +1,63 @@
 import 'package:flutter/material.dart';
 
+/// Neon Duel palette — Click Battle redesign.
 class AppColors {
-  // Primary Colors
-  static const Color primaryBlue = Color(0xFF2196F3);    // Main action color
-  static const Color primaryRed = Color(0xFFEF5350);     // Competition/Multiplayer color
-  static const Color primaryOrange = Color(0xFFFFA726);   // Time-related color
-  
-  // Background Colors
-  static const Color background = Color(0xFF1A1A1A);     // Main background
-  static const Color cardBackground = Color(0xFF2A2A2A);  // Card/Surface background
-  static const Color overlayBackground = Color(0xFF212121); // Modal/Overlay background
-  
-  // Accent Colors
-  static const Color accentGreen = Color(0xFF66BB6A);    // Success/Progress color
-  static const Color accentAmber = Color(0xFFFFCA28);    // Warning/Star color
-  static const Color accent = primaryBlue;               // Legacy support
-  static const Color primary = background;               // Legacy support
-  
-  // Game Colors
-  static const Color player1 = primaryBlue;
-  static const Color player2 = primaryRed;
+  // Core neon
+  static const Color neonBlue = Color(0xFF00B4FF);
+  static const Color neonRed = Color(0xFFFF2D55);
+  static const Color pureBlack = Color(0xFF000000);
+  static const Color surface = Color(0xFF0A0A0A);
+  static const Color surfaceElevated = Color(0xFF141414);
+
+  // Primary / legacy aliases
+  static const Color primaryBlue = neonBlue;
+  static const Color primaryRed = neonRed;
+  static const Color primaryOrange = Color(0xFFFF9F1C);
+
+  // Backgrounds
+  static const Color background = pureBlack;
+  static const Color cardBackground = surfaceElevated;
+  static const Color overlayBackground = Color(0xFF0D0D0D);
+
+  // Accents
+  static const Color accentGreen = Color(0xFF39FF14);
+  static const Color accentAmber = Color(0xFFFFCA28);
+  /// Arcade Strip CTA yellow
+  static const Color arcadeYellow = Color(0xFFFFD600);
+  static const Color arcadeYellowDark = Color(0xFFE6C200);
+  static const Color accent = primaryBlue;
+  static const Color primary = background;
+
+  // Game
+  static const Color player1 = neonBlue;
+  static const Color player2 = neonRed;
   static const Color timeMode = primaryOrange;
   static const Color scoreMode = accentGreen;
-  
-  // State Colors
+
+  // States
   static Color hoveredBlue = primaryBlue.withOpacity(0.8);
   static Color hoveredRed = primaryRed.withOpacity(0.8);
   static Color hoveredOrange = primaryOrange.withOpacity(0.8);
   static Color hoveredGreen = accentGreen.withOpacity(0.8);
-  
-  // Difficulty Colors
+
   static const Color hardMode = primaryRed;
-  
-  // Utility Colors
+
+  // Utility
   static const Color white = Colors.white;
   static final Color white70 = Colors.white.withOpacity(0.7);
   static final Color white38 = Colors.white.withOpacity(0.38);
   static final Color white24 = Colors.white.withOpacity(0.24);
   static final Color white10 = Colors.white.withOpacity(0.1);
   static final Color white05 = Colors.white.withOpacity(0.05);
-  
-  // Shadow Colors
-  static final Color shadowDark = Colors.black.withOpacity(0.3);
-  static final Color shadowLight = Colors.white.withOpacity(0.1);
-  static final Color shadowMedium = Colors.black.withOpacity(0.2);
-  
-  // Interactive Colors
-  static final Color buttonHover = primaryBlue.withOpacity(0.8);
-  static final Color buttonPressed = primaryBlue.withOpacity(0.6);
+
+  static final Color shadowDark = Colors.black.withOpacity(0.5);
+  static final Color shadowLight = Colors.white.withOpacity(0.08);
+  static final Color shadowMedium = Colors.black.withOpacity(0.35);
+
+  static final Color buttonHover = primaryBlue.withOpacity(0.85);
+  static final Color buttonPressed = primaryBlue.withOpacity(0.65);
   static final Color buttonDisabled = Colors.grey.withOpacity(0.3);
-  
-  // Amber Theme Colors
+
   static final Color amberHover = accentAmber.withOpacity(0.8);
   static final Color amberPressed = accentAmber.withOpacity(0.6);
   static final Color amberShadow = accentAmber.withOpacity(0.2);

@@ -5,6 +5,7 @@ import 'package:clickbattle/screens/home/home_screen.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/screens/settings/settings_screen.dart';
 import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
+import 'package:clickbattle/screens/how_to_play/how_to_play_screen.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/localization_service.dart';
@@ -61,12 +62,6 @@ class ClickBattleApp extends StatefulWidget {
 
 class _ClickBattleAppState extends State<ClickBattleApp> {
   @override
-  void initState() {
-    super.initState();
-    // AppManager already initialized the audio service in main()
-  }
-
-  @override
   Widget build(BuildContext context) {
     final appManager = Provider.of<AppManager>(context, listen: false);
     
@@ -109,6 +104,7 @@ class _ClickBattleAppState extends State<ClickBattleApp> {
         '/': (context) => const HomeScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/mode_selection': (context) => const ModeSelectionScreen(),
+        '/how_to_play': (context) => const HowToPlayScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/game') {

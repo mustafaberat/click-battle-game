@@ -1,18 +1,18 @@
 <tr-TR>
-Uygulama yeniden yayınlandı. Android derlemesi güncellendi, arayüz düzenlemeleri.
+Arcade Strip yenilendi: yeni ana menü, oyun kurulumu ve ayarlar. Sabit yarı dokunma alanları, yumuşak çizgi geçişi, canlı How to Play demosu ve Game Over ekranı.
 </tr-TR>
 <en-US>
-App is back on Play. Updated Android build and interface tweaks.
+Arcade Strip refresh: new home, setup, and settings. Fixed half-screen tap zones, smoother territory line, live How to Play demo, and matching Game Over screen.
 </en-US>
 <es-419>
-La app vuelve a Play. Compilación de Android actualizada y ajustes de interfaz.
+Arcade Strip renovado: nuevo inicio, configuración y ajustes. Zonas de toque fijas a la mitad, línea más suave, demo How to Play en vivo y Game Over unificado.
 </es-419>
 <pt-BR>
-O app voltou à Play. Compilação Android atualizada e ajustes na interface.
+Arcade Strip atualizado: nova home, setup e configurações. Zonas de toque fixas na metade, linha mais suave, demo How to Play ao vivo e Game Over unificado.
 </pt-BR>
 <id>
-Aplikasi kembali di Play. Build Android diperbarui dan perbaikan antarmuka.
+Arcade Strip diperbarui: beranda, setup, dan pengaturan baru. Zona ketuk setengah layar tetap, garis lebih lembut, demo How to Play langsung, dan Game Over yang selaras.
 </id>
 <hi-IN>
-ऐप फिर Play पर है। Android बिल्ड अपडेट और इंटरफ़ेस सुधार।
+Arcade Strip अपडेट: नया होम, सेटअप और सेटिंग्स। स्थिर आधा-स्क्रीन टैप ज़ोन, नरम रेखा, लाइव How to Play डेमो और मिलता-जुलता Game Over।
 </hi-IN>
