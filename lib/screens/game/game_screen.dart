@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:clickbattle/screens/game/game_styles.dart';
-import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'package:clickbattle/components/game_divider.dart';
+import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'dart:async';
 import 'dart:math' show pi, Random, cos, sin, max;
@@ -72,15 +71,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     // Start countdown
     startCountdown();
     
-    // Color transition animation
+    // Color transition — soft, continuous (avoid integer flex jumps)
     _colorAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 520),
       vsync: this,
     );
     _colorAnimation = Tween<double>(begin: 0.5, end: 0.5).animate(
       CurvedAnimation(
         parent: _colorAnimationController,
-        curve: Curves.easeInOut,
+        curve: Curves.easeOutCubic,
       ),
     );
 
@@ -159,18 +158,40 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     });
   }
 
+  /// Taps/sec curve: 1→1 … 8→8, 9→12, 10→16 (near-impossible).
+  double get _robotTapsPerSecond {
+    if (difficulty >= 10) return 16;
+    if (difficulty >= 9) return 12;
+    return difficulty.clamp(1, 8).toDouble();
+  }
+
   void _startRobotClicks() {
-    final interval = 1000 ~/ difficulty;
+    final intervalMs = (1000 / _robotTapsPerSecond).round().clamp(40, 1000);
     final random = Random();
-    
-    _robotTimer = Timer.periodic(Duration(milliseconds: interval), (timer) {
+
+    _robotTimer = Timer.periodic(Duration(milliseconds: intervalMs), (timer) {
       if (!gameEnded && isGameStarted) {
-        // Generate random position within the top half of the screen
+        final h = MediaQuery.of(context).size.height;
+        final w = MediaQuery.of(context).size.width;
+        // Robot always taps its FIXED half (top 50%) — never the visual strip only
         final robotClickPosition = Offset(
-          random.nextDouble() * MediaQuery.of(context).size.width,
-          random.nextDouble() * (MediaQuery.of(context).size.height / 2 - 50) + 25,
+          random.nextDouble() * w,
+          random.nextDouble() * (h * 0.5 - 40).clamp(20, h * 0.5) + 12,
         );
         _updateScore(false, robotClickPosition);
+
+        if (difficulty >= 9 && random.nextDouble() < 0.22) {
+          Future.delayed(const Duration(milliseconds: 40), () {
+            if (!mounted || gameEnded || !isGameStarted) return;
+            _updateScore(
+              false,
+              Offset(
+                random.nextDouble() * w,
+                random.nextDouble() * (h * 0.5 - 40).clamp(20, h * 0.5) + 12,
+              ),
+            );
+          });
+        }
       } else {
         _robotTimer?.cancel();
       }
@@ -202,29 +223,23 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _createSparkEffect(bool isPlayer1, Offset position) {
     final List<SparkParticle> particles = [];
-    
-    // Player-specific colors
-    final mainColor = isPlayer1 
-        ? _appManager.player1Color  // Player 1: Blue
-        : _appManager.player2Color;  // Player 2: Red
-    
-    // Create circular ring particles
-    for (int i = 0; i < 12; i++) {
-      final angle = (i * pi / 6);  // Evenly distributed in a circle
-      
+    final mainColor =
+        isPlayer1 ? _appManager.player1Color : _appManager.player2Color;
+
+    // Short, restrained tap spark (no energy trails)
+    for (int i = 0; i < 6; i++) {
       particles.add(SparkParticle(
         position: position,
-        angle: angle,
-        velocity: 2.0,
-        color: i % 2 == 0 ? _appManager.white : mainColor,  // Alternating colors
+        angle: i * pi / 3,
+        velocity: 1.4,
+        color: i.isEven ? _appManager.white : mainColor,
         type: ParticleType.circle,
-        size: 3.0,
+        size: 2.2,
       ));
     }
-    
-    // Create a new animation controller for this particle group
+
     final controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),  // Slightly longer for spiral effect
+      duration: const Duration(milliseconds: 280),
       vsync: this,
     );
 
@@ -272,7 +287,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           ? player1Score.toDouble() / totalScore
           : 0.5;
       
-      double maxChange = 0.1;
+      double maxChange = 0.08;
       newRatio = colorRatio + (newRatio - colorRatio).clamp(-maxChange, maxChange);
       
       // Check if there's a change in who's leading or a significant lead change
@@ -286,11 +301,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       }
       
       _colorAnimation = Tween<double>(
-        begin: colorRatio,
+        begin: _colorAnimationController.isAnimating
+            ? _colorAnimation.value
+            : colorRatio,
         end: newRatio,
       ).animate(CurvedAnimation(
         parent: _colorAnimationController,
-        curve: Curves.easeInOut,
+        curve: Curves.easeOutCubic,
       ));
       
       colorRatio = newRatio;
@@ -312,36 +329,64 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     _appManager = Provider.of<AppManager>(context);
     final screenSize = MediaQuery.of(context).size;
-    final iconSize = screenSize.width * 0.08;
+    final iconSize = screenSize.width * 0.075;
+    final blue = _appManager.player1Color;
+    final red = _appManager.player2Color;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Animated color split background
+          // VISUAL territory — continuous heights (soft, no integer flex snap)
           AnimatedBuilder(
             animation: _colorAnimation,
             builder: (context, child) {
-              return Column(
-                children: [
-                  Expanded(
-                    flex: ((1 - _colorAnimation.value) * 100).round(),
-                    child: Container(color: _appManager.player2Color),
-                  ),
-                  Container(
-                    height: 1,
-                    color: _appManager.white,
-                  ),
-                  Expanded(
-                    flex: (_colorAnimation.value * 100).round(),
-                    child: Container(color: _appManager.player1Color),
-                  ),
-                ],
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final h = constraints.maxHeight;
+                  const lineH = 3.0;
+                  final topH = ((1 - _colorAnimation.value) * (h - lineH))
+                      .clamp(h * 0.08, h * 0.92);
+                  final bottomH = h - lineH - topH;
+                  return Column(
+                    children: [
+                      SizedBox(
+                        height: topH,
+                        width: double.infinity,
+                        child: _NeonArena(color: red, alignTop: true),
+                      ),
+                      Container(
+                        height: lineH,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              red.withOpacity(0.25),
+                              ArcadeChrome.yellow,
+                              blue.withOpacity(0.25),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ArcadeChrome.yellow.withOpacity(0.45),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: bottomH,
+                        width: double.infinity,
+                        child: _NeonArena(color: blue, alignTop: false),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
-          // Particle effects overlay
-          Stack(
-            children: _particleGroups.map((group) => AnimatedBuilder(
+          // Short tap sparks only
+          ..._particleGroups.map(
+            (group) => AnimatedBuilder(
               animation: group.animation,
               builder: (context, child) {
                 return CustomPaint(
@@ -352,153 +397,113 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   size: Size.infinite,
                 );
               },
-            )).toList(),
+            ),
           ),
-          // Timer overlay (left-center) - For P1 (Blue area)
+          // Mirrored HUD — always at geometric mid (fixed halves)
           Positioned(
-            left: screenSize.width * 0.04,
-            top: screenSize.height * 0.5 + 10,
+            left: screenSize.width * 0.05,
+            top: screenSize.height * 0.5 + 14,
             child: GameInfoDisplay(
               icon: isTimeMode ? Icons.timer : Icons.flag,
-              value: isTimeMode 
-                ? (isGameStarted 
-                    ? _formatTime(remainingSeconds)
-                    : countdownSeconds.toString())
-                : '${scoreLimit - max(player1Score, player2Score)}',
-              color: _appManager.player1Color,
+              value: isTimeMode
+                  ? (isGameStarted
+                      ? _formatTime(remainingSeconds)
+                      : countdownSeconds.toString())
+                  : '${scoreLimit - max(player1Score, player2Score)}',
+              color: blue,
               isAnimating: isGameStarted,
             ),
           ),
-          // Timer overlay (left-center) - For P2 (Red area)
           Positioned(
-            left: screenSize.width * 0.04,
-            bottom: screenSize.height * 0.5 + 10,
+            left: screenSize.width * 0.05,
+            bottom: screenSize.height * 0.5 + 14,
             child: Transform(
               alignment: Alignment.center,
               transform: Matrix4.rotationZ(pi),
               child: GameInfoDisplay(
                 icon: isTimeMode ? Icons.timer : Icons.flag,
-                value: isTimeMode 
-                  ? (isGameStarted 
-                      ? _formatTime(remainingSeconds)
-                      : countdownSeconds.toString())
-                  : '${scoreLimit - max(player1Score, player2Score)}',
-                color: _appManager.player2Color,
+                value: isTimeMode
+                    ? (isGameStarted
+                        ? _formatTime(remainingSeconds)
+                        : countdownSeconds.toString())
+                    : '${scoreLimit - max(player1Score, player2Score)}',
+                color: red,
                 isAnimating: isGameStarted,
               ),
             ),
           ),
-          // P1 Score (right-center, Blue area)
           Positioned(
-            right: screenSize.width * 0.04,
+            right: screenSize.width * 0.06,
             top: screenSize.height * 0.5 + 10,
             child: ScoreDisplay(
               score: player1Score,
-              color: _appManager.player1Color,
+              color: Colors.white,
               isAnimating: true,
             ),
           ),
-          // P2 Score (right-center, Red area)
           Positioned(
-            right: screenSize.width * 0.04,
+            right: screenSize.width * 0.06,
             bottom: screenSize.height * 0.5 + 10,
             child: Transform(
               alignment: Alignment.center,
               transform: Matrix4.rotationZ(pi),
               child: ScoreDisplay(
                 score: player2Score,
-                color: _appManager.player2Color,
+                color: Colors.white,
                 isAnimating: true,
               ),
             ),
           ),
-          // Game content
+          // HIT ZONES — always 50/50. Visual territory must NEVER shrink taps.
           AbsorbPointer(
             absorbing: !isGameStarted,
             child: Column(
               children: [
-                // Player 2 (top) / Robot
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTapDown: isSinglePlayer ? null : (details) {
-                      _updateScore(false, details.globalPosition);
-                      // Scale up the opponent's area when clicked
-                      _player2ClickController.forward(from: 0.0).then((_) {
-                        _player2ClickController.reverse();
-                      });
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: Colors.transparent,
-                      child: Center(
-                        child: AnimatedBuilder(
-                          animation: _colorAnimation,
-                          builder: (context, child) {
-                            // Inverse scale for top player (smaller when bottom player scores more)
-                            final dynamicScale = 1.0 + (0.5 - _colorAnimation.value).clamp(-0.3, 0.3);
-                            return Transform.scale(
-                              scale: dynamicScale,
-                              child: PlayerIcon(
-                                isRobot: isSinglePlayer,
-                                isTopPlayer: true,
-                                iconSize: iconSize,
-                                scaleAnimation: _player2ClickScale,
-                                color: _appManager.player2Color,
-                              ),
-                            );
+                    onTapDown: isSinglePlayer
+                        ? null
+                        : (details) {
+                            _updateScore(false, details.globalPosition);
+                            _player2ClickController
+                                .forward(from: 0.0)
+                                .then((_) => _player2ClickController.reverse());
                           },
-                        ),
+                    child: Center(
+                      child: PlayerIcon(
+                        isRobot: isSinglePlayer,
+                        isTopPlayer: true,
+                        iconSize: iconSize,
+                        scaleAnimation: _player2ClickScale,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
-                // Center divider - modern boundary design
-                AnimatedBuilder(
-                  animation: _colorAnimation,
-                  builder: (context, child) {
-                    return GameDivider(
-                      ratio: _colorAnimation.value,
-                      pulseAnimation: _dividerPulseAnimation,
-                      player1Color: _appManager.player1Color,
-                      player2Color: _appManager.player2Color,
-                    );
-                  },
+                // Geometric mid — pulse only (visual frontier is elsewhere)
+                GameDivider(
+                  ratio: 0.5,
+                  pulseAnimation: _dividerPulseAnimation,
+                  player1Color: blue,
+                  player2Color: red,
                 ),
-                // Player 1 (bottom)
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (details) {
                       _updateScore(true, details.globalPosition);
-                      // Scale up the opponent's area when clicked
-                      _player1ClickController.forward(from: 0.0).then((_) {
-                        _player1ClickController.reverse();
-                      });
+                      _player1ClickController
+                          .forward(from: 0.0)
+                          .then((_) => _player1ClickController.reverse());
                     },
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: Colors.transparent,
-                      child: Center(
-                        child: AnimatedBuilder(
-                          animation: _colorAnimation,
-                          builder: (context, child) {
-                            // Direct scale for bottom player (larger when scoring more)
-                            final dynamicScale = 1.0 + (_colorAnimation.value - 0.5).clamp(-0.3, 0.3);
-                            return Transform.scale(
-                              scale: dynamicScale,
-                              child: PlayerIcon(
-                                isRobot: false,
-                                isTopPlayer: false,
-                                iconSize: iconSize,
-                                scaleAnimation: _player1ClickScale,
-                                color: _appManager.player1Color,
-                              ),
-                            );
-                          },
-                        ),
+                    child: Center(
+                      child: PlayerIcon(
+                        isRobot: false,
+                        isTopPlayer: false,
+                        iconSize: iconSize,
+                        scaleAnimation: _player1ClickScale,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -506,18 +511,24 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-          // Countdown overlay
           if (!isGameStarted)
             Container(
-              color: Colors.black26,
+              color: Colors.black.withOpacity(0.6),
               child: Center(
                 child: Text(
-                  countdownSeconds.toString(),
-                  style: GameStyles.countdownText(context),
+                  countdownSeconds > 0
+                      ? countdownSeconds.toString()
+                      : 'GO!',
+                  style: ArcadeChrome.display(
+                    size: 72,
+                    color: countdownSeconds > 0
+                        ? Colors.white
+                        : ArcadeChrome.yellow,
+                    outline: ArcadeChrome.red,
+                  ),
                 ),
               ),
             ),
-          // Game over overlay
           if (gameEnded)
             GameOverPopup(
               player1Score: player1Score,
@@ -554,12 +565,10 @@ class SparkParticle {
   }) : spiralFactor = 1.5;  // Fixed spiral factor for consistent effect
 
   void update(double progress) {
-    // Combine circular expansion with spiral motion
-    final radius = velocity * 100 * progress;
-    final spiralAngle = angle + (progress * pi * spiralFactor);  // Spiral rotation
-    final dx = cos(spiralAngle) * radius;
-    final dy = sin(spiralAngle) * radius;
-    position = position.translate(dx * 0.015, dy * 0.015);
+    final radius = velocity * 48 * progress;
+    final dx = cos(angle) * radius;
+    final dy = sin(angle) * radius;
+    position = position.translate(dx * 0.02, dy * 0.02);
   }
 }
 
@@ -573,47 +582,16 @@ class SparkPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
       particle.update(progress);
-      
-      // Enhanced fade out effect
-      final opacity = (1 - progress) * 0.9;  // Slightly increased opacity
+      final opacity = (1 - progress).clamp(0.0, 1.0);
       final paint = Paint()
         ..color = particle.color.withOpacity(opacity)
-        ..style = PaintingStyle.fill
-        ..strokeWidth = 2.0;
+        ..style = PaintingStyle.fill;
 
-      // Draw expanding circle with slight trail effect
-      final trailPaint = Paint()
-        ..color = particle.color.withOpacity(opacity * 0.3)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0;
-
-      // Draw main particle
-      canvas.drawCircle(
-        particle.position, 
-        particle.size * (1 - progress * 0.3),  // Reduced size reduction
-        paint
-      );
-
-      // Draw subtle trail
       canvas.drawCircle(
         particle.position,
-        particle.size * (1 + progress * 0.5),
-        trailPaint
+        particle.size * (1 - progress * 0.5),
+        paint,
       );
-
-      // Draw connecting lines between adjacent particles if they're close enough
-      if (particles.indexOf(particle) > 0) {
-        final prevParticle = particles[particles.indexOf(particle) - 1];
-        final distance = (particle.position - prevParticle.position).distance;
-        
-        if (distance < 60) {  // Increased connection distance
-          canvas.drawLine(
-            prevParticle.position,
-            particle.position,
-            paint..strokeWidth = 0.5  // Thinner lines
-          );
-        }
-      }
     }
   }
 
@@ -637,6 +615,63 @@ class ParticleGroup {
        this.animation = animationController;
 }
 
+class _NeonArena extends StatelessWidget {
+  final Color color;
+  final bool alignTop;
+
+  const _NeonArena({required this.color, required this.alignTop});
+
+  @override
+  Widget build(BuildContext context) {
+    final deep = Color.lerp(color, const Color(0xFF050508), 0.42)!;
+    final edge = Color.lerp(color, Colors.white, 0.12)!;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: alignTop ? Alignment.topCenter : Alignment.bottomCenter,
+              end: alignTop ? Alignment.bottomCenter : Alignment.topCenter,
+              colors: [deep, color, edge],
+              stops: const [0.0, 0.55, 1.0],
+            ),
+          ),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 1.05,
+              colors: [
+                color.withOpacity(0.35),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+        // Soft side vignette so it doesn't read as a flat paint fill
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Colors.black.withOpacity(0.28),
+                Colors.transparent,
+                Colors.transparent,
+                Colors.black.withOpacity(0.28),
+              ],
+              stops: const [0.0, 0.18, 0.82, 1.0],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class PlayerIcon extends StatelessWidget {
   final bool isRobot;
   final bool isTopPlayer;
@@ -656,52 +691,31 @@ class PlayerIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appManager = Provider.of<AppManager>(context);
-    
+
     return ScaleTransition(
       scale: scaleAnimation,
       child: Container(
-        width: iconSize * 2,
-        height: iconSize * 2,
+        width: iconSize * 2.1,
+        height: iconSize * 2.1,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.15),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 2,
-          ),
+          color: Colors.black.withOpacity(0.35),
+          border: Border.all(color: ArcadeChrome.yellow, width: 2.5),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.2),
+              color: ArcadeChrome.yellow.withOpacity(0.25),
               blurRadius: 10,
-              spreadRadius: 2,
             ),
           ],
         ),
         child: Center(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Background glow
-              Container(
-                width: iconSize * 1.2,
-                height: iconSize * 1.2,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withOpacity(0.1),
-                ),
-              ),
-              // Click icon
-              RotatedBox(
-                quarterTurns: (isTopPlayer && !isRobot) ? 2 : 0,
-                child: Icon(
-                  isRobot 
-                    ? Icons.smart_toy_rounded 
-                    : appManager.fingerIcon,
-                  size: iconSize,
-                  color: appManager.white.withOpacity(0.9),
-                ),
-              ),
-            ],
+          child: RotatedBox(
+            quarterTurns: (isTopPlayer && !isRobot) ? 2 : 0,
+            child: Icon(
+              isRobot ? Icons.smart_toy_rounded : appManager.fingerIcon,
+              size: iconSize,
+              color: Colors.white.withOpacity(0.95),
+            ),
           ),
         ),
       ),
@@ -769,47 +783,28 @@ class _GameInfoDisplayState extends State<GameInfoDisplay> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final appManager = Provider.of<AppManager>(context);
-    
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppDimensions.padding(context) * 0.6,
-        vertical: AppDimensions.padding(context) * 0.4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-        boxShadow: [
-          BoxShadow(
-            color: widget.color.withOpacity(0.4),
-            blurRadius: 8,
-            spreadRadius: 1,
-          ),
-        ],
-        border: Border.all(
-          color: widget.color.withOpacity(0.6),
-          width: 1.5,
-        ),
+        color: Colors.black.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: ArcadeChrome.yellow.withOpacity(0.7), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Icon(widget.icon, color: Colors.white, size: 16),
+          const SizedBox(width: 6),
           ScaleTransition(
-            scale: _pulseAnimation,
-            child: Icon(
-              widget.icon,
-              color: appManager.white.withOpacity(0.95),
-              size: 22,
-            ),
-          ),
-          SizedBox(width: 8),
-          Text(
-            widget.value,
-            style: GameStyles.timerText(context).copyWith(
-              color: appManager.white.withOpacity(0.95),
-              fontWeight: FontWeight.w600,
-              fontSize: appManager.timerFontSize,
+            scale: widget.isAnimating
+                ? _pulseAnimation
+                : const AlwaysStoppedAnimation(1.0),
+            child: Text(
+              widget.value,
+              style: ArcadeChrome.ui(
+                size: 14,
+                letterSpacing: 0.8,
+              ),
             ),
           ),
         ],
@@ -878,37 +873,14 @@ class _ScoreDisplayState extends State<ScoreDisplay> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final appManager = Provider.of<AppManager>(context);
-    
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppDimensions.padding(context) * 0.8,
-        vertical: AppDimensions.padding(context) * 0.5,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadius(context)),
-        boxShadow: [
-          BoxShadow(
-            color: widget.color.withOpacity(0.4),
-            blurRadius: 8,
-            spreadRadius: 1,
-          ),
-        ],
-        border: Border.all(
-          color: widget.color.withOpacity(0.6),
-          width: 1.5,
-        ),
-      ),
-      child: ScaleTransition(
-        scale: _bounceAnimation,
-        child: Text(
-          widget.score.toString(),
-          style: GameStyles.scoreText(context).copyWith(
-            color: appManager.white.withOpacity(0.95),
-            fontSize: appManager.scoreDisplayFontSize,
-            fontWeight: FontWeight.w700,
-          ),
+    return ScaleTransition(
+      scale: _bounceAnimation,
+      child: Text(
+        widget.score.toString(),
+        style: ArcadeChrome.display(
+          size: 44,
+          color: widget.color,
+          outline: Colors.black,
         ),
       ),
     );

@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:clickbattle/styles/variables.dart';
-import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/screens/game/game_styles.dart';
+import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/services/app_manager.dart';
-import 'dart:async';
 
+/// Shared arcade result panel — used by match Game Over and How to Play.
 class GameOverPopup extends StatefulWidget {
   final int player1Score;
   final int player2Score;
   final bool isSinglePlayer;
-  final Map<String, dynamic> gameArgs;
+  final Map<String, dynamic>? gameArgs;
+
+  /// When true: tutorial end — no ads, custom actions.
+  final bool isTutorial;
+  final VoidCallback? onTutorialReplay;
+  final VoidCallback? onTutorialDone;
 
   const GameOverPopup({
     Key? key,
     required this.player1Score,
     required this.player2Score,
     required this.isSinglePlayer,
-    required this.gameArgs,
+    this.gameArgs,
+    this.isTutorial = false,
+    this.onTutorialReplay,
+    this.onTutorialDone,
   }) : super(key: key);
 
   @override
@@ -36,102 +42,64 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _buttonsScale;
   bool _showButtons = false;
   bool _isNavigating = false;
-  
-  // Reference to AppManager
   late AppManager _appManager;
 
   @override
   void initState() {
     super.initState();
-    
     _appManager = Provider.of<AppManager>(context, listen: false);
-    
-    // Start preloading the full screen ad
-    _appManager.loadGameoverAd();
+    if (!widget.isTutorial) {
+      _appManager.loadGameoverAd();
+    }
 
-    // Game Over text animation
     _gameOverController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 700),
       vsync: this,
     );
-    _gameOverScale = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _gameOverController,
-        curve: Curves.elasticOut,
-      ),
+    _gameOverScale = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _gameOverController, curve: Curves.elasticOut),
     );
 
-    // Result animation
     _resultController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 450),
       vsync: this,
     );
     _resultOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _resultController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _resultController, curve: Curves.easeOut),
     );
 
-    // Buttons animation
     _buttonsController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     _buttonsOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _buttonsController,
-        curve: Curves.easeIn,
-      ),
+      CurvedAnimation(parent: _buttonsController, curve: Curves.easeIn),
     );
-    _buttonsScale = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _buttonsController,
-        curve: Curves.elasticOut,
-      ),
+    _buttonsScale = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _buttonsController, curve: Curves.easeOutBack),
     );
 
-    // Start staged animations
     _startAnimationSequence();
   }
 
-  void _startAnimationSequence() async {
-    // Start with Game Over text
-    await Future.delayed(const Duration(milliseconds: 500));
+  Future<void> _startAnimationSequence() async {
+    await Future.delayed(const Duration(milliseconds: 280));
+    if (!mounted) return;
     _gameOverController.forward();
-
-    // Show result after delay
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 450));
+    if (!mounted) return;
     _resultController.forward();
-
-    // Wait for score display to complete
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    // Show buttons
-    setState(() {
-      _showButtons = true;
-    });
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    setState(() => _showButtons = true);
     _buttonsController.forward();
-
-    // Enable interaction after all animations
-    await Future.delayed(const Duration(milliseconds: 800));
   }
 
-  // Handle showing ad and returning to home
   Future<void> _showAdAndReturnHome() async {
     if (_isNavigating) return;
-    
-    setState(() {
-      _isNavigating = true;
-    });
-    
-    // Show the ad and wait for it to close (with a timeout)
+    setState(() => _isNavigating = true);
     await _appManager.showGameoverAd(timeoutSeconds: 8);
-    
-    // Return to home screen after ad is dismissed or times out
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -146,255 +114,141 @@ class _GameOverPopupState extends State<GameOverPopup>
   Widget build(BuildContext context) {
     _appManager = Provider.of<AppManager>(context);
 
-    final bool isTie = widget.player1Score == widget.player2Score;
-    final bool isPlayer1Winner = widget.player1Score > widget.player2Score;
-
-    final Color winnerColor = isTie
-        ? Colors.orangeAccent[400]!
-        : (isPlayer1Winner ? Colors.blue[400]! : Colors.red[400]!);
-
-    final String winnerText = isTie
+    final isTie = widget.player1Score == widget.player2Score;
+    final p1Wins = widget.player1Score > widget.player2Score;
+    final winnerColor = isTie
+        ? ArcadeChrome.yellow
+        : (p1Wins ? ArcadeChrome.blue : ArcadeChrome.red);
+    final winnerName = isTie
         ? _appManager.getText('tie')
-        : '${_appManager.getText('winner')}: ${widget.isSinglePlayer ? _appManager.getText(isPlayer1Winner ? 'player1' : 'robot') : _appManager.getText(isPlayer1Winner ? 'player1' : 'player2')}';
+        : '${_appManager.getText('winner')}: ${widget.isSinglePlayer ? _appManager.getText(p1Wins ? 'you' : 'robot') : _appManager.getText(p1Wins ? 'player1' : 'player2')}';
 
-    // Calculate safe font sizes for small screens
-    final double gameOverFontSize =
-        (MediaQuery.of(context).size.width * 0.07).clamp(20.0, 28.0);
-    final double winnerFontSize =
-        (MediaQuery.of(context).size.width * 0.05).clamp(16.0, 20.0);
-    final double scoreFontSize =
-        (MediaQuery.of(context).size.width * 0.1).clamp(28.0, 40.0);
-    final double labelFontSize =
-        (MediaQuery.of(context).size.width * 0.035).clamp(12.0, 16.0);
+    final headline = widget.isTutorial
+        ? _appManager.getText(p1Wins || isTie ? 'demoYouWin' : 'demoRobotWins')
+        : _appManager.getText('gameOver');
 
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: Colors.black.withOpacity(0.8),
+      color: Colors.black.withOpacity(0.78),
       child: Center(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            constraints: BoxConstraints(maxWidth: 400),
-            margin: EdgeInsets.symmetric(vertical: 24),
-            padding: EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Color(0xFF2A2D3E),
-              borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-            ),
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
+            decoration: ArcadeChrome.panelBox(accent: winnerColor),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Game Over Text
-                Container(
-                  margin: EdgeInsets.only(top: 20),
-                  child: ScaleTransition(
-                    scale: _gameOverScale,
-                    child: Text(
-                      _appManager.getText('gameOver'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: gameOverFontSize,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
+                ScaleTransition(
+                  scale: _gameOverScale,
+                  child: Text(
+                    headline.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: ArcadeChrome.display(
+                      size: 34,
+                      color: ArcadeChrome.yellow,
+                      outline: ArcadeChrome.red,
                     ),
                   ),
                 ),
-                SizedBox(height: 40),
-
-                // Winner Display with Animation
+                const SizedBox(height: 18),
                 FadeTransition(
                   opacity: _resultOpacity,
                   child: Container(
                     width: double.infinity,
-                    constraints: BoxConstraints(maxWidth: 280),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: CommonProperties.cardContentBackgroundColor,
-                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                      color: const Color(0xFF1A1A22),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: winnerColor, width: 2),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.workspace_premium_rounded,
+                          isTie
+                              ? Icons.handshake_rounded
+                              : Icons.workspace_premium_rounded,
                           color: winnerColor,
-                          size: 24,
+                          size: 22,
                         ),
-                        SizedBox(width: 12),
-                        Text(
-                          winnerText,
-                          style: TextStyle(
-                            color: winnerColor,
-                            fontSize: winnerFontSize,
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            winnerName.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            style: ArcadeChrome.ui(
+                              size: 14,
+                              color: winnerColor,
+                              letterSpacing: 1,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(height: 32),
-
-                // Score Display with Animation
+                const SizedBox(height: 14),
                 FadeTransition(
                   opacity: _resultOpacity,
                   child: Container(
                     width: double.infinity,
-                    constraints: BoxConstraints(maxWidth: 280),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 20,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: CommonProperties.cardContentBackgroundColor,
-                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
+                      color: const Color(0xFF1A1A22),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12, width: 2),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: Center(
-                            child: _buildScoreColumn(
-                              _appManager.getText('player1'),
-                              widget.player1Score,
-                              Colors.blue[400]!,
-                              scoreFontSize,
-                              labelFontSize,
-                            ),
+                          child: _ScoreCol(
+                            label: widget.isSinglePlayer
+                                ? _appManager.getText('you')
+                                : _appManager.getText('player1'),
+                            score: widget.player1Score,
+                            color: ArcadeChrome.blue,
+                            emoji: '👆',
                           ),
                         ),
                         Container(
-                          height: 80,
-                          width: 1,
-                          margin: EdgeInsets.symmetric(horizontal: 20),
-                          color: Colors.white24,
+                          width: 3,
+                          height: 72,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          color: ArcadeChrome.yellow,
                         ),
                         Expanded(
-                          child: Center(
-                            child: _buildScoreColumn(
-                              widget.isSinglePlayer
-                                  ? _appManager.getText('robot')
-                                  : _appManager.getText('player2'),
-                              widget.player2Score,
-                              Colors.red[400]!,
-                              scoreFontSize,
-                              labelFontSize,
-                            ),
+                          child: _ScoreCol(
+                            label: widget.isSinglePlayer
+                                ? _appManager.getText('robot')
+                                : _appManager.getText('player2'),
+                            score: widget.player2Score,
+                            color: ArcadeChrome.red,
+                            emoji: widget.isSinglePlayer ? '🤖' : '👆',
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(height: 32),
-
-                // Buttons with Animation
+                const SizedBox(height: 18),
                 if (_showButtons)
                   ScaleTransition(
                     scale: _buttonsScale,
                     child: FadeTransition(
                       opacity: _buttonsOpacity,
-                      child: Container(
-                        width: double.infinity,
-                        constraints: BoxConstraints(maxWidth: 280),
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          GameScreen(gameArgs: widget.gameArgs),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: CommonProperties.accentColor,
-                                  foregroundColor: Colors.white,
-                                  elevation: 4,
-                                  padding: EdgeInsets.symmetric(horizontal: 24),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.play_arrow_rounded,
-                                        color: Colors.white, size: 26),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      _appManager.getText('playAgain'),
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                onPressed: _isNavigating 
-                                  ? null 
-                                  : _showAdAndReturnHome,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      CommonProperties.accentColor.withOpacity(0.1),
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: EdgeInsets.symmetric(horizontal: 24),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
-                                  ),
-                                  disabledBackgroundColor: 
-                                      CommonProperties.accentColor.withOpacity(0.05),
-                                  disabledForegroundColor: 
-                                      CommonProperties.accentColor.withOpacity(0.3),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      _isNavigating
-                                          ? Icons.hourglass_empty
-                                          : Icons.home_rounded,
-                                      color: Colors.white,
-                                      size: 26
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      _appManager.getText('backToHome'),
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: widget.isTutorial
+                          ? _tutorialActions()
+                          : _matchActions(),
                     ),
                   ),
               ],
@@ -405,28 +259,138 @@ class _GameOverPopupState extends State<GameOverPopup>
     );
   }
 
-  Widget _buildScoreColumn(String label, int score, Color color,
-      double scoreFontSize, double labelFontSize) {
+  Widget _matchActions() {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: labelFontSize,
-            fontWeight: FontWeight.w500,
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      GameScreen(gameArgs: widget.gameArgs ?? const {}),
+                ),
+              );
+            },
+            style: ArcadeChrome.yellowButton(),
+            icon: const Icon(Icons.replay_rounded, size: 24),
+            label: Text(
+              _appManager.getText('playAgain').toUpperCase(),
+              style: ArcadeChrome.ui(
+                size: 15,
+                color: Colors.black,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
         ),
-        SizedBox(height: 8),
-        Text(
-          score.toString(),
-          style: TextStyle(
-            color: color,
-            fontSize: scoreFontSize,
-            fontWeight: FontWeight.bold,
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton.icon(
+            onPressed: _isNavigating ? null : _showAdAndReturnHome,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: ArcadeChrome.blue, width: 2.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: Icon(
+              _isNavigating ? Icons.hourglass_empty : Icons.home_rounded,
+              size: 22,
+            ),
+            label: Text(
+              _appManager.getText('backToHome').toUpperCase(),
+              style: ArcadeChrome.ui(size: 13, letterSpacing: 1.2),
+            ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _tutorialActions() {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: widget.onTutorialReplay,
+            style: ArcadeChrome.yellowButton(),
+            icon: const Icon(Icons.replay_rounded, size: 24),
+            label: Text(
+              _appManager.getText('demoReplay').toUpperCase(),
+              style: ArcadeChrome.ui(
+                size: 15,
+                color: Colors.black,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton.icon(
+            onPressed: widget.onTutorialDone ?? () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: ArcadeChrome.blue, width: 2.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.check_rounded, size: 22),
+            label: Text(
+              _appManager.getText('gotIt').toUpperCase(),
+              style: ArcadeChrome.ui(size: 13, letterSpacing: 1.2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScoreCol extends StatelessWidget {
+  final String label;
+  final int score;
+  final Color color;
+  final String emoji;
+
+  const _ScoreCol({
+    required this.label,
+    required this.score,
+    required this.color,
+    required this.emoji,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 22)),
+        const SizedBox(height: 4),
+        Text(
+          label.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: ArcadeChrome.ui(
+            size: 11,
+            color: Colors.white60,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '$score',
+          style: ArcadeChrome.display(size: 40, color: color),
         ),
       ],
     );

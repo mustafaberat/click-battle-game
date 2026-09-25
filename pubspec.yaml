@@ -1,7 +1,7 @@
 name: clickbattle
 description: A competitive two-player tapping game.
 publish_to: 'none'
-version: 4.0.0+36
+version: 4.1.0+37
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -14,6 +14,7 @@ dependencies:
   provider: ^6.1.2
   in_app_review: ^2.0.9
   google_mobile_ads: ^6.0.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

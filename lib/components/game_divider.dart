@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/services/app_manager.dart';
-import 'package:clickbattle/constants/app_colors.dart';
-import 'package:clickbattle/styles/app_styles.dart';
 
+/// Thin frontier line between equal neon arenas.
 class GameDivider extends StatelessWidget {
-  final double ratio; // Value between 0-1, represents player1's ratio (blue)
+  final double ratio;
   final Animation<double>? pulseAnimation;
-  final Color player1Color; // Blue player
-  final Color player2Color; // Red player
+  final Color player1Color;
+  final Color player2Color;
 
   const GameDivider({
     Key? key,
@@ -21,109 +20,34 @@ class GameDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appManager = Provider.of<AppManager>(context);
-    
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Background divider bar
-        Container(
-          height: 8,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Color.lerp(player2Color, player1Color, 0.5)!.withOpacity(0.3),
-            boxShadow: [
-              BoxShadow(
-                color: ratio > 0.5 ? player1Color.withOpacity(0.3) : player2Color.withOpacity(0.3),
-                blurRadius: 4,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-        ),
-        // Progress indicator
-        Container(
-          height: 4,
-          width: double.infinity,
-          child: Row(
-            children: [
-              // Blue player's territory progress (reversed direction)
-              Expanded(
-                flex: (ratio * 100).round(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        player1Color,
-                        player1Color.withOpacity(0.7),
-                      ],
-                      begin: Alignment.centerRight,
-                      end: Alignment.centerLeft,
-                    ),
-                  ),
-                ),
-              ),
-              // Divider indicator with pulse animation
-              pulseAnimation != null
-                  ? ScaleTransition(
-                      scale: pulseAnimation!,
-                      child: _buildDividerIndicator(appManager),
-                    )
-                  : _buildDividerIndicator(appManager),
-              // Red player's territory progress (reversed direction)
-              Expanded(
-                flex: ((1 - ratio) * 100).round(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        player2Color.withOpacity(0.7),
-                        player2Color,
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Fewer border markings to indicate territory boundaries
-        Positioned.fill(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(
-              5, // Reduced from 11 to 5 markings
-              (index) => Container(
-                width: 2,
-                height: index == 2 ? 12 : 6, // Middle mark is taller
-                decoration: BoxDecoration(
-                  color: appManager.white.withOpacity(index == 2 ? 0.8 : 0.4),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    final leading = ratio >= 0.5 ? player1Color : player2Color;
 
-  Widget _buildDividerIndicator(AppManager appManager) {
-    return Container(
-      width: 4,
-      height: 16,
+    final line = Container(
+      height: 2,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: appManager.white,
+        color: appManager.white.withOpacity(0.95),
         boxShadow: [
           BoxShadow(
-            color: appManager.white.withOpacity(0.8),
-            blurRadius: 6,
-            spreadRadius: 2,
+            color: leading.withOpacity(0.4),
+            blurRadius: 5,
           ),
         ],
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusSmall),
       ),
     );
+
+    if (pulseAnimation == null) return line;
+
+    return AnimatedBuilder(
+      animation: pulseAnimation!,
+      builder: (context, child) {
+        final t = ((pulseAnimation!.value - 1.0) / 0.5).clamp(0.0, 1.0);
+        return Transform.scale(
+          scaleY: 1.0 + t * 0.8,
+          child: child,
+        );
+      },
+      child: line,
+    );
   }
-} 
+}
