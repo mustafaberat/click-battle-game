@@ -44,6 +44,11 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _buttonsOpacity;
   late Animation<double> _buttonsScale;
   bool _isNavigating = false;
+
+  /// Buttons ignore taps until this long after the popup opens, so taps
+  /// still being spammed from the match can't trigger PLAY AGAIN.
+  static const double _unlockAt = 800 / 1400;
+  bool _buttonsEnabled = false;
   late AppManager _appManager;
 
   @override
@@ -82,13 +87,15 @@ class _GameOverPopupState extends State<GameOverPopup>
     _buttonsOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _gameOverController,
-        curve: const Interval(0.62, 0.92, curve: Curves.easeIn),
+        // Faded in while the trophy animates; fully opaque exactly when the
+        // lock lifts (800ms of the 1400ms timeline).
+        curve: const Interval(0.2, _unlockAt, curve: Curves.easeIn),
       ),
     );
     _buttonsScale = Tween<double>(begin: 0.88, end: 1.0).animate(
       CurvedAnimation(
         parent: _gameOverController,
-        curve: const Interval(0.62, 1.0, curve: Curves.easeOutBack),
+        curve: const Interval(0.2, 0.7, curve: Curves.easeOutBack),
       ),
     );
 
@@ -103,6 +110,9 @@ class _GameOverPopupState extends State<GameOverPopup>
     );
 
     _gameOverController.addListener(() {
+      if (!_buttonsEnabled && _gameOverController.value >= _unlockAt) {
+        setState(() => _buttonsEnabled = true);
+      }
       if (_gameOverController.value >= 0.22 && _shakeController.isAnimating) {
         _shakeController
           ..stop()
@@ -230,9 +240,13 @@ class _GameOverPopupState extends State<GameOverPopup>
                             opacity: _buttonsOpacity,
                             child: ScaleTransition(
                               scale: _buttonsScale,
-                              child: widget.isTutorial
-                                  ? _tutorialActions()
-                                  : _matchActions(),
+                              child: IgnorePointer(
+                                key: const Key('gameOverActions'),
+                                ignoring: !_buttonsEnabled,
+                                child: widget.isTutorial
+                                    ? _tutorialActions()
+                                    : _matchActions(),
+                              ),
                             ),
                           ),
                         ],

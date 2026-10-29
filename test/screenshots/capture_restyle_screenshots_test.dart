@@ -100,6 +100,27 @@ void main() {
     await _save(tester, 'screen_gameplay');
 
     await pumpShot(
+      const GameScreen(
+        gameArgs: {
+          'mode': 'GameMode.scoreLimit',
+          'playerMode': 'PlayerMode.singlePlayer',
+          'scoreLimit': 3,
+          'difficulty': 1,
+        },
+      ),
+    );
+    for (int i = 0; i < 4; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    for (int i = 0; i < 3; i++) {
+      await tester.tapAt(const Offset(195, 700));
+    }
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await _save(tester, 'screen_finish_moment');
+    await tester.pump(const Duration(milliseconds: 2000));
+
+    await pumpShot(
       const Scaffold(
         backgroundColor: ArcadeChrome.navy,
         body: GameOverPopup(

@@ -39,6 +39,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   /// Logical territory target (0..1, share of player 1).
   double colorRatio = 0.5;
   bool gameEnded = false;
+
+  /// After [gameEnded], a short "FINISH!" beat plays (all taps ignored)
+  /// before the result popup opens, so end-of-match spam can't hit its
+  /// buttons.
+  bool _showResult = false;
+  static const Duration finishMomentDuration = Duration(milliseconds: 700);
+  late final AnimationController _finishController;
   bool isGameStarted = false;
   int countdownSeconds = 3;
   late AppManager _appManager;
@@ -104,6 +111,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       value: 0.5,
       duration: const Duration(milliseconds: 520),
     );
+
+    _finishController = AnimationController(
+      vsync: this,
+      duration: finishMomentDuration,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          setState(() => _showResult = true);
+        }
+      });
 
     _dividerPulseController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -227,6 +243,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _frameCallbackId = null;
     }
     _ratioController.dispose();
+    _finishController.dispose();
     _dividerPulseController.dispose();
     _bursts.dispose();
     _player1ClickController.dispose();
@@ -241,9 +258,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (gameEnded || !mounted) return;
     gameTimer?.cancel();
     _robotTimer?.cancel();
+    // Drop anything still queued: the final score is frozen from here on.
+    _pendingFx.clear();
+    _tapsSinceFlush = 0;
+    if (_frameCallbackId != null) {
+      SchedulerBinding.instance.cancelFrameCallbackWithId(_frameCallbackId!);
+      _frameCallbackId = null;
+    }
     setState(() {
       gameEnded = true;
     });
+    _finishController.forward(from: 0);
   }
 
   /// Counts the tap immediately (exact score, instant score bounce) and queues
@@ -276,7 +301,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   /// to the next frame; FX older than [_fxStaleMs] are skipped (never score).
   void _flushTaps(Duration _) {
     _frameCallbackId = null;
-    if (!mounted) return;
+    if (!mounted || gameEnded) return;
 
     if (_tapsSinceFlush > 0) {
       _applyTerritory(_tapsSinceFlush);
@@ -586,7 +611,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
-          if (gameEnded)
+          if (gameEnded && !_showResult)
+            Positioned.fill(
+              child: _FinishMoment(
+                key: const Key('finishMoment'),
+                animation: _finishController,
+                label: _appManager.getText('finishMoment'),
+              ),
+            ),
+          if (_showResult)
             GameOverPopup(
               player1Score: player1Score,
               player2Score: player2Score,
@@ -594,6 +627,87 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               gameArgs: widget.gameArgs,
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Short comic "FINISH!" beat between the last tap and the result popup.
+/// Opaque to pointers: every tap during it is swallowed.
+class _FinishMoment extends StatelessWidget {
+  final Animation<double> animation;
+  final String label;
+
+  const _FinishMoment({Key? key, required this.animation, required this.label})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 2.2, end: 0.92)
+            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 35,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.92, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 15,
+      ),
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 50),
+    ]).animate(animation);
+    final dim = animation.drive(
+      Tween<double>(begin: 0.0, end: 0.45)
+          .chain(CurveTween(curve: const Interval(0.0, 0.3))),
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {},
+      onTapDown: (_) {},
+      child: AnimatedBuilder(
+        animation: dim,
+        builder: (context, child) => ColoredBox(
+          color: Colors.black.withOpacity(dim.value),
+          child: child,
+        ),
+        child: Center(
+          child: ScaleTransition(
+            scale: scale,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Transform.rotate(
+              angle: -0.08,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(26, 12, 26, 8),
+                decoration: BoxDecoration(
+                  color: ArcadeChrome.yellow,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: ArcadeChrome.ink, width: 4),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: ArcadeChrome.ink,
+                      offset: Offset(5, 5),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  label.toUpperCase(),
+                  style: ArcadeChrome.display(
+                    size: 64,
+                    color: ArcadeChrome.red,
+                    outline: ArcadeChrome.ink,
+                    outlineWidth: 3,
+                  ),
+                ),
+              ),
+            ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
