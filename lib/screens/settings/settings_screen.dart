@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -52,6 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ArcadeBackHeader(
               title: _appManager.getText('settings'),
               onBack: () {
+                AnalyticsService.instance.logTapBack(AnalyticsScreens.settings);
                 _appManager.reloadBannerAd();
                 Navigator.pushReplacementNamed(context, '/');
               },
@@ -109,6 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 onChanged: (v) async {
                                   if (v != null) {
                                     await _appManager.setLanguage(v);
+                                    AnalyticsService.instance.logChangeLanguage(v);
                                     setState(() {});
                                   }
                                 },
@@ -123,15 +126,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: ArcadeChrome.blue,
                       title: _appManager.getText('howToPlay'),
                       subtitle: _appManager.getText('howToPlaySubtitle'),
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/how_to_play'),
+                      onTap: () {
+                        AnalyticsService.instance.logTapHowToPlay(
+                          source: AnalyticsValues.sourceSettings,
+                        );
+                        Navigator.pushNamed(context, '/how_to_play');
+                      },
                     ),
                     _menuRow(
                       icon: Icons.star_rate_rounded,
                       color: AppColors.accentAmber,
                       title: _appManager.getText('rateApp'),
                       subtitle: _appManager.getText('enjoyingTheGame'),
-                      onTap: () => _inAppReview.openStoreListing(),
+                      onTap: () {
+                        AnalyticsService.instance.logTapRateApp();
+                        _inAppReview.openStoreListing();
+                      },
                     ),
                     _panel(
                       accent: ArcadeChrome.red,

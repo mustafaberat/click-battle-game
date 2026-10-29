@@ -4,6 +4,18 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services") apply false
+}
+
+// Applied only when the owner has added google-services.json (flutterfire configure).
+// The app still builds and runs without it; Analytics no-ops. See docs/ANALYTICS.md.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn(
+        "android/app/google-services.json is missing; skipping Google Services plugin. " +
+            "Firebase Analytics is disabled until you run `flutterfire configure`.",
+    )
 }
 
 val keystoreProperties = Properties()

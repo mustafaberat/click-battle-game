@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/custom_scrollbar.dart';
@@ -54,7 +55,10 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
           children: [
             ArcadeBackHeader(
               title: _appManager.getText('gameSetup'),
-              onBack: () => Navigator.pop(context),
+              onBack: () {
+                AnalyticsService.instance.logTapBack(AnalyticsScreens.modeSelection);
+                Navigator.pop(context);
+              },
             ),
             Expanded(
               child: CustomScrollbar(
@@ -75,8 +79,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                               color: ArcadeChrome.blue,
                               icon: Icons.smart_toy,
                               label: _appManager.getText('singlePlayer'),
-                              onTap: () =>
-                                  setState(() => isSinglePlayer = true),
+                              onTap: () {
+                                setState(() => isSinglePlayer = true);
+                                AnalyticsService.instance.logSelectPlayerMode(
+                                  isSinglePlayer: true,
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -86,8 +94,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                               color: ArcadeChrome.red,
                               icon: Icons.people_alt,
                               label: _appManager.getText('twoPlayers'),
-                              onTap: () =>
-                                  setState(() => isSinglePlayer = false),
+                              onTap: () {
+                                setState(() => isSinglePlayer = false);
+                                AnalyticsService.instance.logSelectPlayerMode(
+                                  isSinglePlayer: false,
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -104,7 +116,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                               icon: Icons.timer,
                               label: _appManager.getText('timeAttack'),
                               darkLabel: true,
-                              onTap: () => setState(() => isTimeMode = true),
+                              onTap: () {
+                                setState(() => isTimeMode = true);
+                                AnalyticsService.instance.logSelectGameType(
+                                  isTimeMode: true,
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -114,7 +131,12 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                               color: const Color(0xFF39FF14),
                               icon: Icons.flag,
                               label: _appManager.getText('survival'),
-                              onTap: () => setState(() => isTimeMode = false),
+                              onTap: () {
+                                setState(() => isTimeMode = false);
+                                AnalyticsService.instance.logSelectGameType(
+                                  isTimeMode: false,
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -144,13 +166,19 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                                         ? _appManager.getText('seconds')
                                         : _appManager.getText('points'),
                                     darkLabel: isTimeMode,
-                                    onTap: () => setState(() {
-                                      if (isTimeMode) {
-                                        timeLimit = v;
-                                      } else {
-                                        scoreLimit = v;
-                                      }
-                                    }),
+                                    onTap: () {
+                                      setState(() {
+                                        if (isTimeMode) {
+                                          timeLimit = v;
+                                        } else {
+                                          scoreLimit = v;
+                                        }
+                                      });
+                                      AnalyticsService.instance.logSelectLimit(
+                                        isTimeMode: isTimeMode,
+                                        value: v,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
@@ -205,6 +233,13 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
   }
 
   void _start() {
+    AnalyticsService.instance.logTapStartBattle(
+      isSinglePlayer: isSinglePlayer,
+      isTimeMode: isTimeMode,
+      timeLimit: timeLimit,
+      scoreLimit: scoreLimit,
+      difficulty: difficulty,
+    );
     Navigator.pushNamed(
       context,
       '/game',

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
@@ -40,6 +41,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
   void initState() {
     super.initState();
     _app = Provider.of<AppManager>(context, listen: false);
+    AnalyticsService.instance.logTutorialBegin();
     _linePulse = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -160,9 +162,14 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
     _robotTimer?.cancel();
     _linePulse.stop();
     setState(() => _phase = _Phase.done);
+    AnalyticsService.instance.logTutorialComplete(
+      playerScore: _playerScore,
+      robotScore: _robotScore,
+    );
   }
 
   void _restart() {
+    AnalyticsService.instance.logTutorialReplay();
     _robotTimer?.cancel();
     setState(() {
       _phase = _Phase.waitTap;
@@ -251,6 +258,9 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
                   IconButton(
                     onPressed: () {
                       _robotTimer?.cancel();
+                      if (_phase != _Phase.done) {
+                        AnalyticsService.instance.logTutorialSkip();
+                      }
                       Navigator.pop(context);
                     },
                     icon: const Icon(Icons.close, color: Colors.white70),
@@ -334,7 +344,10 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
               isSinglePlayer: true,
               isTutorial: true,
               onTutorialReplay: _restart,
-              onTutorialDone: () => Navigator.pop(context),
+              onTutorialDone: () {
+                AnalyticsService.instance.logTutorialGotIt();
+                Navigator.pop(context);
+              },
             ),
         ],
       ),

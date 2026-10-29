@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
-import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/services/app_manager.dart';
 
 /// Shared arcade result panel — used by match Game Over and How to Play.
@@ -49,6 +49,7 @@ class _GameOverPopupState extends State<GameOverPopup>
     super.initState();
     _appManager = Provider.of<AppManager>(context, listen: false);
     if (!widget.isTutorial) {
+      AnalyticsService.instance.logScreenView(AnalyticsScreens.gameOver);
       _appManager.loadGameoverAd();
     }
 
@@ -98,6 +99,7 @@ class _GameOverPopupState extends State<GameOverPopup>
   Future<void> _showAdAndReturnHome() async {
     if (_isNavigating) return;
     setState(() => _isNavigating = true);
+    AnalyticsService.instance.logTapBackHome();
     await _appManager.showGameoverAd(timeoutSeconds: 8);
     if (mounted) Navigator.pop(context);
   }
@@ -267,12 +269,13 @@ class _GameOverPopupState extends State<GameOverPopup>
           height: 56,
           child: ElevatedButton.icon(
             onPressed: () {
-              Navigator.pushReplacement(
+              AnalyticsService.instance.logTapRematch();
+              final args = Map<String, dynamic>.from(widget.gameArgs ?? {});
+              args['rematch'] = true;
+              Navigator.pushReplacementNamed(
                 context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      GameScreen(gameArgs: widget.gameArgs ?? const {}),
-                ),
+                '/game',
+                arguments: args,
               );
             },
             style: ArcadeChrome.yellowButton(),

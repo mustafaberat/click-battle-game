@@ -1,4 +1,5 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/configs/config.dart';
 import 'dart:async';
 
@@ -29,8 +30,15 @@ class AdService {
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (_) {},
-        onAdFailedToLoad: (_, __) {},
+        onAdLoaded: (_) {
+          AnalyticsService.instance.logBannerLoaded();
+        },
+        onAdFailedToLoad: (ad, error) {
+          AnalyticsService.instance.logBannerFailed(
+            errorCode: error.code,
+            errorMessage: error.message,
+          );
+        },
       ),
     )..load();
   }
@@ -48,12 +56,13 @@ class AdService {
           _isGameoverHomeButtonFullScreenAdLoading = false;
           
           // Set full screen content callback
-          _gameoverHomeButtonFullScreenAd!.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (InterstitialAd ad) {
+          _gameoverHomeButtonFullScreenAd!.fullScreenContentCallback =
+              _interstitialCallbacks(
+            onDismissed: (InterstitialAd ad) {
               ad.dispose();
               // We don't reload automatically after dismissal, since it's on-demand
             },
-            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+            onFailedToShow: (InterstitialAd ad, AdError error) {
               ad.dispose();
               // We don't reload automatically after failure, since it's on-demand
             },
@@ -61,6 +70,11 @@ class AdService {
         },
         onAdFailedToLoad: (LoadAdError error) {
           _isGameoverHomeButtonFullScreenAdLoading = false;
+          AnalyticsService.instance.logInterstitialFailed(
+            stage: AnalyticsValues.stageLoad,
+            errorCode: error.code,
+            errorMessage: error.message,
+          );
         },
       ),
     );
@@ -72,9 +86,12 @@ class AdService {
     if (_gameoverHomeButtonFullScreenAd == null) {
       loadGameoverHomeButtonFullScreenAd();
       // Wait a bit to see if the ad loads quickly
-      await Future.delayed(Duration(milliseconds: 1000));
+      await Future.delayed(const Duration(milliseconds: 1000));
       // If still not loaded, just return and don't show an ad
       if (_gameoverHomeButtonFullScreenAd == null) {
+        AnalyticsService.instance.logInterstitialFailed(
+          stage: AnalyticsValues.stageNotReady,
+        );
         return;
       }
     }
@@ -82,19 +99,18 @@ class AdService {
     final completer = Completer<void>();
     
     // Set up the callback to resolve the completer when ad is dismissed
-    _gameoverHomeButtonFullScreenAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+    _gameoverHomeButtonFullScreenAd!.fullScreenContentCallback =
+        _interstitialCallbacks(
+      onDismissed: (InterstitialAd ad) {
         ad.dispose();
         _gameoverHomeButtonFullScreenAd = null;
         if (!completer.isCompleted) completer.complete();
       },
-      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+      onFailedToShow: (InterstitialAd ad, AdError error) {
         ad.dispose();
         _gameoverHomeButtonFullScreenAd = null;
         if (!completer.isCompleted) completer.complete();
       },
-      // The close button is automatically provided by the AdMob SDK,
-      // we don't need to implement that part
     );
 
     // Show the ad
@@ -106,6 +122,29 @@ class AdService {
     });
 
     return completer.future;
+  }
+
+  FullScreenContentCallback<InterstitialAd> _interstitialCallbacks({
+    required void Function(InterstitialAd ad) onDismissed,
+    required void Function(InterstitialAd ad, AdError error) onFailedToShow,
+  }) {
+    return FullScreenContentCallback(
+      onAdShowedFullScreenContent: (_) {
+        AnalyticsService.instance.logInterstitialShown();
+      },
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        AnalyticsService.instance.logInterstitialDismissed();
+        onDismissed(ad);
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        AnalyticsService.instance.logInterstitialFailed(
+          stage: AnalyticsValues.stageShow,
+          errorCode: error.code,
+          errorMessage: error.message,
+        );
+        onFailedToShow(ad, error);
+      },
+    );
   }
 
   BannerAd? get bannerAd => _bannerAd;

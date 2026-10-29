@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'package:clickbattle/components/game_divider.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
@@ -31,7 +32,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late final int timeLimit;
   late final int scoreLimit;
   late final int difficulty;
+  late final bool isRematch;
   int remainingSeconds = 0;
+  DateTime? _matchStartedAt;
+  bool _analyticsEndLogged = false;
   Timer? gameTimer;
   Timer? countdownTimer;
   Timer? _robotTimer;
@@ -46,7 +50,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   // Particle groups for multiple simultaneous animations
   final List<ParticleGroup> _particleGroups = [];
-  final Random _random = Random();
 
   // Replace pulse controllers with click controllers
   late final AnimationController _player1ClickController;
@@ -66,6 +69,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     timeLimit = widget.gameArgs['timeLimit'] ?? 60;
     scoreLimit = widget.gameArgs['scoreLimit'] ?? 100;
     difficulty = widget.gameArgs['difficulty'] ?? 2;
+    isRematch = widget.gameArgs['rematch'] == true;
     remainingSeconds = timeLimit;
 
     // Start countdown
@@ -134,7 +138,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           countdownSeconds--;
         } else {
           isGameStarted = true;
+          _matchStartedAt = DateTime.now();
           countdownTimer?.cancel();
+          _logGameStart();
           
           // Start game timer if in time mode
           if (isTimeMode) {
@@ -200,6 +206,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    if (!_analyticsEndLogged) {
+      _logMatchFinished(quit: true);
+    }
     gameTimer?.cancel();
     countdownTimer?.cancel();
     _robotTimer?.cancel();
@@ -219,6 +228,50 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       gameEnded = true;
       gameTimer?.cancel();
     });
+    _logMatchFinished(quit: false);
+  }
+
+  void _logGameStart() {
+    AnalyticsService.instance.logGameStart(
+      isSinglePlayer: isSinglePlayer,
+      isTimeMode: isTimeMode,
+      timeLimit: timeLimit,
+      scoreLimit: scoreLimit,
+      difficulty: difficulty,
+      rematch: isRematch,
+    );
+  }
+
+  void _logMatchFinished({required bool quit}) {
+    if (_analyticsEndLogged) return;
+    _analyticsEndLogged = true;
+    final durationSec = _matchStartedAt == null
+        ? 0
+        : DateTime.now().difference(_matchStartedAt!).inSeconds;
+    if (quit) {
+      AnalyticsService.instance.logGameQuit(
+        isSinglePlayer: isSinglePlayer,
+        isTimeMode: isTimeMode,
+        timeLimit: timeLimit,
+        scoreLimit: scoreLimit,
+        difficulty: difficulty,
+        player1Score: player1Score,
+        player2Score: player2Score,
+        durationSec: durationSec,
+        duringCountdown: !isGameStarted,
+      );
+    } else {
+      AnalyticsService.instance.logGameEnd(
+        isSinglePlayer: isSinglePlayer,
+        isTimeMode: isTimeMode,
+        timeLimit: timeLimit,
+        scoreLimit: scoreLimit,
+        difficulty: difficulty,
+        player1Score: player1Score,
+        player2Score: player2Score,
+        durationSec: durationSec,
+      );
+    }
   }
 
   void _createSparkEffect(bool isPlayer1, Offset position) {
@@ -241,12 +294,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     final controller = AnimationController(
       duration: const Duration(milliseconds: 280),
       vsync: this,
-    );
-
-    // Create a curved animation for smoother motion
-    final curvedAnimation = CurvedAnimation(
-      parent: controller,
-      curve: Curves.easeOutCirc,  // Smooth deceleration
     );
 
     // Create a new particle group and add it to the list

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     _app = Provider.of<AppManager>(context, listen: false);
+    AnalyticsService.instance.logHomeReached();
     _pulse = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -127,8 +129,10 @@ class _HomeScreenState extends State<HomeScreen>
                       width: double.infinity,
                       height: 64,
                       child: ElevatedButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/mode_selection'),
+                        onPressed: () {
+                          AnalyticsService.instance.logTapStart();
+                          Navigator.pushNamed(context, '/mode_selection');
+                        },
                         style: ArcadeChrome.yellowButton(),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -166,8 +170,10 @@ class _HomeScreenState extends State<HomeScreen>
                           color: ArcadeChrome.red,
                           icon: Icons.settings,
                           label: _app.getText('settings'),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/settings'),
+                          onTap: () {
+                            AnalyticsService.instance.logTapSettings();
+                            Navigator.pushNamed(context, '/settings');
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -176,8 +182,12 @@ class _HomeScreenState extends State<HomeScreen>
                           color: ArcadeChrome.blue,
                           icon: Icons.help_outline,
                           label: _app.getText('howToPlay'),
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/how_to_play'),
+                          onTap: () {
+                            AnalyticsService.instance.logTapHowToPlay(
+                              source: AnalyticsValues.sourceHome,
+                            );
+                            Navigator.pushNamed(context, '/how_to_play');
+                          },
                         ),
                       ),
                     ],
