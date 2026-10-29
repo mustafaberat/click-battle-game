@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/services/app_manager.dart';
-import 'package:clickbattle/styles/variables.dart';
 import 'package:clickbattle/styles/app_styles.dart';
 
 class ModeOption extends StatelessWidget {

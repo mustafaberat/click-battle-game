@@ -6,7 +6,6 @@ import 'package:clickbattle/services/ad_service.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/services/localization_service.dart';
 import 'package:clickbattle/constants/app_colors.dart';
-import 'package:clickbattle/constants/app_strings.dart';
 import 'package:clickbattle/configs/config.dart';
 
 /// AppManager is a centralized class that manages access to all important services and constants.

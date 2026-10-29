@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
-/// Neon Duel palette — Click Battle redesign.
+/// Arcade Strip Comic palette — Click Battle restyle.
 class AppColors {
-  // Core neon
-  static const Color neonBlue = Color(0xFF00B4FF);
-  static const Color neonRed = Color(0xFFFF2D55);
+  // Comic tokens
+  static const Color comicNavy = Color(0xFF0D1B3E);
+  static const Color comicPanel = Color(0xFF16264F);
+  static const Color inkBlack = Color(0xFF111111);
+  static const Color comicYellow = Color(0xFFFFD400);
+  static const Color comicYellowDark = Color(0xFFE6C200);
+  static const Color comicRed = Color(0xFFFF3B4E);
+  static const Color comicBlue = Color(0xFF18B4FF);
+
+  // Core neon (aliased to comic so existing call sites match store art)
+  static const Color neonBlue = comicBlue;
+  static const Color neonRed = comicRed;
   static const Color pureBlack = Color(0xFF000000);
-  static const Color surface = Color(0xFF0A0A0A);
-  static const Color surfaceElevated = Color(0xFF141414);
+  static const Color surface = comicNavy;
+  static const Color surfaceElevated = comicPanel;
 
   // Primary / legacy aliases
   static const Color primaryBlue = neonBlue;
@@ -15,16 +24,16 @@ class AppColors {
   static const Color primaryOrange = Color(0xFFFF9F1C);
 
   // Backgrounds
-  static const Color background = pureBlack;
-  static const Color cardBackground = surfaceElevated;
-  static const Color overlayBackground = Color(0xFF0D0D0D);
+  static const Color background = comicNavy;
+  static const Color cardBackground = comicPanel;
+  static const Color overlayBackground = Color(0xFF08122C);
 
   // Accents
   static const Color accentGreen = Color(0xFF39FF14);
   static const Color accentAmber = Color(0xFFFFCA28);
   /// Arcade Strip CTA yellow
-  static const Color arcadeYellow = Color(0xFFFFD600);
-  static const Color arcadeYellowDark = Color(0xFFE6C200);
+  static const Color arcadeYellow = comicYellow;
+  static const Color arcadeYellowDark = comicYellowDark;
   static const Color accent = primaryBlue;
   static const Color primary = background;
 
