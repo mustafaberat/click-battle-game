@@ -135,7 +135,8 @@ class _GameOverPopupState extends State<GameOverPopup>
     required bool p1Wins,
   }) {
     if (widget.isTutorial) {
-      return _appManager.getText(p1Wins || isTie ? 'demoYouWin' : 'demoRobotWins');
+      return _appManager
+          .getText(p1Wins || isTie ? 'demoYouWin' : 'demoRobotWins');
     }
     if (isTie) return _appManager.getText('tieHeadline');
     if (widget.isSinglePlayer) {
@@ -164,7 +165,8 @@ class _GameOverPopupState extends State<GameOverPopup>
           AnimatedBuilder(
             animation: _confettiController,
             builder: (context, _) => CustomPaint(
-              painter: _ConfettiPainter(_confettiController.value, p1Wins, isTie),
+              painter:
+                  _ConfettiPainter(_confettiController.value, p1Wins, isTie),
               size: Size.infinite,
             ),
           ),
@@ -175,7 +177,8 @@ class _GameOverPopupState extends State<GameOverPopup>
                 animation: _shakeController,
                 builder: (context, child) {
                   final dx = (_shakeController.value - 0.5) * 10;
-                  return Transform.translate(offset: Offset(dx, 0), child: child);
+                  return Transform.translate(
+                      offset: Offset(dx, 0), child: child);
                 },
                 child: ScaleTransition(
                   scale: _gameOverScale,
@@ -423,44 +426,70 @@ class _ScoreBand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: ArcadeChrome.ink, width: 3),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _bandCol(
-                label: leftLabel,
-                score: leftScore,
-                color: ArcadeChrome.blue,
+    // Dark rounded frame holding two rounded comic panels; VS sits on top
+    // as a round badge straddling the gap.
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A142E),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: ArcadeChrome.ink, width: 3),
+        boxShadow: const [
+          BoxShadow(
+              color: ArcadeChrome.ink, offset: Offset(3, 3), blurRadius: 0),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _bandCol(
+                  label: leftLabel,
+                  score: leftScore,
+                  color: ArcadeChrome.blue,
+                ),
               ),
-            ),
-            Container(
-              width: 44,
-              height: 88,
+              const SizedBox(width: 6),
+              Expanded(
+                child: _bandCol(
+                  label: rightLabel,
+                  score: rightScore,
+                  color: ArcadeChrome.red,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
               color: const Color(0xFF0A142E),
-              alignment: Alignment.center,
+              shape: BoxShape.circle,
+              border: Border.all(color: ArcadeChrome.ink, width: 3),
+              boxShadow: const [
+                BoxShadow(
+                  color: ArcadeChrome.ink,
+                  offset: Offset(2, 2),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
               child: Text(
                 vsLabel.toUpperCase(),
                 style: ArcadeChrome.display(
-                  size: 16,
+                  size: 15,
                   color: ArcadeChrome.yellow,
+                  outlineWidth: 1.5,
                 ),
               ),
             ),
-            Expanded(
-              child: _bandCol(
-                label: rightLabel,
-                score: rightScore,
-                color: ArcadeChrome.red,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -470,10 +499,14 @@ class _ScoreBand extends StatelessWidget {
     required int score,
     required Color color,
   }) {
-    return ColoredBox(
-      color: color,
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: ArcadeChrome.ink, width: 2.5),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        padding: const EdgeInsets.fromLTRB(6, 10, 6, 10),
         child: Column(
           children: [
             Text(
@@ -488,9 +521,12 @@ class _ScoreBand extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              '$score',
-              style: ArcadeChrome.display(size: 36, color: Colors.white),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$score',
+                style: ArcadeChrome.display(size: 36, color: Colors.white),
+              ),
             ),
           ],
         ),

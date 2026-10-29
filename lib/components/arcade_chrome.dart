@@ -39,18 +39,22 @@ class ArcadeChrome {
       color: color,
       letterSpacing: 1.5,
       height: 1.0,
-      shadows: [
-        Shadow(
-          color: outline ?? Colors.black,
-          offset: Offset(outlineWidth, outlineWidth),
-          blurRadius: 0,
-        ),
-        Shadow(
-          color: outline ?? Colors.black,
-          offset: Offset(-outlineWidth * 0.35, outlineWidth * 0.35),
-          blurRadius: 0,
-        ),
-      ],
+      // outlineWidth <= 0 renders a crisp, shadow-free number (e.g. dark
+      // ink on a yellow tile, where an ink drop shadow smears the glyphs).
+      shadows: outlineWidth <= 0
+          ? const []
+          : [
+              Shadow(
+                color: outline ?? Colors.black,
+                offset: Offset(outlineWidth, outlineWidth),
+                blurRadius: 0,
+              ),
+              Shadow(
+                color: outline ?? Colors.black,
+                offset: Offset(-outlineWidth * 0.35, outlineWidth * 0.35),
+                blurRadius: 0,
+              ),
+            ],
     );
   }
 
@@ -247,7 +251,9 @@ class ComicPanel extends StatelessWidget {
         children: [
           Container(
             width: double.infinity,
-            margin: label != null ? const EdgeInsets.only(top: 10) : EdgeInsets.zero,
+            margin: label != null
+                ? const EdgeInsets.only(top: 10)
+                : EdgeInsets.zero,
             padding: padding,
             decoration: ArcadeChrome.panelBox(accent: accent),
             child: child,
@@ -334,7 +340,6 @@ class HalftoneBackground extends StatelessWidget {
   }
 }
 
-
 /// Navy halftone backdrop behind the raster home hero art.
 class ComicHeroBackdrop extends StatelessWidget {
   final Animation<double>? handT;
@@ -348,7 +353,6 @@ class ComicHeroBackdrop extends StatelessWidget {
     return const HalftoneBackground();
   }
 }
-
 
 /// Classic comic lightning bolt path, origin at the top center of the bolt.
 Path lightningPath(Offset top, double height, double width) {
@@ -476,7 +480,8 @@ class ArcadePill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ArcadeChrome.ink, width: 2.5),
         boxShadow: const [
-          BoxShadow(color: ArcadeChrome.ink, offset: Offset(2, 2), blurRadius: 0),
+          BoxShadow(
+              color: ArcadeChrome.ink, offset: Offset(2, 2), blurRadius: 0),
         ],
       ),
       child: Text(

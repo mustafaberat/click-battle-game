@@ -110,7 +110,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
                                   icon: Icons.timer,
                                   label: _appManager.getText('timeAttack'),
                                   darkLabel: true,
-                                  onTap: () => setState(() => isTimeMode = true),
+                                  onTap: () =>
+                                      setState(() => isTimeMode = true),
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -217,9 +218,8 @@ class _ModeSelectionScreenState extends State<ModeSelectionScreen> {
       '/game',
       arguments: {
         'mode': isTimeMode ? 'GameMode.timeLimit' : 'GameMode.scoreLimit',
-        'playerMode': isSinglePlayer
-            ? 'PlayerMode.singlePlayer'
-            : 'PlayerMode.twoPlayer',
+        'playerMode':
+            isSinglePlayer ? 'PlayerMode.singlePlayer' : 'PlayerMode.twoPlayer',
         'timeLimit': timeLimit,
         'scoreLimit': scoreLimit,
         'difficulty': difficulty,
@@ -318,30 +318,38 @@ class _ChunkTileState extends State<_ChunkTile>
                   ]
                 : null,
           ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.topText != null)
-                  Text(
-                    widget.topText!,
-                    style: ArcadeChrome.display(size: 26, color: fg),
-                  )
-                else if (widget.icon != null)
-                  Icon(widget.icon, color: fg, size: 26),
-                const SizedBox(height: 6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.topText != null)
                 Text(
-                  widget.label.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: ArcadeChrome.ui(
+                  widget.topText!,
+                  style: ArcadeChrome.display(
+                    size: 26,
                     color: fg,
-                    size: 11,
-                    letterSpacing: 0.6,
+                    // Dark ink on a light (yellow) tile: no ink shadow,
+                    // otherwise the glyphs look doubled / over-drawn.
+                    outlineWidth: widget.selected && widget.darkLabel
+                        ? 0
+                        : (widget.selected ? 1.6 : 2.0),
                   ),
+                )
+              else if (widget.icon != null)
+                Icon(widget.icon, color: fg, size: 26),
+              const SizedBox(height: 6),
+              Text(
+                widget.label.toUpperCase(),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: ArcadeChrome.ui(
+                  color: fg,
+                  size: 11,
+                  letterSpacing: 0.6,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ),
       ),
     );
