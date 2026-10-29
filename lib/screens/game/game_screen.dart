@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 import 'package:clickbattle/components/game_divider.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
@@ -303,7 +304,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     final iconSize = screenSize.width * 0.075;
     final blue = _appManager.player1Color;
     final red = _appManager.player2Color;
-    final topPad = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: AppColors.comicNavy,
@@ -335,8 +335,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
+                      const Positioned.fill(
+                        child: IgnorePointer(
+                          child: Image(
+                            image: AssetImage(AppImages.speedLines),
+                            fit: BoxFit.cover,
+                            gaplessPlayback: true,
+                          ),
+                        ),
+                      ),
                       Positioned(
-                        top: topH - 14,
+                        top: topH - 50,
                         left: 0,
                         right: 0,
                         child: GameDivider(
@@ -344,7 +353,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           pulseAnimation: _dividerPulseAnimation,
                           player1Color: blue,
                           player2Color: red,
-                          height: 28,
+                          height: 100,
                         ),
                       ),
                     ],
@@ -354,47 +363,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             },
           ),
           TapBurstLayer(controller: _bursts),
-          // HUD
-          if (isSinglePlayer)
-            Positioned(
-              top: topPad + 10,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: ComicTimerChip(
-                  icon: isTimeMode ? Icons.timer : Icons.flag,
-                  value: _hudValue,
-                  urgent: _timerUrgent,
-                  pulse: isGameStarted && isTimeMode,
-                ),
-              ),
-            )
-          else ...[
-            Positioned(
-              left: screenSize.width * 0.05,
-              top: screenSize.height * 0.5 + 14,
-              child: ComicTimerChip(
-                icon: isTimeMode ? Icons.timer : Icons.flag,
-                value: _hudValue,
-                urgent: _timerUrgent,
-                pulse: isGameStarted && isTimeMode,
-              ),
-            ),
-            Positioned(
-              left: screenSize.width * 0.05,
-              bottom: screenSize.height * 0.5 + 14,
-              child: Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.rotationZ(pi),
-                child: ComicTimerChip(
-                  icon: isTimeMode ? Icons.timer : Icons.flag,
-                  value: _hudValue,
-                  urgent: _timerUrgent,
-                  pulse: isGameStarted && isTimeMode,
-                ),
-              ),
-            ),
-          ],
           Positioned(
             right: screenSize.width * 0.06,
             top: isSinglePlayer
@@ -449,14 +417,24 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 .forward(from: 0.0)
                                 .then((_) => _player2ClickController.reverse());
                           },
-                    child: Center(
-                      child: PlayerIcon(
-                        isRobot: isSinglePlayer,
-                        isTopPlayer: true,
-                        iconSize: iconSize,
-                        scaleAnimation: _player2ClickScale,
-                        color: Colors.white,
-                      ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (!isSinglePlayer)
+                          _BigBurst(
+                            controller: _player2ClickController,
+                            size: iconSize * 5,
+                          ),
+                        Center(
+                          child: PlayerIcon(
+                            isRobot: isSinglePlayer,
+                            isTopPlayer: true,
+                            iconSize: iconSize,
+                            scaleAnimation: _player2ClickScale,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -473,6 +451,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       fit: StackFit.expand,
                       children: [
                         const IgnorePointer(child: _TapRings()),
+                        _BigBurst(
+                          controller: _player1ClickController,
+                          size: iconSize * 5,
+                        ),
                         Center(
                           child: PlayerIcon(
                             isRobot: false,
@@ -487,6 +469,41 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ],
+            ),
+          ),
+          // Neutral HUD: one compact chip centred on the frontier, above
+          // divider + FX, never intercepting taps.
+          IgnorePointer(
+            child: AnimatedBuilder(
+              animation: _colorAnimation,
+              builder: (context, _) => LayoutBuilder(
+                builder: (context, constraints) {
+                  final h = constraints.maxHeight;
+                  final topH = ((1 - _colorAnimation.value) * h)
+                      .clamp(h * 0.08, h * 0.92);
+                  return Stack(
+                    children: [
+                      Positioned(
+                        top: topH,
+                        left: 0,
+                        right: 0,
+                        child: FractionalTranslation(
+                          translation: const Offset(0, -0.5),
+                          child: Center(
+                            child: ComicTimerChip(
+                              key: const Key('gameHudChip'),
+                              icon: isTimeMode ? Icons.timer : Icons.flag,
+                              value: _hudValue,
+                              urgent: _timerUrgent,
+                              pulse: isGameStarted && isTimeMode,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
           if (!isGameStarted)
@@ -514,6 +531,39 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               gameArgs: widget.gameArgs,
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Big comic impact burst behind a player icon, driven by its tap controller.
+class _BigBurst extends StatelessWidget {
+  final AnimationController controller;
+  final double size;
+
+  const _BigBurst({required this.controller, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Center(
+        child: AnimatedBuilder(
+          animation: controller,
+          builder: (context, child) {
+            final t = controller.value;
+            if (t <= 0.001) return const SizedBox.shrink();
+            return Opacity(
+              opacity: (t * 1.4).clamp(0.0, 1.0),
+              child: Transform.scale(scale: 0.55 + 0.6 * t, child: child),
+            );
+          },
+          child: Image.asset(
+            AppImages.burstBig,
+            width: size,
+            height: size,
+            gaplessPlayback: true,
+          ),
+        ),
       ),
     );
   }

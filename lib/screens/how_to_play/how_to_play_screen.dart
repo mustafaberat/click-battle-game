@@ -194,30 +194,40 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
               return LayoutBuilder(
                 builder: (context, c) {
                   final totalH = c.maxHeight;
-                  const lineH = 22.0;
-                  final topH = ((1 - ratio) * (totalH - lineH))
+                  const lineH = 72.0;
+                  final topH = ((1 - ratio) * totalH)
                       .clamp(totalH * 0.18, totalH * 0.82);
-                  return Column(
+                  return Stack(
                     children: [
-                      SizedBox(
-                        height: topH,
-                        width: double.infinity,
-                        child: const ComicArena(
-                          color: ArcadeChrome.red,
-                          alignTop: true,
-                        ),
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: topH,
+                            width: double.infinity,
+                            child: const ComicArena(
+                              color: ArcadeChrome.red,
+                              alignTop: true,
+                            ),
+                          ),
+                          const Expanded(
+                            child: ComicArena(
+                              color: ArcadeChrome.blue,
+                              alignTop: false,
+                            ),
+                          ),
+                        ],
                       ),
-                      GameDivider(
-                        ratio: ratio,
-                        pulseAnimation: lineGlow ? _linePulse : null,
-                        player1Color: ArcadeChrome.blue,
-                        player2Color: ArcadeChrome.red,
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        top: topH - lineH / 2,
                         height: lineH,
-                      ),
-                      const Expanded(
-                        child: ComicArena(
-                          color: ArcadeChrome.blue,
-                          alignTop: false,
+                        child: GameDivider(
+                          ratio: ratio,
+                          pulseAnimation: lineGlow ? _linePulse : null,
+                          player1Color: ArcadeChrome.blue,
+                          player2Color: ArcadeChrome.red,
+                          height: lineH,
                         ),
                       ),
                     ],

@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/constants/app_images.dart';
 
 /// Arcade Strip Comic chrome — Bangers titles, Exo 2 UI, hard ink outlines.
 class ArcadeChrome {
@@ -308,72 +307,35 @@ class HalftoneBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: HalftonePainter(
+    final String tile;
+    if (color == ArcadeChrome.red) {
+      tile = AppImages.halftoneRed;
+    } else if (color == ArcadeChrome.blue) {
+      tile = AppImages.halftoneBlue;
+    } else if (color == ArcadeChrome.navy) {
+      tile = AppImages.halftoneNavy;
+    } else {
+      tile = AppImages.halftoneDots;
+    }
+    return DecoratedBox(
+      decoration: BoxDecoration(
         color: color,
-        wash: wash,
-        speedLines: speedLines,
-        dotOpacity: dotOpacity,
+        image: DecorationImage(
+          image: AssetImage(tile),
+          repeat: ImageRepeat.repeat,
+          alignment: Alignment.topLeft,
+          filterQuality: FilterQuality.medium,
+        ),
       ),
-      child: const SizedBox.expand(),
+      child: wash == null
+          ? const SizedBox.expand()
+          : ColoredBox(color: wash!, child: const SizedBox.expand()),
     );
   }
 }
 
-class HalftonePainter extends CustomPainter {
-  final Color color;
-  final Color? wash;
-  final bool speedLines;
-  final double dotOpacity;
 
-  HalftonePainter({
-    required this.color,
-    this.wash,
-    this.speedLines = false,
-    this.dotOpacity = 0.22,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = color);
-    if (wash != null) {
-      canvas.drawRect(Offset.zero & size, Paint()..color = wash!);
-    }
-    final dot = Paint()..color = Colors.black.withOpacity(dotOpacity);
-    const step = 16.0;
-    for (double y = 0; y < size.height + step; y += step) {
-      final stagger = ((y / step).floor().isEven) ? 0.0 : step * 0.5;
-      for (double x = stagger; x < size.width + step; x += step) {
-        canvas.drawCircle(Offset(x, y), 1.7, dot);
-      }
-    }
-    if (speedLines) {
-      final line = Paint()
-        ..color = Colors.white.withOpacity(0.07)
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round;
-      final cx = size.width * 0.5;
-      final cy = size.height * 0.38;
-      for (int i = 0; i < 10; i++) {
-        final a = -0.9 + i * 0.2;
-        canvas.drawLine(
-          Offset(cx + math.cos(a) * 28, cy + math.sin(a) * 18),
-          Offset(cx + math.cos(a) * 140, cy + math.sin(a) * 90),
-          line,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant HalftonePainter old) =>
-      old.color != color ||
-      old.wash != wash ||
-      old.speedLines != speedLines ||
-      old.dotOpacity != dotOpacity;
-}
-
-/// Red/blue comic pointing gloves + central lightning (home hero).
+/// Navy halftone backdrop behind the raster home hero art.
 class ComicHeroBackdrop extends StatelessWidget {
   final Animation<double>? handT;
   final Animation<double>? glintT;
@@ -383,197 +345,10 @@ class ComicHeroBackdrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([
-        handT ?? const AlwaysStoppedAnimation(1.0),
-        glintT ?? const AlwaysStoppedAnimation(0.0),
-      ]),
-      builder: (context, _) {
-        final t = handT?.value ?? 1.0;
-        final glint = glintT?.value ?? 0.0;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            const HalftoneBackground(speedLines: true),
-            CustomPaint(
-              painter: _HomeLightningPainter(glint: glint),
-              child: const SizedBox.expand(),
-            ),
-            // Hands stay in the upper ~58% so they never cover CTAs.
-            Align(
-              alignment: Alignment(-1.15 + 0.35 * t, -0.82),
-              child: Transform.rotate(
-                angle: -0.35,
-                child: Transform.scale(
-                  scale: 0.85 + 0.15 * t,
-                  child: const _ComicGlove(color: ArcadeChrome.red, flip: false),
-                ),
-              ),
-            ),
-            Align(
-              // Mid-right, above the CTA row — never cover HOW TO PLAY.
-              alignment: Alignment(1.22 - 0.16 * t, 0.16),
-              child: Transform.rotate(
-                angle: 0.55,
-                child: Transform.scale(
-                  scale: 0.75 + 0.18 * t,
-                  child: const _ComicGlove(color: ArcadeChrome.blue, flip: true),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+    return const HalftoneBackground();
   }
 }
 
-class _ComicGlove extends StatelessWidget {
-  final Color color;
-  final bool flip;
-
-  const _ComicGlove({required this.color, required this.flip});
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.diagonal3Values(flip ? -1.0 : 1.0, 1.0, 1.0),
-      child: CustomPaint(
-        size: const Size(168, 168),
-        painter: _GlovePainter(color),
-      ),
-    );
-  }
-}
-
-class _GlovePainter extends CustomPainter {
-  final Color color;
-  _GlovePainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fill = Paint()..color = color;
-    final ink = Paint()
-      ..color = ArcadeChrome.ink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round;
-    final white = Paint()..color = Colors.white;
-
-    // Burst behind the glove
-    final burst = Path();
-    final c = Offset(size.width * 0.42, size.height * 0.52);
-    for (int i = 0; i < 10; i++) {
-      final a = i * math.pi / 5;
-      final r = i.isEven ? 54.0 : 28.0;
-      final p = Offset(c.dx + math.cos(a) * r, c.dy + math.sin(a) * r);
-      if (i == 0) {
-        burst.moveTo(p.dx, p.dy);
-      } else {
-        burst.lineTo(p.dx, p.dy);
-      }
-    }
-    burst.close();
-    canvas.drawPath(burst, Paint()..color = Colors.white.withOpacity(0.92));
-    canvas.drawPath(
-      burst,
-      Paint()
-        ..color = ArcadeChrome.ink
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3,
-    );
-
-    // Sleeve
-    final sleeve = RRect.fromRectAndRadius(
-      Rect.fromLTWH(8, 18, 54, 42),
-      const Radius.circular(10),
-    );
-    canvas.drawRRect(sleeve, fill);
-    canvas.drawRRect(sleeve, ink);
-
-    // Cuff
-    final cuff = RRect.fromRectAndRadius(
-      Rect.fromLTWH(50, 22, 18, 36),
-      const Radius.circular(6),
-    );
-    canvas.drawRRect(cuff, white);
-    canvas.drawRRect(cuff, ink);
-
-    // Palm
-    final palm = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(62, 28, 52, 58),
-          const Radius.circular(18),
-        ),
-      );
-    canvas.drawPath(palm, fill);
-    canvas.drawPath(palm, ink);
-
-    // Index finger (pointing right)
-    final finger = RRect.fromRectAndRadius(
-      Rect.fromLTWH(104, 34, 52, 20),
-      const Radius.circular(10),
-    );
-    canvas.drawRRect(finger, fill);
-    canvas.drawRRect(finger, ink);
-
-    // Other fingers (curled)
-    for (int i = 0; i < 3; i++) {
-      final f = RRect.fromRectAndRadius(
-        Rect.fromLTWH(108, 56.0 + i * 10, 22, 12),
-        const Radius.circular(6),
-      );
-      canvas.drawRRect(f, fill);
-      canvas.drawRRect(f, ink);
-    }
-
-    // Thumb
-    final thumb = RRect.fromRectAndRadius(
-      Rect.fromLTWH(70, 74, 22, 28),
-      const Radius.circular(10),
-    );
-    canvas.drawRRect(thumb, fill);
-    canvas.drawRRect(thumb, ink);
-  }
-
-  @override
-  bool shouldRepaint(covariant _GlovePainter old) => old.color != color;
-}
-
-class _HomeLightningPainter extends CustomPainter {
-  final double glint;
-  _HomeLightningPainter({required this.glint});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bolt = lightningPath(
-      Offset(size.width * 0.52, size.height * 0.10),
-      size.height * 0.42,
-      size.width * 0.16,
-    );
-    final ink = Paint()
-      ..color = ArcadeChrome.ink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round;
-    final fill = Paint()..color = ArcadeChrome.yellow;
-    canvas.drawPath(bolt, ink);
-    canvas.drawPath(bolt, fill);
-    if (glint > 0.02) {
-      canvas.drawPath(
-        bolt,
-        Paint()..color = Colors.white.withOpacity(0.35 * glint),
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _HomeLightningPainter old) => old.glint != glint;
-}
 
 /// Classic comic lightning bolt path, origin at the top center of the bolt.
 Path lightningPath(Offset top, double height, double width) {
@@ -648,24 +423,36 @@ class ComicArena extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deep = Color.lerp(color, const Color(0xFF3A0010), 0.28)!;
+    final String tile;
+    if (color == ArcadeChrome.red) {
+      tile = AppImages.halftoneRed;
+    } else if (color == ArcadeChrome.blue) {
+      tile = AppImages.halftoneBlue;
+    } else {
+      tile = AppImages.halftoneDots;
+    }
     return Stack(
       fit: StackFit.expand,
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: alignTop ? Alignment.topCenter : Alignment.bottomCenter,
-              end: alignTop ? Alignment.bottomCenter : Alignment.topCenter,
-              colors: [deep, color, Color.lerp(color, Colors.white, 0.12)!],
-              stops: const [0.0, 0.55, 1.0],
+            color: color,
+            image: DecorationImage(
+              image: AssetImage(tile),
+              repeat: ImageRepeat.repeat,
+              alignment: Alignment.topLeft,
+              filterQuality: FilterQuality.medium,
             ),
           ),
         ),
-        CustomPaint(
-          painter: HalftonePainter(
-            color: Colors.transparent,
-            dotOpacity: 0.18,
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: alignTop ? Alignment.topCenter : Alignment.bottomCenter,
+              end: alignTop ? Alignment.bottomCenter : Alignment.topCenter,
+              colors: [Colors.black.withOpacity(0.18), Colors.transparent],
+              stops: const [0.0, 0.6],
+            ),
           ),
         ),
       ],

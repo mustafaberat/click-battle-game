@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/constants/app_colors.dart';
+import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -61,6 +63,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  bool _precached = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precached) return;
+    _precached = true;
+    for (final path in AppImages.precache) {
+      precacheImage(AssetImage(path), context, onError: (_, __) {});
+    }
+  }
+
   @override
   void dispose() {
     _pulse.dispose();
@@ -89,42 +103,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               padding: const EdgeInsets.symmetric(horizontal: 22),
               child: Column(
                 children: [
-                  const Spacer(flex: 2),
-                  Transform.rotate(
-                    angle: -0.06,
-                    child: Column(
-                      children: [
-                        Text(
-                          'CLICK',
-                          style: ArcadeChrome.display(
-                            size: 58,
-                            color: ArcadeChrome.yellow,
-                            outlineWidth: 3.2,
-                          ),
-                        ),
-                        Text(
-                          'BATTLE',
-                          style: ArcadeChrome.display(
-                            size: 58,
-                            color: ArcadeChrome.yellow,
-                            outlineWidth: 3.2,
-                          ),
-                        ),
-                      ],
+                  Expanded(
+                    child: _HomeHero(
+                      entrance: _handsAnim,
+                      tagline: _app.getText('welcomeMessage'),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _app.getText('welcomeMessage'),
-                    textAlign: TextAlign.center,
-                    style: ArcadeChrome.ui(
-                      size: 13,
-                      color: Colors.white.withOpacity(0.85),
-                      weight: FontWeight.w600,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                  const Spacer(flex: 3),
                   ScaleTransition(
                     scale: Tween(begin: 1.0, end: 1.04).animate(
                       CurvedAnimation(
@@ -251,6 +235,83 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Raster hero art: fills from the very top of the screen (behind the status
+/// bar) down to the vertical centre of the START button, edge to edge.
+class _HomeHero extends StatelessWidget {
+  final Animation<double> entrance;
+  final String tagline;
+
+  const _HomeHero({required this.entrance, required this.tagline});
+
+  static const double _hPad = 22;
+  static const double _bottomBleed = 64 / 2 + 8;
+  static const double _srcW = 1080;
+  static const double _srcH = 1440;
+
+  @override
+  Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    return LayoutBuilder(
+      builder: (context, c) {
+        final w = c.maxWidth + _hPad * 2;
+        final h = c.maxHeight + topInset + _bottomBleed;
+        final scale = math.max(w / _srcW, h / _srcH);
+        final imgH = _srcH * scale;
+        final imgTop = (h - imgH) / 2;
+        final subtitleY = -topInset + imgTop + 0.733 * imgH;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: -_hPad,
+              right: -_hPad,
+              top: -topInset,
+              bottom: -_bottomBleed,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.92, end: 1.0).animate(entrance),
+                child: Semantics(
+                  label: 'CLICK BATTLE',
+                  image: true,
+                  child: Image.asset(
+                    AppImages.homeHero,
+                    key: const Key('homeHeroTitle'),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    filterQuality: FilterQuality.medium,
+                    gaplessPlayback: true,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: subtitleY,
+              child: Text(
+                tagline,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: ArcadeChrome.ui(
+                  size: 15,
+                  weight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.4,
+                ).copyWith(
+                  shadows: const [
+                    Shadow(color: Colors.black, offset: Offset(2, 2)),
+                    Shadow(color: Colors.black, offset: Offset(-1, 1)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

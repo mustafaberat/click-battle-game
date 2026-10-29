@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
+import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/services/app_manager.dart';
 
@@ -353,146 +354,56 @@ class _GameOverPopupState extends State<GameOverPopup>
   }
 }
 
-class _Trophy extends StatelessWidget {
+class _Trophy extends StatefulWidget {
   final bool isTie;
   final bool p1Wins;
 
   const _Trophy({required this.isTie, required this.p1Wins});
 
   @override
-  Widget build(BuildContext context) {
-    final color = isTie
-        ? ArcadeChrome.yellow
-        : (p1Wins ? const Color(0xFFFFC107) : const Color(0xFF8A93A6));
-    return SizedBox(
-      width: 108,
-      height: 96,
-      child: CustomPaint(
-        painter: _TrophyPainter(color: color, isTie: isTie),
-      ),
-    );
-  }
+  State<_Trophy> createState() => _TrophyState();
 }
 
-class _TrophyPainter extends CustomPainter {
-  final Color color;
-  final bool isTie;
+class _TrophyState extends State<_Trophy> with SingleTickerProviderStateMixin {
+  late final AnimationController _raysSpin = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 12),
+  )..repeat();
 
-  _TrophyPainter({required this.color, required this.isTie});
+  static const ColorFilter _grey = ColorFilter.matrix(<double>[
+    0.33, 0.33, 0.33, 0, 0, //
+    0.33, 0.33, 0.33, 0, 0, //
+    0.33, 0.33, 0.33, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]);
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final ink = Paint()
-      ..color = ArcadeChrome.ink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.4
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round;
-    final fill = Paint()..color = color;
-    final dark = Paint()..color = Color.lerp(color, Colors.black, 0.28)!;
-    final cx = size.width * 0.5;
-
-    if (isTie) {
-      final left = Path()
-        ..moveTo(cx - 28, 28)
-        ..quadraticBezierTo(cx - 46, 18, cx - 42, 46)
-        ..quadraticBezierTo(cx - 18, 58, cx - 8, 44)
-        ..quadraticBezierTo(cx - 22, 32, cx - 28, 28);
-      final right = Path()
-        ..moveTo(cx + 28, 28)
-        ..quadraticBezierTo(cx + 46, 18, cx + 42, 46)
-        ..quadraticBezierTo(cx + 18, 58, cx + 8, 44)
-        ..quadraticBezierTo(cx + 22, 32, cx + 28, 28);
-      canvas.drawPath(left, fill);
-      canvas.drawPath(left, ink);
-      canvas.drawPath(right, fill);
-      canvas.drawPath(right, ink);
-      return;
-    }
-
-    // Cup bowl
-    final bowl = Path()
-      ..moveTo(cx - 26, 18)
-      ..lineTo(cx + 26, 18)
-      ..quadraticBezierTo(cx + 30, 52, cx + 14, 64)
-      ..lineTo(cx - 14, 64)
-      ..quadraticBezierTo(cx - 30, 52, cx - 26, 18)
-      ..close();
-    canvas.drawPath(bowl, fill);
-    canvas.drawPath(bowl, ink);
-
-    // Handles
-    final leftHandle = Path()
-      ..moveTo(cx - 26, 26)
-      ..quadraticBezierTo(cx - 48, 34, cx - 28, 54);
-    final rightHandle = Path()
-      ..moveTo(cx + 26, 26)
-      ..quadraticBezierTo(cx + 48, 34, cx + 28, 54);
-    final handleStroke = Paint()
-      ..color = ArcadeChrome.ink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(leftHandle, handleStroke);
-    canvas.drawPath(rightHandle, handleStroke);
-    canvas.drawPath(
-      leftHandle,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawPath(
-      rightHandle,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
-        ..strokeCap = StrokeCap.round,
-    );
-
-    // Stem + base
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, 72), width: 12, height: 16),
-        const Radius.circular(3),
-      ),
-      dark,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, 72), width: 12, height: 16),
-        const Radius.circular(3),
-      ),
-      ink,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, 86), width: 40, height: 10),
-        const Radius.circular(4),
-      ),
-      fill,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, 86), width: 40, height: 10),
-        const Radius.circular(4),
-      ),
-      ink,
-    );
-
-    // Shine
-    canvas.drawCircle(
-      Offset(cx - 10, 30),
-      4,
-      Paint()..color = Colors.white.withOpacity(0.85),
-    );
+  void dispose() {
+    _raysSpin.dispose();
+    super.dispose();
   }
 
   @override
-  bool shouldRepaint(covariant _TrophyPainter old) =>
-      old.color != color || old.isTie != isTie;
+  Widget build(BuildContext context) {
+    final lost = !widget.isTie && !widget.p1Wins;
+    final trophy = Image.asset(AppImages.trophy, height: 120);
+    return SizedBox(
+      width: 170,
+      height: 150,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          if (!widget.isTie && widget.p1Wins)
+            RotationTransition(
+              turns: _raysSpin,
+              child: Image.asset(AppImages.trophyRays, width: 170, height: 170),
+            ),
+          lost ? ColorFiltered(colorFilter: _grey, child: trophy) : trophy,
+        ],
+      ),
+    );
+  }
 }
 
 class _ScoreBand extends StatelessWidget {

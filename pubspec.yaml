@@ -26,6 +26,7 @@ flutter:
   assets:
     - lib/assets/app-icon.jpg
     - lib/assets/audio/bg-music.mp3
+    - assets/images/
 
   fonts:
     - family: Bangers

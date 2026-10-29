@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
 
 /// Pooled comic burst + floating "+1" overlay. Caps simultaneous FX at [maxBursts].
@@ -83,7 +84,6 @@ class _TapBurstLayerState extends State<TapBurstLayer>
     with SingleTickerProviderStateMixin {
   Ticker? _ticker;
   Duration _last = Duration.zero;
-  late final _BurstPainter _painter = _BurstPainter(widget.controller._pool);
 
   @override
   void initState() {
@@ -97,7 +97,6 @@ class _TapBurstLayerState extends State<TapBurstLayer>
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_onSpawn);
       widget.controller.addListener(_onSpawn);
-      _painter.pool = widget.controller._pool;
     }
   }
 
@@ -126,93 +125,60 @@ class _TapBurstLayerState extends State<TapBurstLayer>
   void dispose() {
     widget.controller.removeListener(_onSpawn);
     _ticker?.dispose();
-    _painter.dispose();
     super.dispose();
   }
 
+  static const double _starSize = 72;
+  static const double _plusWidth = 44;
+
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: CustomPaint(
-        painter: _painter,
-        size: Size.infinite,
-      ),
-    );
-  }
-}
-
-class _BurstPainter extends CustomPainter {
-  List<_Burst> pool;
-  final Paint _fill = Paint()..style = PaintingStyle.fill;
-  final Paint _stroke = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 3
-    ..strokeJoin = StrokeJoin.round;
-  final TextPainter _label = TextPainter(textDirection: TextDirection.ltr);
-
-  _BurstPainter(this.pool);
-
-  static final Path starPath = _buildStar();
-
-  static Path _buildStar() {
-    const n = 8;
-    final p = Path();
-    for (int i = 0; i < n * 2; i++) {
-      final r = i.isEven ? 22.0 : 10.0;
-      final a = -math.pi / 2 + i * math.pi / n;
-      final x = math.cos(a) * r;
-      final y = math.sin(a) * r;
-      if (i == 0) {
-        p.moveTo(x, y);
-      } else {
-        p.lineTo(x, y);
-      }
-    }
-    p.close();
-    return p;
-  }
-
-  void dispose() {
-    _label.dispose();
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (final b in pool) {
+    final children = <Widget>[];
+    for (final b in widget.controller._pool) {
       if (!b.active) continue;
       final t = (b.born / TapBurstController.lifetime).clamp(0.0, 1.0);
       final fade = 1.0 - t;
-      final scale = 0.65 + t * 0.7;
-
-      canvas.save();
-      canvas.translate(b.origin.dx, b.origin.dy);
-      canvas.scale(scale);
-      _fill.color = const Color(0xFFFFF4A3).withOpacity(fade);
-      canvas.drawPath(starPath, _fill);
-      _stroke.color = ArcadeChrome.ink.withOpacity(fade);
-      canvas.drawPath(starPath, _stroke);
-      canvas.restore();
-
-      final dy = -48 * t;
-      final dx = math.sin(b.angle) * 10 * t;
-      canvas.save();
-      canvas.translate(b.origin.dx + dx, b.origin.dy + dy);
-      canvas.rotate(b.angle);
-      _label
-        ..text = TextSpan(
-          text: '+1',
-          style: ArcadeChrome.display(
-            size: 28,
-            color: ArcadeChrome.yellow.withOpacity(fade),
-            outline: ArcadeChrome.ink.withOpacity(fade),
+      final o = b.origin;
+      children.add(
+        Positioned(
+          left: o.dx - _starSize / 2,
+          top: o.dy - _starSize / 2,
+          child: Opacity(
+            opacity: fade,
+            child: Transform.scale(
+              scale: 0.6 + 0.7 * t,
+              child: Image.asset(
+                AppImages.sparkStar,
+                width: _starSize,
+                height: _starSize,
+                gaplessPlayback: true,
+              ),
+            ),
           ),
-        )
-        ..layout();
-      _label.paint(canvas, Offset(-_label.width / 2, -_label.height / 2));
-      canvas.restore();
+        ),
+      );
+      children.add(
+        Positioned(
+          left: o.dx - _plusWidth / 2 + math.sin(b.angle) * 10 * t,
+          top: o.dy - 70 - 48 * t,
+          child: Opacity(
+            opacity: fade,
+            child: Transform.rotate(
+              angle: b.angle,
+              child: Image.asset(
+                AppImages.plus1,
+                width: _plusWidth,
+                gaplessPlayback: true,
+              ),
+            ),
+          ),
+        ),
+      );
     }
+    return IgnorePointer(
+      child: SizedBox.expand(
+        child: Stack(clipBehavior: Clip.none, children: children),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
