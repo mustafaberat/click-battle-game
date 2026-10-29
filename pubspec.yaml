@@ -27,4 +27,5 @@ flutter:
   assets:
     - lib/assets/app-icon.jpg
     - lib/assets/audio/bg-music.mp3
+    - google_fonts/
 
