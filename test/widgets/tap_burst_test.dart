@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('TapBurstController caps at 12 live bursts', () {
+  test('TapBurstController caps at maxBursts live bursts', () {
     final c = TapBurstController();
     for (int i = 0; i < 20; i++) {
       c.spawn(Offset(i.toDouble(), 0), Colors.yellow, 0.1);

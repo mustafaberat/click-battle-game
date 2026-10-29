@@ -7,7 +7,7 @@ import 'package:clickbattle/components/arcade_chrome.dart';
 
 /// Pooled comic burst + floating "+1" overlay. Caps simultaneous FX at [maxBursts].
 class TapBurstController extends ChangeNotifier {
-  static const int maxBursts = 12;
+  static const int maxBursts = 16;
   static const double lifetime = 0.40;
 
   final List<_Burst> _pool = List<_Burst>.generate(
@@ -143,16 +143,14 @@ class _TapBurstLayerState extends State<TapBurstLayer>
         Positioned(
           left: o.dx - _starSize / 2,
           top: o.dy - _starSize / 2,
-          child: Opacity(
-            opacity: fade,
-            child: Transform.scale(
-              scale: 0.6 + 0.7 * t,
-              child: Image.asset(
-                AppImages.sparkStar,
-                width: _starSize,
-                height: _starSize,
-                gaplessPlayback: true,
-              ),
+          child: Transform.scale(
+            scale: 0.6 + 0.7 * t,
+            child: Image.asset(
+              AppImages.sparkStar,
+              width: _starSize,
+              height: _starSize,
+              opacity: AlwaysStoppedAnimation<double>(fade),
+              gaplessPlayback: true,
             ),
           ),
         ),
@@ -161,15 +159,13 @@ class _TapBurstLayerState extends State<TapBurstLayer>
         Positioned(
           left: o.dx - _plusWidth / 2 + math.sin(b.angle) * 10 * t,
           top: o.dy - 70 - 48 * t,
-          child: Opacity(
-            opacity: fade,
-            child: Transform.rotate(
-              angle: b.angle,
-              child: Image.asset(
-                AppImages.plus1,
-                width: _plusWidth,
-                gaplessPlayback: true,
-              ),
+          child: Transform.rotate(
+            angle: b.angle,
+            child: Image.asset(
+              AppImages.plus1,
+              width: _plusWidth,
+              opacity: AlwaysStoppedAnimation<double>(fade),
+              gaplessPlayback: true,
             ),
           ),
         ),
