@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clickbattle/services/app_manager.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
+import 'package:clickbattle/components/game_divider.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
 
 /// In-game How to Play — no Next buttons; teach by tapping the arena.
@@ -183,7 +184,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
     final h = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: ArcadeChrome.navy,
       body: Stack(
         children: [
           AnimatedBuilder(
@@ -193,48 +194,30 @@ class _HowToPlayScreenState extends State<HowToPlayScreen>
               return LayoutBuilder(
                 builder: (context, c) {
                   final totalH = c.maxHeight;
-                  const lineH = 4.0;
+                  const lineH = 22.0;
                   final topH = ((1 - ratio) * (totalH - lineH))
                       .clamp(totalH * 0.18, totalH * 0.82);
-                  final t = lineGlow ? _linePulse.value : 0.0;
                   return Column(
                     children: [
                       SizedBox(
                         height: topH,
                         width: double.infinity,
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFFB0002A), ArcadeChrome.red],
-                            ),
-                          ),
+                        child: const ComicArena(
+                          color: ArcadeChrome.red,
+                          alignTop: true,
                         ),
                       ),
-                      Container(
-                        height: lineH + t * 4,
-                        decoration: BoxDecoration(
-                          color: ArcadeChrome.yellow,
-                          boxShadow: [
-                            BoxShadow(
-                              color: ArcadeChrome.yellow
-                                  .withOpacity(0.35 + t * 0.55),
-                              blurRadius: 8 + t * 16,
-                            ),
-                          ],
-                        ),
+                      GameDivider(
+                        ratio: ratio,
+                        pulseAnimation: lineGlow ? _linePulse : null,
+                        player1Color: ArcadeChrome.blue,
+                        player2Color: ArcadeChrome.red,
+                        height: lineH,
                       ),
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Color(0xFF005F8A), ArcadeChrome.blue],
-                            ),
-                          ),
+                      const Expanded(
+                        child: ComicArena(
+                          color: ArcadeChrome.blue,
+                          alignTop: false,
                         ),
                       ),
                     ],

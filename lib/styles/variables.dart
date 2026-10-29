@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:clickbattle/constants/app_colors.dart';
 
 // Common Properties used across different screens
 class CommonProperties {

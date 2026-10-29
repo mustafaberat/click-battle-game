@@ -45,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _appManager = Provider.of<AppManager>(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [

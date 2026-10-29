@@ -12,6 +12,14 @@ analyzer:
     - build/**
     - android/**
     - web/**
+  errors:
+    # Pre-existing UI (withOpacity, private State types, missing const) on Flutter 3.47+.
+    deprecated_member_use: ignore
+    prefer_const_constructors: ignore
+    prefer_const_constructors_in_immutables: ignore
+    unnecessary_this: ignore
+    library_private_types_in_public_api: ignore
+    use_key_in_widget_constructors: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
