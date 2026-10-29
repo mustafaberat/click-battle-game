@@ -510,9 +510,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        const IgnorePointer(
-                          child: RepaintBoundary(child: _TapRings()),
-                        ),
                         _BigBurst(
                           controller: _player1ClickController,
                           size: iconSize * 5,
@@ -657,32 +654,6 @@ class _BigBurstState extends State<_BigBurst> {
       ),
     );
   }
-}
-
-class _TapRings extends StatelessWidget {
-  const _TapRings();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _RingPainter(), size: Size.infinite);
-  }
-}
-
-class _RingPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height * 0.55);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..color = Colors.white.withOpacity(0.18);
-    canvas.drawCircle(c, 48, paint);
-    canvas.drawCircle(c, 78, paint);
-    canvas.drawCircle(c, 112, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class PlayerIcon extends StatelessWidget {
