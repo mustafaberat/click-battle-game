@@ -52,3 +52,10 @@ app.*.map.json
 *.jks
 
 /play/versions/
+# Local build cache / store assets / design handoff (not source)
+android/app/.cxx/
+play/gorseller/
+play/promo/
+clickbattle_assets.zip
+compare_*.png
+KODLAYICI_PROMPT.md

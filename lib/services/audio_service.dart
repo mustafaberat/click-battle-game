@@ -1,6 +1,7 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'dart:io' show Platform;
 
 /// Background music disabled — stubs kept so call sites stay safe.
 class AudioService {
@@ -27,8 +28,10 @@ class AudioService {
     try {
       _prefs = await SharedPreferences.getInstance();
       _volume = _prefs.getDouble(_volumeKey) ?? defaultVolume;
-      // Do not load or play bg-music.
-      await _audioPlayer.pause();
+      // Do not load or play bg-music. Skip player on widget tests.
+      if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+        await _audioPlayer.pause();
+      }
     } catch (e) {
       debugPrint('Audio service init skipped: $e');
     }
@@ -47,7 +50,7 @@ class AudioService {
   Future<void> toggleMusic(bool enabled) async {
     // Music removed — ignore toggle, keep paused.
     try {
-      await _audioPlayer.pause();
+      await _player?.pause();
     } catch (_) {}
   }
 

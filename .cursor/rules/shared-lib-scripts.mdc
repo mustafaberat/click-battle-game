@@ -5,9 +5,9 @@ alwaysApply: true
 
 # Shared scripts
 
-Release, web ve Play görsel scriptleri bu repoda yok. Kaynak:
+Release, web ve Play görsel scriptleri bu repoda yok. Kaynak (oyun kökünden):
 
-`/Users/mustafaberataru/Projects/personal/mobile-apps/lib/scripts/`
+`../lib/scripts/`
 
 Oyun kökünden:
 
@@ -21,3 +21,4 @@ APP_ROOT=. ../lib/scripts/generate_game_images.sh
 - Düzeltme sadece `mobile-apps/lib/scripts/` içinde.
 - Oyuna özel kalan: `tool/capture_play_shots.dart` ve ikon kaynakları.
 - Sürüm notu şablonu: `../lib/play/whatsnew.template.txt` → oyunda `play/whatsnew.txt`
+- Absolute path (`…/Projects/…`) yazma; workspace klasör adı değişebilir.

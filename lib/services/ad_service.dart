@@ -1,6 +1,9 @@
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:clickbattle/configs/config.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
+
+import 'package:clickbattle/configs/config.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService {
   static final AdService _instance = AdService._internal();
@@ -14,11 +17,13 @@ class AdService {
 
   void initialize() {
     if (_isInitialized) return;
-    
-    MobileAds.instance.initialize();
-    _loadBannerAd();
-    // Don't preload interstitial ad, it will be loaded on demand
     _isInitialized = true;
+    // Web and widget tests have no MobileAds platform channel.
+    if (kIsWeb || Platform.environment.containsKey('FLUTTER_TEST')) return;
+    try {
+      MobileAds.instance.initialize();
+      _loadBannerAd();
+    } catch (_) {}
   }
 
   void _loadBannerAd() {

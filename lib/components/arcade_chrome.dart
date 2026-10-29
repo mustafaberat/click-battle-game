@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 
 /// Arcade Strip Comic chrome — Bangers titles, Exo 2 UI, hard ink outlines.
@@ -16,13 +15,27 @@ class ArcadeChrome {
   static const Color navy = AppColors.comicNavy;
   static const Color ink = AppColors.inkBlack;
 
+  /// CJK / emoji. ElevatedButton DefaultTextStyle replace ettiği için
+  /// tema fallback'i yetmez; stillerin kendi listesi olmalı.
+  static const List<String> fontFallback = [
+    'Hiragino Sans GB',
+    'Hiragino Sans',
+    'PingFang SC',
+    'Noto Sans CJK SC',
+    'Apple SD Gothic Neo',
+    'Apple Color Emoji',
+    'Noto Color Emoji',
+  ];
+
   static TextStyle display({
     double size = 36,
     Color color = Colors.white,
     Color? outline,
     double outlineWidth = 2.5,
   }) {
-    return GoogleFonts.bangers(
+    return TextStyle(
+      fontFamily: 'Bangers',
+      fontFamilyFallback: fontFallback,
       fontSize: size,
       color: color,
       letterSpacing: 1.5,
@@ -48,7 +61,9 @@ class ArcadeChrome {
     Color color = Colors.white,
     double letterSpacing = 1.2,
   }) {
-    return GoogleFonts.exo2(
+    return TextStyle(
+      fontFamily: 'Exo2',
+      fontFamilyFallback: fontFallback,
       fontSize: size,
       fontWeight: weight,
       color: color,

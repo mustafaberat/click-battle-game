@@ -1,18 +1,18 @@
 <tr-TR>
-Arcade Strip yenilendi: yeni ana menü, oyun kurulumu ve ayarlar. Sabit yarı dokunma alanları, yumuşak çizgi geçişi, canlı How to Play demosu ve Game Over ekranı.
+Android 16 (API 36) hedefi ve kararlılık güncellemesi. Oyun deneyimi aynı; Play gereksinimleri için targetSdk güncellendi.
 </tr-TR>
 <en-US>
-Arcade Strip refresh: new home, setup, and settings. Fixed half-screen tap zones, smoother territory line, live How to Play demo, and matching Game Over screen.
+Android 16 (API 36) target and stability update. Same gameplay; targetSdk updated for Play requirements.
 </en-US>
 <es-419>
-Arcade Strip renovado: nuevo inicio, configuración y ajustes. Zonas de toque fijas a la mitad, línea más suave, demo How to Play en vivo y Game Over unificado.
+Actualización de objetivo Android 16 (API 36) y estabilidad. Misma jugabilidad; targetSdk actualizado para Play.
 </es-419>
 <pt-BR>
-Arcade Strip atualizado: nova home, setup e configurações. Zonas de toque fixas na metade, linha mais suave, demo How to Play ao vivo e Game Over unificado.
+Atualização de alvo Android 16 (API 36) e estabilidade. Mesma jogabilidade; targetSdk atualizado para a Play.
 </pt-BR>
 <id>
-Arcade Strip diperbarui: beranda, setup, dan pengaturan baru. Zona ketuk setengah layar tetap, garis lebih lembut, demo How to Play langsung, dan Game Over yang selaras.
+Pembaruan target Android 16 (API 36) dan stabilitas. Gameplay sama; targetSdk diperbarui untuk Play.
 </id>
 <hi-IN>
-Arcade Strip अपडेट: नया होम, सेटअप और सेटिंग्स। स्थिर आधा-स्क्रीन टैप ज़ोन, नरम रेखा, लाइव How to Play डेमो और मिलता-जुलता Game Over।
+Android 16 (API 36) लक्ष्य और स्थिरता अपडेट। गेमप्ले वही; Play के लिए targetSdk अपडेट।
 </hi-IN>

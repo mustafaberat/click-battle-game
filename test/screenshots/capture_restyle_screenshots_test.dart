@@ -9,18 +9,14 @@ import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../helpers/test_harness.dart';
 
 const _shotKey = ValueKey('restyle-shot');
 
+/// Fonts are bundled (fonts/) and preloaded in flutter_test_config.dart.
 Future<void> _waitFonts(WidgetTester tester) async {
-  await tester.runAsync(() async {
-    try {
-      await GoogleFonts.pendingFonts();
-    } catch (_) {}
-  });
+  await tester.pump();
 }
 
 Future<void> _save(WidgetTester tester, String name) async {
@@ -30,7 +26,9 @@ Future<void> _save(WidgetTester tester, String name) async {
     final boundary = tester.renderObject(finder) as RenderRepaintBoundary;
     final image = await boundary.toImage(pixelRatio: 1.25);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final dir = Directory('/opt/cursor/artifacts');
+    final dir = Directory(
+      Platform.environment['RESTYLE_SHOTS_DIR'] ?? 'build/restyle_shots',
+    );
     dir.createSync(recursive: true);
     File('${dir.path}/$name.png').writeAsBytesSync(bytes!.buffer.asUint8List());
   });
