@@ -17,4 +17,17 @@ void main() {
     expect(find.text(app.getText('arcadeTagline')), findsOneWidget);
     expect(find.text(app.getText('welcomeMessage')), findsOneWidget);
   });
+
+  testWidgets('tagline pill fits a 320x568 screen', (tester) async {
+    await pumpScreen(tester, const HomeScreen(), size: const Size(320, 568));
+    await tester.pump(const Duration(milliseconds: 600));
+    final pill = find.byKey(const Key('homeTaglinePill'));
+    expect(pill, findsOneWidget);
+    final r = tester.getRect(pill);
+    expect(r.left, greaterThanOrEqualTo(0));
+    expect(r.right, lessThanOrEqualTo(320));
+    expect(r.top, greaterThan(0));
+    expect(r.bottom, lessThan(568));
+    expect(tester.takeException(), isNull);
+  });
 }

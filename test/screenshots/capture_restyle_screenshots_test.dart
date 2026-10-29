@@ -15,7 +15,12 @@ import '../helpers/test_harness.dart';
 const _shotKey = ValueKey('restyle-shot');
 
 /// Fonts are bundled (fonts/) and preloaded in flutter_test_config.dart.
+/// Raster assets decode asynchronously; give them real time before capture.
 Future<void> _waitFonts(WidgetTester tester) async {
+  await tester.pump();
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 400)),
+  );
   await tester.pump();
 }
 
@@ -106,5 +111,28 @@ void main() {
     );
     await _tick(tester, frames: 20, ms: 80);
     await _save(tester, 'screen_game_over');
+  });
+
+  testWidgets('capture home at 320x568', (tester) async {
+    final app = await bootTestApp();
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      wrapWithApp(
+        const RepaintBoundary(
+          key: _shotKey,
+          child: MediaQuery(
+            data: MediaQueryData(size: Size(320, 568)),
+            child: HomeScreen(),
+          ),
+        ),
+        app,
+      ),
+    );
+    await _waitFonts(tester);
+    await _tick(tester, frames: 8);
+    await _save(tester, 'screen_home_320x568');
   });
 }

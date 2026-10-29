@@ -262,7 +262,8 @@ class _HomeHero extends StatelessWidget {
         final scale = math.max(w / _srcW, h / _srcH);
         final imgH = _srcH * scale;
         final imgTop = (h - imgH) / 2;
-        final subtitleY = -topInset + imgTop + 0.733 * imgH;
+        // Box of the scaled hero (same as the Positioned below).
+        final pillY = imgTop + 0.705 * imgH;
 
         return Stack(
           clipBehavior: Clip.none,
@@ -274,37 +275,34 @@ class _HomeHero extends StatelessWidget {
               bottom: -_bottomBleed,
               child: ScaleTransition(
                 scale: Tween<double>(begin: 0.92, end: 1.0).animate(entrance),
-                child: Semantics(
-                  label: 'CLICK BATTLE',
-                  image: true,
-                  child: Image.asset(
-                    AppImages.homeHero,
-                    key: const Key('homeHeroTitle'),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    filterQuality: FilterQuality.medium,
-                    gaplessPlayback: true,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: subtitleY,
-              child: Text(
-                tagline,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: ArcadeChrome.ui(
-                  size: 15,
-                  weight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.4,
-                ).copyWith(
-                  shadows: const [
-                    Shadow(color: Colors.black, offset: Offset(2, 2)),
-                    Shadow(color: Colors.black, offset: Offset(-1, 1)),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: Semantics(
+                        label: 'CLICK BATTLE',
+                        image: true,
+                        child: Image.asset(
+                          AppImages.homeHero,
+                          key: const Key('homeHeroTitle'),
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          filterQuality: FilterQuality.medium,
+                          gaplessPlayback: true,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: _hPad + 24,
+                      right: _hPad + 24,
+                      top: pillY,
+                      child: FractionalTranslation(
+                        translation: const Offset(0, -0.5),
+                        child: Center(
+                          child: _TaglinePill(text: tagline),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -312,6 +310,55 @@ class _HomeHero extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Small red comic caption pill under the BATTLE plate: white text, black
+/// border, hard offset shadow, tilted ~5° (rising to the right).
+class _TaglinePill extends StatelessWidget {
+  final String text;
+
+  const _TaglinePill({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: -5 * math.pi / 180,
+      child: Container(
+        key: const Key('homeTaglinePill'),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: ArcadeChrome.red,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: ArcadeChrome.ink, width: 2.5),
+          boxShadow: const [
+            BoxShadow(
+              color: ArcadeChrome.ink,
+              offset: Offset(3, 3),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: ArcadeChrome.ui(
+                size: 15,
+                weight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.3,
+              ).copyWith(height: 1.15),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
