@@ -101,6 +101,7 @@ void main() {
 
     await pumpShot(
       const GameScreen(
+        key: ValueKey('finish-shot'),
         gameArgs: {
           'mode': 'GameMode.scoreLimit',
           'playerMode': 'PlayerMode.singlePlayer',
