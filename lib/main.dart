@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/screens/home/home_screen.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/screens/settings/settings_screen.dart';
 import 'package:clickbattle/screens/mode_selection/mode_selection_screen.dart';
 import 'package:clickbattle/screens/how_to_play/how_to_play_screen.dart';
-import 'package:clickbattle/services/settings_service.dart';
-import 'package:clickbattle/styles/app_styles.dart';
-import 'package:clickbattle/services/localization_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 import 'package:clickbattle/services/app_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Firebase config may be missing until the owner runs flutterfire configure.
+  await AnalyticsService.instance.initialize();
   
   // Initialize AppManager
   final appManager = AppManager();
   await appManager.initialize();
+  await AnalyticsService.instance.syncUserProperties(
+    language: appManager.currentLanguage,
+    soundOn: appManager.isSoundEnabled,
+    musicOn: appManager.isMusicEnabled,
+  );
   
   // Modern system UI handling for edge-to-edge display
   SystemChrome.setSystemUIOverlayStyle(
@@ -99,6 +105,9 @@ class _ClickBattleAppState extends State<ClickBattleApp> {
           ),
         ),
       ),
+      navigatorObservers: [
+        AnalyticsNavigatorObserver(),
+      ],
       initialRoute: '/',
       routes: {
         '/': (context) => const HomeScreen(),

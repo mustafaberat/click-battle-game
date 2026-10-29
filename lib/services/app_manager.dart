@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/services/audio_service.dart';
 import 'package:clickbattle/services/ad_service.dart';
 import 'package:clickbattle/services/settings_service.dart';
 import 'package:clickbattle/services/localization_service.dart';
 import 'package:clickbattle/constants/app_colors.dart';
-import 'package:clickbattle/constants/app_strings.dart';
 import 'package:clickbattle/configs/config.dart';
 
 /// AppManager is a centralized class that manages access to all important services and constants.
@@ -56,11 +56,17 @@ class AppManager {
   
   // Background Music
   bool get isMusicEnabled => settingsService.backgroundMusicEnabled;
-  Future<void> setMusicEnabled(bool value) => settingsService.setBackgroundMusicEnabled(value);
+  Future<void> setMusicEnabled(bool value) {
+    AnalyticsService.instance.logToggleMusic(value);
+    return settingsService.setBackgroundMusicEnabled(value);
+  }
   
   // Sound Effects
   bool get isSoundEnabled => settingsService.touchSoundEnabled;
-  Future<void> setSoundEnabled(bool value) => settingsService.setTouchSoundEnabled(value);
+  Future<void> setSoundEnabled(bool value) {
+    AnalyticsService.instance.logToggleSound(value);
+    return settingsService.setTouchSoundEnabled(value);
+  }
   
   // Volume
   double get volume => settingsService.volume;
