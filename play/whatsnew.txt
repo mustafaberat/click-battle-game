@@ -1,18 +1,18 @@
 <tr-TR>
-Android 16 (API 36) hedefi ve kararlılık güncellemesi. Oyun deneyimi aynı; Play gereksinimleri için targetSdk güncellendi.
+Süre 0:00 olunca skor durur. Maçı duraklatabilirsin; devam 3'ten geri sayar. Duraklatınca yeniden başlat veya çık. Sonuç düğmeleri hemen basılmaz. Çizgi roman görünümü sıkılaştı.
 </tr-TR>
 <en-US>
-Android 16 (API 36) target and stability update. Same gameplay; targetSdk updated for Play requirements.
+Score stops at 0:00. Pause a match; resume counts down from 3. Restart or quit from the pause screen. Result buttons do not accept taps right away. The comic look is tighter.
 </en-US>
 <es-419>
-Actualización de objetivo Android 16 (API 36) y estabilidad. Misma jugabilidad; targetSdk actualizado para Play.
+El marcador se detiene en 0:00. Puedes pausar; al continuar cuenta desde 3. Reinicia o sal desde la pausa. Los botones del resultado no responden al instante. El estilo cómic quedó más definido.
 </es-419>
 <pt-BR>
-Atualização de alvo Android 16 (API 36) e estabilidade. Mesma jogabilidade; targetSdk atualizado para a Play.
+A pontuação para em 0:00. Dá para pausar; continuar conta a partir de 3. Reinicie ou saia na pausa. Os botões do resultado não aceitam toque na hora. O visual de quadrinhos ficou mais firme.
 </pt-BR>
 <id>
-Pembaruan target Android 16 (API 36) dan stabilitas. Gameplay sama; targetSdk diperbarui untuk Play.
+Skor berhenti di 0:00. Pertandingan bisa dijeda; lanjut menghitung dari 3. Mulai ulang atau keluar dari jeda. Tombol hasil tidak langsung bisa ditekan. Tampilan komik lebih rapat.
 </id>
 <hi-IN>
-Android 16 (API 36) लक्ष्य और स्थिरता अपडेट। गेमप्ले वही; Play के लिए targetSdk अपडेट।
+स्कोर 0:00 पर रुकता है। मैच रोका जा सकता है; जारी करने पर 3 से गिनती होती है। रोकने पर फिर से शुरू करें या बाहर निकलें। नतीजे के बटन तुरंत नहीं दबते। कॉमिक लुक और साफ है।
 </hi-IN>
