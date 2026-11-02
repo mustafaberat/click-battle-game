@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
@@ -128,6 +129,8 @@ class _GameOverPopupState extends State<GameOverPopup>
   Future<void> _showAdAndReturnHome() async {
     if (_isNavigating) return;
     setState(() => _isNavigating = true);
+    AnalyticsService.instance
+        .logGameOverChoice(AnalyticsValues.choiceHome);
     await _appManager.showGameoverAd(timeoutSeconds: 8);
     if (mounted) Navigator.pop(context);
   }
@@ -268,11 +271,15 @@ class _GameOverPopupState extends State<GameOverPopup>
         ComicButton(
           height: 56,
           onPressed: () {
+            AnalyticsService.instance
+                .logGameOverChoice(AnalyticsValues.choiceReplay);
+            final args = Map<String, dynamic>.from(widget.gameArgs ?? {});
+            args['rematch'] = true;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    GameScreen(gameArgs: widget.gameArgs ?? const {}),
+                settings: RouteSettings(name: '/game', arguments: args),
+                builder: (_) => GameScreen(gameArgs: args),
               ),
             );
           },

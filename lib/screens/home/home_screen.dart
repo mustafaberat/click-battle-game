@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/services/app_manager.dart';
@@ -118,8 +119,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     child: ComicButton(
                       height: 64,
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/mode_selection'),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/mode_selection');
+                      },
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -156,8 +158,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: ArcadeChrome.red,
                           foregroundColor: Colors.white,
                           height: 52,
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/settings'),
+                          onPressed: () {
+                            AnalyticsService.instance.logSettingsOpen(
+                              source: AnalyticsValues.sourceHome,
+                            );
+                            Navigator.pushNamed(context, '/settings');
+                          },
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -181,8 +187,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: ArcadeChrome.blue,
                           foregroundColor: Colors.white,
                           height: 52,
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/how_to_play'),
+                          onPressed: () {
+                            AnalyticsService.instance.logHowToPlayOpen(
+                              source: AnalyticsValues.sourceHome,
+                            );
+                            Navigator.pushNamed(context, '/how_to_play');
+                          },
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

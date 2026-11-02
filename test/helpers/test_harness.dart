@@ -25,19 +25,19 @@ Future<AppManager> bootTestApp() async {
 }
 
 Widget wrapWithApp(Widget child, AppManager app) {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: MultiProvider(
-      providers: [
-        Provider<AppManager>.value(value: app),
-        ChangeNotifierProvider<LocalizationService>.value(
-          value: app.localizationService,
-        ),
-        ChangeNotifierProvider<SettingsService>.value(
-          value: app.settingsService,
-        ),
-      ],
-      child: child,
+  return MultiProvider(
+    providers: [
+      Provider<AppManager>.value(value: app),
+      ChangeNotifierProvider<LocalizationService>.value(
+        value: app.localizationService,
+      ),
+      ChangeNotifierProvider<SettingsService>.value(
+        value: app.settingsService,
+      ),
+    ],
+    child: MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: child,
     ),
   );
 }

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/screens/home/home_screen.dart';
 import 'package:clickbattle/screens/game/game_screen.dart';
 import 'package:clickbattle/screens/settings/settings_screen.dart';
@@ -12,10 +15,19 @@ import 'package:clickbattle/services/app_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Fire-and-forget: never delays the first frame. Missing Firebase config
+  // (no google-services.json) just leaves analytics as a no-op.
+  unawaited(AnalyticsService.instance.initialize());
   
   // Initialize AppManager
   final appManager = AppManager();
   await appManager.initialize();
+  AnalyticsService.instance.syncUserProperties(
+    language: appManager.currentLanguage,
+    soundOn: appManager.isSoundEnabled,
+    musicOn: appManager.isMusicEnabled,
+  );
   
   // Modern system UI handling for edge-to-edge display
   SystemChrome.setSystemUIOverlayStyle(

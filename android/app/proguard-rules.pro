@@ -16,6 +16,11 @@
 # Keep Play Core classes
 -keep class com.google.android.play.core.** { *; }
 
+# Firebase / Google Analytics
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.measurement.** { *; }
+-dontwarn com.google.firebase.**
+
 # Remove debug logs
 -assumenosideeffects class android.util.Log {
     public static *** d(...);

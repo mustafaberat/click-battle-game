@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
+import 'package:clickbattle/analytics/analytics.dart';
 import 'package:clickbattle/constants/app_colors.dart';
 import 'package:clickbattle/constants/app_images.dart';
 import 'package:clickbattle/screens/game/game_over_popup.dart';
+import 'package:clickbattle/screens/game/pause_overlay.dart';
 import 'package:clickbattle/components/game_divider.dart';
 import 'package:clickbattle/components/arcade_chrome.dart';
 import 'package:clickbattle/components/tap_burst_layer.dart';
@@ -39,6 +41,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   /// Logical territory target (0..1, share of player 1).
   double colorRatio = 0.5;
   bool gameEnded = false;
+  bool _paused = false;
+
+  /// After Resume, the match stays frozen through 3-2-1-GO.
+  bool _resumeCountdown = false;
 
   /// After [gameEnded], a short "FINISH!" beat plays (all taps ignored)
   /// before the result popup opens, so end-of-match spam can't hit its
@@ -56,6 +62,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late final int timeLimit;
   late final int scoreLimit;
   late final int difficulty;
+  late final bool isRematch;
+
+  // Analytics: one game_start + one game_end/game_quit per match. Never per tap.
+  DateTime? _matchStartedAt;
+  bool _analyticsEndLogged = false;
   Timer? gameTimer;
   Timer? countdownTimer;
   Timer? _robotTimer;
@@ -102,6 +113,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     timeLimit = widget.gameArgs['timeLimit'] ?? 60;
     scoreLimit = widget.gameArgs['scoreLimit'] ?? 100;
     difficulty = widget.gameArgs['difficulty'] ?? 2;
+    isRematch = widget.gameArgs['rematch'] == true;
     _remaining.value = timeLimit;
 
     startCountdown();
@@ -160,32 +172,127 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     );
   }
 
+  DateTime? _pauseStartedAt;
+  Duration _pausedFor = Duration.zero;
+
+  /// Match length with pause time removed, so a long break is not play time.
+  int get _playedSeconds {
+    if (_matchStartedAt == null) return 0;
+    var elapsed = DateTime.now().difference(_matchStartedAt!);
+    if (_pauseStartedAt != null) {
+      elapsed -= DateTime.now().difference(_pauseStartedAt!);
+    }
+    elapsed -= _pausedFor;
+    if (elapsed.isNegative) return 0;
+    return elapsed.inSeconds;
+  }
+
   void startCountdown() {
+    countdownTimer?.cancel();
     countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _paused) return;
       setState(() {
+        if (_paused) return;
         if (countdownSeconds > 0) {
           countdownSeconds--;
         } else {
           isGameStarted = true;
           countdownTimer?.cancel();
-
-          if (isTimeMode) {
-            // Only the HUD listens to _remaining; no full-screen rebuild.
-            gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-              if (_remaining.value > 0) {
-                _remaining.value--;
-              } else {
-                _endGame();
-              }
-            });
-          }
-
-          if (isSinglePlayer && isGameStarted) {
-            _startRobotClicks();
-          }
+          _matchStartedAt = DateTime.now();
+          _logGameStart();
+          _armMatchTimers();
         }
       });
     });
+  }
+
+  /// Clock and robot. The clock ends the match on the tick that reaches 0,
+  /// so 0:00 cannot keep scoring for an extra second.
+  void _armMatchTimers() {
+    if (isTimeMode) {
+      gameTimer?.cancel();
+      gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted || gameEnded) {
+          timer.cancel();
+          return;
+        }
+        if (_paused || _resumeCountdown) return;
+        if (_remaining.value > 1) {
+          _remaining.value--;
+        } else {
+          _remaining.value = 0;
+          _endGame();
+        }
+      });
+    }
+
+    if (isSinglePlayer) {
+      _startRobotClicks();
+    }
+  }
+
+  void _pauseMatch() {
+    if (_paused || gameEnded || !mounted) return;
+    _pauseStartedAt ??= DateTime.now();
+    countdownTimer?.cancel();
+    gameTimer?.cancel();
+    _robotTimer?.cancel();
+    setState(() {
+      _paused = true;
+      _resumeCountdown = false;
+    });
+  }
+
+  void _closePauseClock() {
+    if (_pauseStartedAt == null) return;
+    _pausedFor += DateTime.now().difference(_pauseStartedAt!);
+    _pauseStartedAt = null;
+  }
+
+  /// Resume always counts 3, 2, 1, GO! before the frozen match continues.
+  void _resumeMatch() {
+    if (!_paused || !mounted) return;
+    countdownSeconds = 3;
+    setState(() {
+      _paused = false;
+      _resumeCountdown = true;
+    });
+    countdownTimer?.cancel();
+    countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _paused) return;
+      setState(() {
+        if (_paused || !_resumeCountdown) return;
+        if (countdownSeconds > 0) {
+          countdownSeconds--;
+          return;
+        }
+        timer.cancel();
+        _resumeCountdown = false;
+        _closePauseClock();
+        if (!isGameStarted) {
+          isGameStarted = true;
+          _matchStartedAt = DateTime.now();
+          _logGameStart();
+        }
+        _armMatchTimers();
+      });
+    });
+  }
+
+  void _restartMatch() {
+    final args = Map<String, dynamic>.from(widget.gameArgs);
+    args['rematch'] = true;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        settings: RouteSettings(name: '/game', arguments: args),
+        builder: (_) => GameScreen(gameArgs: args),
+      ),
+    );
+  }
+
+  void _quitMatch() {
+    Navigator.pop(context);
   }
 
   /// Taps/sec curve: 1→1 … 8→8, 9→12, 10→16 (near-impossible).
@@ -196,14 +303,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _startRobotClicks() {
+    _robotTimer?.cancel();
     final intervalMs = (1000 / _robotTapsPerSecond).round().clamp(40, 1000);
     final random = Random();
 
     _robotTimer = Timer.periodic(Duration(milliseconds: intervalMs), (timer) {
-      if (!mounted) {
+      if (!mounted || gameEnded) {
         timer.cancel();
         return;
       }
+      if (_paused || _resumeCountdown || !isGameStarted) return;
       if (!gameEnded && isGameStarted) {
         final size = MediaQuery.of(context).size;
         final h = size.height;
@@ -217,7 +326,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
         if (difficulty >= 9 && random.nextDouble() < 0.22) {
           Future.delayed(const Duration(milliseconds: 40), () {
-            if (!mounted || gameEnded || !isGameStarted) return;
+            if (!mounted ||
+                gameEnded ||
+                !isGameStarted ||
+                _paused ||
+                _resumeCountdown) {
+              return;
+            }
             _updateScore(
               false,
               Offset(
@@ -235,6 +350,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    if (!_analyticsEndLogged) _logMatchFinished(quit: true);
     gameTimer?.cancel();
     countdownTimer?.cancel();
     _robotTimer?.cancel();
@@ -269,12 +385,60 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       gameEnded = true;
     });
     _finishController.forward(from: 0);
+    _logMatchFinished(quit: false);
+  }
+
+  void _logGameStart() {
+    AnalyticsService.instance.logGameStart(
+      isSinglePlayer: isSinglePlayer,
+      isTimeMode: isTimeMode,
+      timeLimit: timeLimit,
+      scoreLimit: scoreLimit,
+      difficulty: difficulty,
+      rematch: isRematch,
+    );
+  }
+
+  /// Called once per match (end or leaving mid-game). Fire-and-forget.
+  void _logMatchFinished({required bool quit}) {
+    if (_analyticsEndLogged) return;
+    _analyticsEndLogged = true;
+    final durationSec = _playedSeconds;
+    final analytics = AnalyticsService.instance;
+    if (quit) {
+      analytics.logGameQuit(
+        isSinglePlayer: isSinglePlayer,
+        isTimeMode: isTimeMode,
+        timeLimit: timeLimit,
+        scoreLimit: scoreLimit,
+        difficulty: difficulty,
+        player1Score: _p1Score.value,
+        player2Score: _p2Score.value,
+        durationSec: durationSec,
+        duringCountdown: !isGameStarted,
+      );
+    } else {
+      analytics.logGameEnd(
+        isSinglePlayer: isSinglePlayer,
+        isTimeMode: isTimeMode,
+        timeLimit: timeLimit,
+        scoreLimit: scoreLimit,
+        difficulty: difficulty,
+        player1Score: _p1Score.value,
+        player2Score: _p2Score.value,
+        durationSec: durationSec,
+      );
+    }
   }
 
   /// Counts the tap immediately (exact score, instant score bounce) and queues
   /// its FX + territory update for the next frame.
   void _updateScore(bool isPlayer1, Offset tapPosition) {
-    if (gameEnded || !isGameStarted) return;
+    if (gameEnded || !isGameStarted || _paused || _resumeCountdown) return;
+    if (isTimeMode && _remaining.value <= 0) {
+      _endGame();
+      return;
+    }
 
     if (isPlayer1) {
       _p1Score.value++;
@@ -414,219 +578,245 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     final blue = _appManager.player1Color;
     final red = _appManager.player2Color;
 
-    return Scaffold(
-      backgroundColor: AppColors.comicNavy,
-      body: Stack(
-        children: [
-          // VISUAL territory — continuous heights. Arenas/overlay/divider are
-          // built once and only re-laid-out while the ratio animates.
-          RepaintBoundary(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final h = constraints.maxHeight;
-                final redArena = ComicArena(color: red, alignTop: true);
-                final blueArena = ComicArena(color: blue, alignTop: false);
-                final divider = RepaintBoundary(
-                  child: GameDivider(
-                    ratio: 0.5,
-                    pulseAnimation: _dividerPulseAnimation,
-                    player1Color: blue,
-                    player2Color: red,
-                    height: 100,
-                  ),
-                );
-                const speedLines = Positioned.fill(
-                  child: IgnorePointer(
-                    child: Image(
-                      image: AssetImage(AppImages.speedLines),
-                      fit: BoxFit.cover,
-                      gaplessPlayback: true,
-                    ),
-                  ),
-                );
-                return AnimatedBuilder(
-                  animation: _ratioController,
-                  builder: (context, _) {
-                    final topH = _topHeight(_ratioController.value, h);
-                    return Stack(
-                      children: [
-                        Column(
-                          children: [
-                            SizedBox(
-                              height: topH,
-                              width: double.infinity,
-                              child: redArena,
-                            ),
-                            SizedBox(
-                              height: h - topH,
-                              width: double.infinity,
-                              child: blueArena,
-                            ),
-                          ],
-                        ),
-                        speedLines,
-                        Positioned(
-                          top: topH - 50,
-                          left: 0,
-                          right: 0,
-                          child: divider,
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          RepaintBoundary(child: TapBurstLayer(controller: _bursts)),
-          Positioned(
-            right: screenSize.width * 0.06,
-            top: isSinglePlayer
-                ? screenSize.height * 0.22
-                : screenSize.height * 0.5 + 10,
-            child: isSinglePlayer ? _score(_p2Score) : _score(_p1Score),
-          ),
-          Positioned(
-            right: screenSize.width * 0.06,
-            bottom: isSinglePlayer
-                ? screenSize.height * 0.22
-                : screenSize.height * 0.5 + 10,
-            child: isSinglePlayer
-                ? _score(_p1Score)
-                : _score(_p2Score, flipped: true),
-          ),
-          // HIT ZONES — always 50/50. Visual territory must NEVER shrink taps.
-          AbsorbPointer(
-            absorbing: !isGameStarted,
-            child: Column(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapDown: isSinglePlayer ? null : _onPlayer2Tap,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (!isSinglePlayer)
-                          _BigBurst(
-                            controller: _player2ClickController,
-                            size: iconSize * 5,
-                          ),
-                        Center(
-                          child: RepaintBoundary(
-                            child: PlayerIcon(
-                              isRobot: isSinglePlayer,
-                              isTopPlayer: true,
-                              iconSize: iconSize,
-                              scaleAnimation: _player2ClickScale,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    key: const Key('player1HitZone'),
-                    behavior: HitTestBehavior.opaque,
-                    onTapDown: _onPlayer1Tap,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        _BigBurst(
-                          controller: _player1ClickController,
-                          size: iconSize * 5,
-                        ),
-                        Center(
-                          child: RepaintBoundary(
-                            child: PlayerIcon(
-                              isRobot: false,
-                              isTopPlayer: false,
-                              iconSize: iconSize,
-                              scaleAnimation: _player1ClickScale,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Neutral HUD: one compact chip centred on the frontier, above
-          // divider + FX, never intercepting taps.
-          IgnorePointer(
-            child: RepaintBoundary(
+    return PopScope(
+      canPop: gameEnded,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !mounted) return;
+        if (_paused) {
+          _resumeMatch();
+        } else {
+          _pauseMatch();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.comicNavy,
+        body: Stack(
+          children: [
+            // VISUAL territory — continuous heights. Arenas/overlay/divider are
+            // built once and only re-laid-out while the ratio animates.
+            RepaintBoundary(
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final h = constraints.maxHeight;
+                  final redArena = ComicArena(color: red, alignTop: true);
+                  final blueArena = ComicArena(color: blue, alignTop: false);
+                  final divider = RepaintBoundary(
+                    child: GameDivider(
+                      ratio: 0.5,
+                      pulseAnimation: _dividerPulseAnimation,
+                      player1Color: blue,
+                      player2Color: red,
+                      height: 100,
+                    ),
+                  );
+                  const speedLines = Positioned.fill(
+                    child: IgnorePointer(
+                      child: Image(
+                        image: AssetImage(AppImages.speedLines),
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                      ),
+                    ),
+                  );
                   return AnimatedBuilder(
-                    animation: Listenable.merge(
-                      [_ratioController, _p1Score, _p2Score, _remaining],
-                    ),
-                    builder: (context, _) => Stack(
-                      children: [
-                        Positioned(
-                          top: _topHeight(_ratioController.value, h),
-                          left: 0,
-                          right: 0,
-                          child: FractionalTranslation(
-                            translation: const Offset(0, -0.5),
-                            child: Center(
-                              child: ComicTimerChip(
-                                key: const Key('gameHudChip'),
-                                icon: isTimeMode ? Icons.timer : Icons.flag,
-                                value: _hudValue,
-                                urgent: _timerUrgent,
-                                pulse: isGameStarted && isTimeMode,
+                    animation: _ratioController,
+                    builder: (context, _) {
+                      final topH = _topHeight(_ratioController.value, h);
+                      return Stack(
+                        children: [
+                          Column(
+                            children: [
+                              SizedBox(
+                                height: topH,
+                                width: double.infinity,
+                                child: redArena,
                               ),
-                            ),
+                              SizedBox(
+                                height: h - topH,
+                                width: double.infinity,
+                                child: blueArena,
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
+                          speedLines,
+                          Positioned(
+                            top: topH - 50,
+                            left: 0,
+                            right: 0,
+                            child: divider,
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
             ),
-          ),
-          if (!isGameStarted)
-            Container(
-              color: Colors.black.withOpacity(0.55),
-              child: Center(
-                child: Text(
-                  countdownSeconds > 0 ? countdownSeconds.toString() : 'GO!',
-                  style: ArcadeChrome.display(
-                    size: 72,
-                    color: countdownSeconds > 0
-                        ? Colors.white
-                        : ArcadeChrome.yellow,
-                    outline: ArcadeChrome.red,
-                    outlineWidth: 4,
+            RepaintBoundary(child: TapBurstLayer(controller: _bursts)),
+            Positioned(
+              right: screenSize.width * 0.06,
+              top: isSinglePlayer
+                  ? screenSize.height * 0.22
+                  : screenSize.height * 0.5 + 10,
+              child: isSinglePlayer ? _score(_p2Score) : _score(_p1Score),
+            ),
+            Positioned(
+              right: screenSize.width * 0.06,
+              bottom: isSinglePlayer
+                  ? screenSize.height * 0.22
+                  : screenSize.height * 0.5 + 10,
+              child: isSinglePlayer
+                  ? _score(_p1Score)
+                  : _score(_p2Score, flipped: true),
+            ),
+            // HIT ZONES — always 50/50. Visual territory must NEVER shrink taps.
+            AbsorbPointer(
+              absorbing:
+                  !isGameStarted || gameEnded || _paused || _resumeCountdown,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: isSinglePlayer ? null : _onPlayer2Tap,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (!isSinglePlayer)
+                            _BigBurst(
+                              controller: _player2ClickController,
+                              size: iconSize * 5,
+                            ),
+                          Center(
+                            child: RepaintBoundary(
+                              child: PlayerIcon(
+                                isRobot: isSinglePlayer,
+                                isTopPlayer: true,
+                                iconSize: iconSize,
+                                scaleAnimation: _player2ClickScale,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
+                  Expanded(
+                    child: GestureDetector(
+                      key: const Key('player1HitZone'),
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: _onPlayer1Tap,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _BigBurst(
+                            controller: _player1ClickController,
+                            size: iconSize * 5,
+                          ),
+                          Center(
+                            child: RepaintBoundary(
+                              child: PlayerIcon(
+                                isRobot: false,
+                                isTopPlayer: false,
+                                iconSize: iconSize,
+                                scaleAnimation: _player1ClickScale,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Neutral HUD: one compact chip centred on the frontier, above
+            // divider + FX, never intercepting taps.
+            IgnorePointer(
+              child: RepaintBoundary(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final h = constraints.maxHeight;
+                    return AnimatedBuilder(
+                      animation: Listenable.merge(
+                        [_ratioController, _p1Score, _p2Score, _remaining],
+                      ),
+                      builder: (context, _) => Stack(
+                        children: [
+                          Positioned(
+                            top: _topHeight(_ratioController.value, h),
+                            left: 0,
+                            right: 0,
+                            child: FractionalTranslation(
+                              translation: const Offset(0, -0.5),
+                              child: Center(
+                                child: ComicTimerChip(
+                                  key: const Key('gameHudChip'),
+                                  icon: isTimeMode ? Icons.timer : Icons.flag,
+                                  value: _hudValue,
+                                  urgent: _timerUrgent,
+                                  pulse: isGameStarted && isTimeMode,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
-          if (gameEnded && !_showResult)
-            Positioned.fill(
-              child: _FinishMoment(
-                key: const Key('finishMoment'),
-                animation: _finishController,
-                label: _appManager.getText('finishMoment'),
+            if ((!isGameStarted || _resumeCountdown) && !_paused)
+              Container(
+                color: Colors.black.withOpacity(0.55),
+                child: Center(
+                  child: Text(
+                    countdownSeconds > 0 ? countdownSeconds.toString() : 'GO!',
+                    style: ArcadeChrome.display(
+                      size: 72,
+                      color: countdownSeconds > 0
+                          ? Colors.white
+                          : ArcadeChrome.yellow,
+                      outline: ArcadeChrome.red,
+                      outlineWidth: 4,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          if (_showResult)
-            GameOverPopup(
-              player1Score: player1Score,
-              player2Score: player2Score,
-              isSinglePlayer: isSinglePlayer,
-              gameArgs: widget.gameArgs,
-            ),
-        ],
+            if (!gameEnded && !_paused)
+              Positioned.fill(
+                child: PauseMatchButton(onPressed: _pauseMatch),
+              ),
+            if (gameEnded && !_showResult)
+              Positioned.fill(
+                child: _FinishMoment(
+                  key: const Key('finishMoment'),
+                  animation: _finishController,
+                  label: _appManager.getText('finishMoment'),
+                ),
+              ),
+            if (_paused)
+              PauseOverlay(
+                title: _appManager.getText('paused'),
+                resumeLabel: _appManager.getText('resume'),
+                restartLabel: _appManager.getText('restart'),
+                quitLabel: _appManager.getText('quitMatch'),
+                onResume: _resumeMatch,
+                onRestart: _restartMatch,
+                onQuit: _quitMatch,
+              ),
+            if (_showResult)
+              GameOverPopup(
+                player1Score: player1Score,
+                player2Score: player2Score,
+                isSinglePlayer: isSinglePlayer,
+                gameArgs: widget.gameArgs,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -678,32 +868,32 @@ class _FinishMoment extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Transform.rotate(
-              angle: -0.08,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(26, 12, 26, 8),
-                decoration: BoxDecoration(
-                  color: ArcadeChrome.yellow,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: ArcadeChrome.ink, width: 4),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: ArcadeChrome.ink,
-                      offset: Offset(5, 5),
-                      blurRadius: 0,
+                  angle: -0.08,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(26, 12, 26, 8),
+                    decoration: BoxDecoration(
+                      color: ArcadeChrome.yellow,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: ArcadeChrome.ink, width: 4),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: ArcadeChrome.ink,
+                          offset: Offset(5, 5),
+                          blurRadius: 0,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Text(
-                  label.toUpperCase(),
-                  style: ArcadeChrome.display(
-                    size: 64,
-                    color: ArcadeChrome.red,
-                    outline: ArcadeChrome.ink,
-                    outlineWidth: 3,
+                    child: Text(
+                      label.toUpperCase(),
+                      style: ArcadeChrome.display(
+                        size: 64,
+                        color: ArcadeChrome.red,
+                        outline: ArcadeChrome.ink,
+                        outlineWidth: 3,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
               ),
             ),
           ),

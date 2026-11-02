@@ -15,6 +15,16 @@ Ortak ARU Soft kuralları: [`../lib/MOBILE_APP_RULES.md`](../lib/MOBILE_APP_RULE
 - 10 languages (en, es, pt, zh, ja, de, fr, ko, it, tr)
 - In-game How to Play mini match
 
+## Analytics (Firebase / GA4)
+
+Altyapı kodda; Firebase projesi ve `google-services.json` henüz yok. Config olmadan uygulama çalışır, olaylar no-op olur.
+
+Kurulum, olay kataloğu, DebugView ve huniler: [`docs/ANALYTICS.md`](./docs/ANALYTICS.md)
+
+```bash
+adb shell setprop debug.firebase.analytics.app com.arusoft.clickbattle
+```
+
 ## Run (web)
 
 ```bash
